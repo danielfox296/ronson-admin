@@ -42,7 +42,7 @@ export default function PromptDetail() {
         title: body.title,
         audio_file_url: body.audio_file_url,
         duration_seconds: body.duration_seconds ? Number(body.duration_seconds) : undefined,
-        generation_system_id: body.generation_system_id || undefined,
+        generation_system_id: body.generation_system_id || promptData?.data?.generation_system_id,
       },
     }),
     onSuccess: () => {
@@ -103,8 +103,9 @@ export default function PromptDetail() {
           <FileUpload onUploaded={(url) => setGenForm({ ...genForm, audio_file_url: url })} />
           {genForm.audio_file_url && <p className="text-[#27ae60] text-xs">Audio file uploaded</p>}
           <input placeholder="Duration (seconds)" type="number" value={genForm.duration_seconds} onChange={(e) => setGenForm({ ...genForm, duration_seconds: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-          <select value={genForm.generation_system_id} onChange={(e) => setGenForm({ ...genForm, generation_system_id: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]">
-            <option value="">Generation System (optional)</option>
+          <label className="text-xs text-[rgba(255,255,255,0.4)] block">Generation System *</label>
+          <select value={genForm.generation_system_id} onChange={(e) => setGenForm({ ...genForm, generation_system_id: e.target.value })} className={`w-full border rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)] ${!genForm.generation_system_id ? 'border-[rgba(230,126,34,0.4)] text-[rgba(255,255,255,0.3)]' : 'border-[rgba(255,255,255,0.08)]'}`}>
+            <option value="">— Select Generation System —</option>
             {genSystems.map((gs: any) => (
               <option key={gs.id} value={gs.id}>{gs.name}</option>
             ))}
