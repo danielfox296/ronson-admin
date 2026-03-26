@@ -36,7 +36,10 @@ export default function RefTrackDetail() {
   });
 
   const createTemplateMutation = useMutation({
-    mutationFn: () => api(`/api/reference-tracks/${refTrackId}/template`, { method: 'POST', body: {} }),
+    mutationFn: () => api(`/api/reference-tracks/${refTrackId}/template`, {
+      method: 'POST',
+      body: { name: `Template for ${refData?.data?.title || 'track'}`, flow_factor_values: {}, created_by: 'admin' },
+    }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ref-track-template', refTrackId] }),
   });
 
