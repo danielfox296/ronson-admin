@@ -19,6 +19,10 @@ export default function SongDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAssign, setShowAssign] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleVal, setTitleVal] = useState('');
+  const [editingStatus, setEditingStatus] = useState(false);
+  const [statusVal, setStatusVal] = useState('');
 
   const { data: songData, isLoading } = useQuery({
     queryKey: ['song', id],
@@ -29,6 +33,11 @@ export default function SongDetail() {
     queryKey: ['stores-for-assign'],
     queryFn: () => api<{ data: any[] }>('/api/stores'),
     enabled: showAssign,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (body: any) => api(`/api/songs/${id}`, { method: 'PUT', body }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['song', id] }); setEditingTitle(false); setEditingStatus(false); },
   });
 
   const assignMutation = useMutation({
@@ -70,12 +79,39 @@ export default function SongDetail() {
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{song.title}</h1>
-          <StatusBadge status={song.status || 'active'} />
+          {editingTitle ? (
+            <>
+              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-2xl font-bold border rounded px-2 py-1" />
+              <button type="button" onClick={() => updateMutation.mutate({ title: titleVal })} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Save</button>
+              <button type="button" onClick={() => setEditingTitle(false)} className="border px-3 py-1 rounded text-sm">Cancel</button>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold">{song.title}</h1>
+              <button type="button" onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }} className="text-blue-600 hover:underline text-sm">Edit</button>
+            </>
+          )}
+          {editingStatus ? (
+            <div className="flex items-center gap-2">
+              <select value={statusVal} onChange={(e) => setStatusVal(e.target.value)} className="border rounded px-2 py-1 text-sm">
+                <option value="generated">generated</option>
+                <option value="active">active</option>
+                <option value="flagged">flagged</option>
+                <option value="removed">removed</option>
+              </select>
+              <button type="button" onClick={() => updateMutation.mutate({ status: statusVal })} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Save</button>
+              <button type="button" onClick={() => setEditingStatus(false)} className="border px-3 py-1 rounded text-sm">Cancel</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <StatusBadge status={song.status || 'active'} />
+              <button type="button" onClick={() => { setStatusVal(song.status || 'active'); setEditingStatus(true); }} className="text-blue-600 hover:underline text-xs">change</button>
+            </div>
+          )}
         </div>
         <button
           type="button"
-          onClick={() => { if (confirm('Delete this song?')) deleteMutation.mutate(); }}
+          onClick={() => { if (window.confirm('Delete this song?')) deleteMutation.mutate(); }}
           className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700"
         >
           Delete

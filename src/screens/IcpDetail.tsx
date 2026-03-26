@@ -29,6 +29,11 @@ export default function IcpDetail() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['icp', icpId] }); setEditing(false); },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => api(`/api/store-icps/${icpId}`, { method: 'DELETE' }),
+    onSuccess: () => navigate(`/clients/${clientId}/stores/${storeId}`),
+  });
+
   const createRefMutation = useMutation({
     mutationFn: (body: any) => api(`/api/store-icps/${icpId}/reference-tracks`, { method: 'POST', body: { ...body, duration_seconds: body.duration_seconds ? Number(body.duration_seconds) : undefined, release_year: body.release_year ? Number(body.release_year) : undefined } }),
     onSuccess: () => {
@@ -120,6 +125,22 @@ export default function IcpDetail() {
           </div>
         ))}
         {refTracks.length === 0 && <p className="px-4 py-6 text-center text-gray-500 text-sm">No reference tracks yet</p>}
+      </div>
+
+      {/* Delete ICP */}
+      <div className="mt-8 border-t pt-6">
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to delete ${icp.name}?`)) {
+              deleteMutation.mutate();
+            }
+          }}
+          disabled={deleteMutation.isPending}
+          className="text-red-600 hover:text-red-700 text-sm font-medium"
+        >
+          {deleteMutation.isPending ? 'Deleting...' : 'Delete ICP'}
+        </button>
       </div>
     </div>
   );

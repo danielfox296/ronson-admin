@@ -30,6 +30,11 @@ export default function RefTrackDetail() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['ref-track', refTrackId] }); setEditing(false); },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => api(`/api/reference-tracks/${refTrackId}`, { method: 'DELETE' }),
+    onSuccess: () => navigate(`/clients/${clientId}/stores/${storeId}/icps/${icpId}`),
+  });
+
   const createTemplateMutation = useMutation({
     mutationFn: () => api(`/api/reference-tracks/${refTrackId}/template`, { method: 'POST', body: {} }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ref-track-template', refTrackId] }),
@@ -135,6 +140,22 @@ export default function RefTrackDetail() {
           </button>
         </div>
       )}
+
+      {/* Delete Reference Track */}
+      <div className="mt-8 border-t pt-6">
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to delete "${ref.title}"?`)) {
+              deleteMutation.mutate();
+            }
+          }}
+          disabled={deleteMutation.isPending}
+          className="text-red-600 hover:text-red-700 text-sm font-medium"
+        >
+          {deleteMutation.isPending ? 'Deleting...' : 'Delete Reference Track'}
+        </button>
+      </div>
     </div>
   );
 }

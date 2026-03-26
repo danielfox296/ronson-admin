@@ -42,6 +42,11 @@ export default function ClientDetail() {
     },
   });
 
+  const deactivateMutation = useMutation({
+    mutationFn: () => api(`/api/clients/${id}`, { method: 'PUT', body: { status: 'inactive' } }),
+    onSuccess: () => navigate('/clients'),
+  });
+
   if (isLoading) return <p className="text-gray-500">Loading...</p>;
   const client = data?.data;
   if (!client) return <p className="text-red-600">Client not found</p>;
@@ -136,6 +141,22 @@ export default function ClientDetail() {
             <p className="px-4 py-6 text-center text-gray-500 text-sm">No stores yet</p>
           )}
         </div>
+      </div>
+
+      {/* Deactivate Client */}
+      <div className="mt-8 border-t pt-6">
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to deactivate ${client.name}?`)) {
+              deactivateMutation.mutate();
+            }
+          }}
+          disabled={deactivateMutation.isPending}
+          className="text-red-600 hover:text-red-700 text-sm font-medium"
+        >
+          {deactivateMutation.isPending ? 'Deactivating...' : 'Deactivate Client'}
+        </button>
       </div>
 
       {/* Corporate ICPs */}
