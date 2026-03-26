@@ -45,8 +45,8 @@ export default function FileUpload({ onUploaded }: FileUploadProps) {
 
   return (
     <div
-      className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-        dragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+      className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+        dragging ? 'border-[#4a90a4] bg-[rgba(74,144,164,0.1)]' : 'border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.15)]'
       }`}
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
@@ -64,16 +64,16 @@ export default function FileUpload({ onUploaded }: FileUploadProps) {
         }}
       />
       {done ? (
-        <p className="text-green-600 font-medium">Uploaded {fileName}</p>
+        <p className="text-[#27ae60] font-medium">Uploaded {fileName}</p>
       ) : uploading ? (
-        <p className="text-blue-600">Uploading {fileName}...</p>
+        <p className="text-[#4a90a4]">Uploading {fileName}...</p>
       ) : (
-        <p className="text-gray-500">
+        <p className="text-[rgba(255,255,255,0.4)]">
           Drag & drop an audio file here, or click to browse<br />
-          <span className="text-xs">.mp3, .wav, .flac</span>
+          <span className="text-xs text-[rgba(255,255,255,0.2)]">.mp3, .wav, .flac</span>
         </p>
       )}
-      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+      {error && <p className="text-[#e74c3c] text-sm mt-2">{error}</p>}
     </div>
   );
 }

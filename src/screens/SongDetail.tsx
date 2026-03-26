@@ -6,12 +6,12 @@ import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-green-100 text-green-800', online: 'bg-green-100 text-green-800',
-    draft: 'bg-yellow-100 text-yellow-800', onboarding: 'bg-yellow-100 text-yellow-800',
-    flagged: 'bg-red-100 text-red-800', inactive: 'bg-red-100 text-red-800',
-    archived: 'bg-gray-100 text-gray-800',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]', online: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
+    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]', onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
+    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]', inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{status}</span>;
 }
 
 export default function SongDetail() {
@@ -55,16 +55,15 @@ export default function SongDetail() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['song', id] }),
   });
 
-  if (isLoading) return <p className="text-gray-500">Loading...</p>;
+  if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
   const song = songData?.data;
-  if (!song) return <p className="text-red-600">Song not found</p>;
+  if (!song) return <p className="text-[#e74c3c]">Song not found</p>;
 
   const lineage = song.lineage || {};
   const flowFactors = lineage.template?.flow_factor_values || {};
   const assignments = song.store_playlists || [];
   const stores = storesData?.data || [];
 
-  // Build lineage links
   const lineageIcp = lineage.icp;
   const lineageRefTrack = lineage.reference_track;
   const lineageTemplate = lineage.template;
@@ -81,54 +80,54 @@ export default function SongDetail() {
         <div className="flex items-center gap-3">
           {editingTitle ? (
             <>
-              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-2xl font-bold border rounded px-2 py-1" />
-              <button type="button" onClick={() => updateMutation.mutate({ title: titleVal })} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Save</button>
-              <button type="button" onClick={() => setEditingTitle(false)} className="border px-3 py-1 rounded text-sm">Cancel</button>
+              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-2xl font-light border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)]" />
+              <button type="button" onClick={() => updateMutation.mutate({ title: titleVal })} className="bg-[#4a90a4] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
+              <button type="button" onClick={() => setEditingTitle(false)} className="border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
             </>
           ) : (
             <>
-              <h1 className="text-2xl font-bold">{song.title}</h1>
-              <button type="button" onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }} className="text-blue-600 hover:underline text-sm">Edit</button>
+              <h1 className="text-2xl font-light text-[rgba(255,255,255,0.87)]">{song.title}</h1>
+              <button type="button" onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }} className="text-[#4a90a4] hover:text-[#5ba3b8] text-sm transition-colors">Edit</button>
             </>
           )}
           {editingStatus ? (
             <div className="flex items-center gap-2">
-              <select value={statusVal} onChange={(e) => setStatusVal(e.target.value)} className="border rounded px-2 py-1 text-sm">
+              <select value={statusVal} onChange={(e) => setStatusVal(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-sm bg-[rgba(255,255,255,0.03)]">
                 <option value="generated">generated</option>
                 <option value="active">active</option>
                 <option value="flagged">flagged</option>
                 <option value="removed">removed</option>
               </select>
-              <button type="button" onClick={() => updateMutation.mutate({ status: statusVal })} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Save</button>
-              <button type="button" onClick={() => setEditingStatus(false)} className="border px-3 py-1 rounded text-sm">Cancel</button>
+              <button type="button" onClick={() => updateMutation.mutate({ status: statusVal })} className="bg-[#4a90a4] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
+              <button type="button" onClick={() => setEditingStatus(false)} className="border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <StatusBadge status={song.status || 'active'} />
-              <button type="button" onClick={() => { setStatusVal(song.status || 'active'); setEditingStatus(true); }} className="text-blue-600 hover:underline text-xs">change</button>
+              <button type="button" onClick={() => { setStatusVal(song.status || 'active'); setEditingStatus(true); }} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">change</button>
             </div>
           )}
         </div>
         <button
           type="button"
           onClick={() => { if (window.confirm('Delete this song?')) deleteMutation.mutate(); }}
-          className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700"
+          className="border border-[rgba(231,76,60,0.3)] text-[#e74c3c] px-4 py-2 rounded-lg text-sm hover:bg-[rgba(231,76,60,0.1)] transition-colors"
         >
           Delete
         </button>
       </div>
 
       {/* Song Info */}
-      <div className="bg-white border rounded-lg p-4 mb-6 text-sm space-y-3">
+      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 text-sm space-y-3">
         <div className="grid grid-cols-2 gap-4">
-          <div><span className="text-gray-500">Duration:</span> {song.duration_seconds ? `${song.duration_seconds}s` : '-'}</div>
-          <div><span className="text-gray-500">Status:</span> {song.status}</div>
-          <div><span className="text-gray-500">Generation System:</span> {song.generation_system_id || '-'}</div>
-          <div><span className="text-gray-500">Created:</span> {song.created_at ? new Date(song.created_at).toLocaleDateString() : '-'}</div>
+          <div><span className="text-[rgba(255,255,255,0.4)]">Duration:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.duration_seconds ? `${song.duration_seconds}s` : '-'}</span></div>
+          <div><span className="text-[rgba(255,255,255,0.4)]">Status:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.status}</span></div>
+          <div><span className="text-[rgba(255,255,255,0.4)]">Generation System:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.generation_system_id || '-'}</span></div>
+          <div><span className="text-[rgba(255,255,255,0.4)]">Created:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.created_at ? new Date(song.created_at).toLocaleDateString() : '-'}</span></div>
         </div>
         {song.audio_file_url && (
           <div>
-            <span className="text-gray-500 block mb-1">Audio Preview:</span>
+            <span className="text-[rgba(255,255,255,0.4)] block mb-1">Audio Preview:</span>
             <audio controls src={song.audio_file_url} className="w-full" />
           </div>
         )}
@@ -137,45 +136,45 @@ export default function SongDetail() {
       {/* Lineage */}
       {(lineageIcp || lineageRefTrack || lineageTemplate || lineagePrompt) && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">Lineage</h2>
-          <div className="bg-white border rounded-lg p-4 text-sm space-y-2">
+          <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Lineage</h2>
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-2">
             {lineageIcp && (
               <div>
-                <span className="text-gray-500">ICP:</span>{' '}
+                <span className="text-[rgba(255,255,255,0.4)]">ICP:</span>{' '}
                 {lineageIcp.store ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}`} className="text-blue-600 hover:underline">{lineageIcp.name}</Link>
+                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">{lineageIcp.name}</Link>
                 ) : (
-                  <span>{lineageIcp.name}</span>
+                  <span className="text-[rgba(255,255,255,0.87)]">{lineageIcp.name}</span>
                 )}
               </div>
             )}
             {lineageRefTrack && (
               <div>
-                <span className="text-gray-500">Reference Track:</span>{' '}
+                <span className="text-[rgba(255,255,255,0.4)]">Reference Track:</span>{' '}
                 {lineageIcp?.store ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack.id}`} className="text-blue-600 hover:underline">{lineageRefTrack.title}</Link>
+                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">{lineageRefTrack.title}</Link>
                 ) : (
-                  <span>{lineageRefTrack.title}</span>
+                  <span className="text-[rgba(255,255,255,0.87)]">{lineageRefTrack.title}</span>
                 )}
               </div>
             )}
             {lineageTemplate && (
               <div>
-                <span className="text-gray-500">Template:</span>{' '}
+                <span className="text-[rgba(255,255,255,0.4)]">Template:</span>{' '}
                 {lineageIcp?.store ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack?.id}/templates/${lineageTemplate.id}`} className="text-blue-600 hover:underline">{lineageTemplate.name || 'Template'}</Link>
+                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack?.id}/templates/${lineageTemplate.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">{lineageTemplate.name || 'Template'}</Link>
                 ) : (
-                  <span>{lineageTemplate.name || 'Template'}</span>
+                  <span className="text-[rgba(255,255,255,0.87)]">{lineageTemplate.name || 'Template'}</span>
                 )}
               </div>
             )}
             {lineagePrompt && (
               <div>
-                <span className="text-gray-500">Prompt:</span>{' '}
+                <span className="text-[rgba(255,255,255,0.4)]">Prompt:</span>{' '}
                 {lineageIcp?.store && lineageTemplate ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack?.id}/templates/${lineageTemplate.id}/prompts/${lineagePrompt.id}`} className="text-blue-600 hover:underline">Prompt #{(lineagePrompt.id || '').slice(-6)}</Link>
+                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack?.id}/templates/${lineageTemplate.id}/prompts/${lineagePrompt.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">Prompt #{(lineagePrompt.id || '').slice(-6)}</Link>
                 ) : (
-                  <span>Prompt #{(lineagePrompt.id || '').slice(-6)}</span>
+                  <span className="text-[rgba(255,255,255,0.87)]">Prompt #{(lineagePrompt.id || '').slice(-6)}</span>
                 )}
               </div>
             )}
@@ -186,13 +185,13 @@ export default function SongDetail() {
       {/* Flow Factors (read-only) */}
       {Object.keys(flowFactors).length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">Flow Factors</h2>
-          <table className="w-full bg-white border rounded-lg text-sm">
+          <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Flow Factors</h2>
+          <table className="w-full bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl text-sm">
             <tbody>
               {Object.entries(flowFactors).map(([k, v]) => (
-                <tr key={k} className="border-b last:border-0">
-                  <td className="px-4 py-2 text-gray-500 w-1/2">{k}</td>
-                  <td className="px-4 py-2">{String(v)}</td>
+                <tr key={k} className="border-b border-[rgba(255,255,255,0.04)] last:border-0">
+                  <td className="px-4 py-2 text-[rgba(255,255,255,0.4)] w-1/2">{k}</td>
+                  <td className="px-4 py-2 text-[rgba(255,255,255,0.87)]">{String(v)}</td>
                 </tr>
               ))}
             </tbody>
@@ -203,43 +202,43 @@ export default function SongDetail() {
       {/* Prompt Text (read-only) */}
       {lineagePrompt?.prompt_text && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">Prompt Text</h2>
-          <pre className="bg-white border rounded-lg p-4 text-sm whitespace-pre-wrap">{lineagePrompt.prompt_text}</pre>
+          <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Prompt Text</h2>
+          <pre className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)]">{lineagePrompt.prompt_text}</pre>
         </div>
       )}
 
       {/* Assignments */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold">Store Assignments</h2>
-        <button type="button" onClick={() => setShowAssign(true)} className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">+ Assign to Store</button>
+        <h2 className="text-lg font-medium text-[rgba(255,255,255,0.87)]">Store Assignments</h2>
+        <button type="button" onClick={() => setShowAssign(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ Assign to Store</button>
       </div>
 
       {showAssign && (
-        <div className="bg-white border rounded-lg p-4 mb-3">
-          <h3 className="font-medium text-sm mb-2">Pick a store</h3>
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3">
+          <h3 className="font-medium text-sm mb-2 text-[rgba(255,255,255,0.87)]">Pick a store</h3>
           <div className="max-h-60 overflow-auto space-y-1">
             {stores.map((s: any) => (
-              <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 rounded text-sm">
-                <span>{s.name}</span>
-                <button type="button" onClick={() => assignMutation.mutate(s.id)} className="text-blue-600 hover:underline text-xs">Assign</button>
+              <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg text-sm transition-colors">
+                <span className="text-[rgba(255,255,255,0.87)]">{s.name}</span>
+                <button type="button" onClick={() => assignMutation.mutate(s.id)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">Assign</button>
               </div>
             ))}
           </div>
-          <button type="button" onClick={() => setShowAssign(false)} className="mt-2 border px-3 py-1 rounded text-sm">Close</button>
+          <button type="button" onClick={() => setShowAssign(false)} className="mt-2 border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Close</button>
         </div>
       )}
 
-      <div className="bg-white border rounded-lg">
+      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
         {assignments.map((a: any) => (
-          <div key={a.id} className="flex items-center justify-between px-4 py-3 border-b last:border-0 text-sm">
+          <div key={a.id} className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
             <div>
-              <span>{a.store?.name || 'Store'}</span>
-              {a.added_by && <span className="text-gray-400 ml-2">by {a.added_by}</span>}
+              <span className="text-[rgba(255,255,255,0.87)]">{a.store?.name || 'Store'}</span>
+              {a.added_by && <span className="text-[rgba(255,255,255,0.3)] ml-2">by {a.added_by}</span>}
             </div>
-            <button type="button" onClick={() => unassignMutation.mutate(a.store_id)} className="text-red-600 hover:underline text-xs">Remove</button>
+            <button type="button" onClick={() => unassignMutation.mutate(a.store_id)} className="text-[#e74c3c] hover:text-[#c0392b] text-xs transition-colors">Remove</button>
           </div>
         ))}
-        {assignments.length === 0 && <p className="px-4 py-6 text-center text-gray-500 text-sm">Not assigned to any stores</p>}
+        {assignments.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">Not assigned to any stores</p>}
       </div>
     </div>
   );

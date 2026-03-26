@@ -6,13 +6,13 @@ import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-green-100 text-green-800',
-    draft: 'bg-yellow-100 text-yellow-800',
-    flagged: 'bg-red-100 text-red-800',
-    inactive: 'bg-red-100 text-red-800',
-    archived: 'bg-gray-100 text-gray-800',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
+    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
+    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{status}</span>;
 }
 
 type Filter = 'all' | 'unassigned' | 'active' | 'flagged';
@@ -46,7 +46,7 @@ export default function SongLibrary() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Song Library' }]} />
-      <h1 className="text-2xl font-bold mb-4">Song Library</h1>
+      <h1 className="text-2xl font-light mb-4 text-[rgba(255,255,255,0.87)]">Song Library</h1>
 
       <div className="flex gap-2 mb-4">
         {filters.map((f) => (
@@ -54,8 +54,8 @@ export default function SongLibrary() {
             key={f.key}
             type="button"
             onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-              filter === f.key ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              filter === f.key ? 'bg-[#4a90a4] text-white' : 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.1)]'
             }`}
           >
             {f.label}
@@ -64,30 +64,30 @@ export default function SongLibrary() {
       </div>
 
       {isLoading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>
       ) : (
-        <table className="w-full bg-white rounded-lg border text-sm">
+        <table className="w-full bg-[#12121a] rounded-xl text-sm">
           <thead>
-            <tr className="border-b bg-gray-50">
-              <th className="text-left px-4 py-3 font-medium">Title</th>
-              <th className="text-left px-4 py-3 font-medium">Status</th>
-              <th className="text-left px-4 py-3 font-medium">Generation System</th>
-              <th className="text-left px-4 py-3 font-medium">Stores Assigned</th>
-              <th className="text-left px-4 py-3 font-medium">Created</th>
+            <tr className="border-b border-[rgba(255,255,255,0.06)]">
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Title</th>
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Status</th>
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Generation System</th>
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Stores Assigned</th>
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Created</th>
             </tr>
           </thead>
           <tbody>
             {songs.map((s: any) => (
-              <tr key={s.id} onClick={() => navigate(`/songs/${s.id}`)} className="border-b hover:bg-gray-50 cursor-pointer">
-                <td className="px-4 py-3 font-medium">{s.title}</td>
+              <tr key={s.id} onClick={() => navigate(`/songs/${s.id}`)} className="border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors">
+                <td className="px-4 py-3 font-medium text-[rgba(255,255,255,0.87)]">{s.title}</td>
                 <td className="px-4 py-3"><StatusBadge status={s.status || 'active'} /></td>
-                <td className="px-4 py-3">{s.generation_system_id || '-'}</td>
-                <td className="px-4 py-3">{s._count?.store_playlists ?? 0}</td>
-                <td className="px-4 py-3">{s.created_at ? new Date(s.created_at).toLocaleDateString() : '-'}</td>
+                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{s.generation_system_id || '-'}</td>
+                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{s._count?.store_playlists ?? 0}</td>
+                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{s.created_at ? new Date(s.created_at).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
             {songs.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No songs found</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)]">No songs found</td></tr>
             )}
           </tbody>
         </table>

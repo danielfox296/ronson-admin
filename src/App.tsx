@@ -31,23 +31,23 @@ function Layout() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <aside className="w-[200px] bg-gray-900 text-white flex flex-col shrink-0">
-        <div className="p-4 text-lg font-bold border-b border-gray-700">Entune Admin</div>
-        <nav className="flex-1 p-2 space-y-1">
+    <div className="flex h-screen bg-[#0a0a0f]">
+      <aside className="w-[220px] bg-[#0d0d14] text-white flex flex-col shrink-0 border-r border-[rgba(255,255,255,0.06)]">
+        <div className="px-5 py-5 text-base font-light tracking-wide text-[rgba(255,255,255,0.87)] border-b border-[rgba(255,255,255,0.06)]">Entune Admin</div>
+        <nav className="flex-1 p-3 space-y-1">
           {links.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               className={({ isActive }) =>
-                `block px-3 py-2 rounded text-sm ${isActive ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`
+                `block px-3 py-2 rounded-lg text-sm transition-colors ${isActive ? 'bg-[rgba(74,144,164,0.15)] text-white border-l-2 border-[#4a90a4] pl-[10px]' : 'text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[rgba(255,255,255,0.87)]'}`
               }
             >
               {l.label}
             </NavLink>
           ))}
         </nav>
-        <button type="button" onClick={logout} className="p-4 text-sm text-gray-400 hover:text-white text-left border-t border-gray-700">
+        <button type="button" onClick={logout} className="px-5 py-4 text-sm text-[rgba(255,255,255,0.3)] hover:text-[rgba(255,255,255,0.7)] text-left border-t border-[rgba(255,255,255,0.06)] transition-colors">
           Logout
         </button>
       </aside>

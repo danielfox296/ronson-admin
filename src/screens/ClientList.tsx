@@ -6,16 +6,16 @@ import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-green-100 text-green-800',
-    online: 'bg-green-100 text-green-800',
-    onboarding: 'bg-yellow-100 text-yellow-800',
-    draft: 'bg-yellow-100 text-yellow-800',
-    inactive: 'bg-red-100 text-red-800',
-    flagged: 'bg-red-100 text-red-800',
-    archived: 'bg-gray-100 text-gray-800',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
+    online: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
+    onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
+    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
+    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>
       {status}
     </span>
   );
@@ -54,8 +54,8 @@ export default function ClientList() {
     <div>
       <Breadcrumb items={[{ label: 'Clients' }]} />
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Clients</h1>
-        <button type="button" onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+        <h1 className="text-2xl font-light text-[rgba(255,255,255,0.87)]">Clients</h1>
+        <button type="button" onClick={() => setShowForm(true)} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">
           + New Client
         </button>
       </div>
@@ -65,14 +65,14 @@ export default function ClientList() {
         placeholder="Search clients..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full border rounded px-3 py-2 text-sm mb-4"
+        className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm mb-4 bg-[rgba(255,255,255,0.03)]"
       />
 
       {showForm && (
-        <div className="bg-white border rounded-lg p-4 mb-4 space-y-3">
-          <h3 className="font-semibold">New Client</h3>
-          <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
-          <div className="flex gap-4 text-sm">
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-4 space-y-3">
+          <h3 className="font-medium text-[rgba(255,255,255,0.87)]">New Client</h3>
+          <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+          <div className="flex gap-4 text-sm text-[rgba(255,255,255,0.5)]">
             {['independent', 'franchisee', 'corporate_parent'].map((t) => (
               <label key={t} className="flex items-center gap-1">
                 <input type="radio" name="client_type" value={t} checked={form.type === t} onChange={() => setForm({ ...form, type: t })} />
@@ -80,41 +80,41 @@ export default function ClientList() {
               </label>
             ))}
           </div>
-          <input placeholder="Contact Name" value={form.primary_contact_name} onChange={(e) => setForm({ ...form, primary_contact_name: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
-          <input placeholder="Contact Email" type="email" value={form.primary_contact_email} onChange={(e) => setForm({ ...form, primary_contact_email: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+          <input placeholder="Contact Name" value={form.primary_contact_name} onChange={(e) => setForm({ ...form, primary_contact_name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+          <input placeholder="Contact Email" type="email" value={form.primary_contact_email} onChange={(e) => setForm({ ...form, primary_contact_email: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           <div className="flex gap-2">
-            <button type="button" onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.name} className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50">
+            <button type="button" onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.name} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] disabled:opacity-50 transition-colors">
               {createMutation.isPending ? 'Creating...' : 'Create'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 rounded text-sm hover:bg-gray-50">Cancel</button>
+            <button type="button" onClick={() => setShowForm(false)} className="border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.5)] transition-colors">Cancel</button>
           </div>
-          {createMutation.isError && <p className="text-red-600 text-sm">{(createMutation.error as Error).message}</p>}
+          {createMutation.isError && <p className="text-[#e74c3c] text-sm">{(createMutation.error as Error).message}</p>}
         </div>
       )}
 
       {isLoading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>
       ) : (
-        <table className="w-full bg-white rounded-lg border text-sm">
+        <table className="w-full bg-[#12121a] rounded-xl text-sm">
           <thead>
-            <tr className="border-b bg-gray-50">
-              <th className="text-left px-4 py-3 font-medium">Name</th>
-              <th className="text-left px-4 py-3 font-medium">Type</th>
-              <th className="text-left px-4 py-3 font-medium">Stores</th>
-              <th className="text-left px-4 py-3 font-medium">Status</th>
+            <tr className="border-b border-[rgba(255,255,255,0.06)]">
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Name</th>
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Type</th>
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Stores</th>
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Status</th>
             </tr>
           </thead>
           <tbody>
             {clients.map((c: any) => (
-              <tr key={c.id} onClick={() => navigate(`/clients/${c.id}`)} className="border-b hover:bg-gray-50 cursor-pointer">
-                <td className="px-4 py-3">{c.name}</td>
-                <td className="px-4 py-3">{c.type}</td>
-                <td className="px-4 py-3">{c._count?.stores ?? 0}</td>
+              <tr key={c.id} onClick={() => navigate(`/clients/${c.id}`)} className="border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors">
+                <td className="px-4 py-3 text-[rgba(255,255,255,0.87)]">{c.name}</td>
+                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{c.type}</td>
+                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{c._count?.stores ?? 0}</td>
                 <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
               </tr>
             ))}
             {clients.length === 0 && (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No clients found</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)]">No clients found</td></tr>
             )}
           </tbody>
         </table>

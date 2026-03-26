@@ -7,12 +7,12 @@ import FileUpload from '../components/FileUpload.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-green-100 text-green-800',
-    draft: 'bg-yellow-100 text-yellow-800',
-    flagged: 'bg-red-100 text-red-800',
-    archived: 'bg-gray-100 text-gray-800',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
+    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
+    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{status}</span>;
 }
 
 export default function PromptDetail() {
@@ -52,9 +52,9 @@ export default function PromptDetail() {
     },
   });
 
-  if (isLoading) return <p className="text-gray-500">Loading...</p>;
+  if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
   const prompt = promptData?.data;
-  if (!prompt) return <p className="text-red-600">Prompt not found</p>;
+  if (!prompt) return <p className="text-[#e74c3c]">Prompt not found</p>;
 
   const songs = prompt.songs || [];
   const genSystems = genSystemsData?.data || [];
@@ -79,31 +79,31 @@ export default function PromptDetail() {
         { label: `Prompt #${(promptId || '').slice(-6)}` },
       ]} />
 
-      <h1 className="text-2xl font-bold mb-4">Prompt Detail</h1>
+      <h1 className="text-2xl font-light mb-4 text-[rgba(255,255,255,0.87)]">Prompt Detail</h1>
 
-      <div className="bg-white border rounded-lg p-4 mb-6 text-sm space-y-3">
-        <div><span className="text-gray-500">Generation System:</span> {prompt.generation_system_id || 'Not set'}</div>
-        <div><span className="text-gray-500">Created By:</span> {prompt.created_by || '-'}</div>
+      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 text-sm space-y-3">
+        <div><span className="text-[rgba(255,255,255,0.4)]">Generation System:</span> <span className="text-[rgba(255,255,255,0.87)]">{prompt.generation_system_id || 'Not set'}</span></div>
+        <div><span className="text-[rgba(255,255,255,0.4)]">Created By:</span> <span className="text-[rgba(255,255,255,0.87)]">{prompt.created_by || '-'}</span></div>
         <div>
-          <span className="text-gray-500 block mb-1">Prompt Text:</span>
-          <pre className="bg-gray-50 border rounded p-3 whitespace-pre-wrap text-xs">{prompt.prompt_text}</pre>
+          <span className="text-[rgba(255,255,255,0.4)] block mb-1">Prompt Text:</span>
+          <pre className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-lg p-3 whitespace-pre-wrap text-xs text-[rgba(255,255,255,0.7)]">{prompt.prompt_text}</pre>
         </div>
       </div>
 
       {/* Songs */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold">Songs</h2>
-        <button type="button" onClick={() => setShowGenModal(true)} className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">Generate New Song</button>
+        <h2 className="text-lg font-medium text-[rgba(255,255,255,0.87)]">Songs</h2>
+        <button type="button" onClick={() => setShowGenModal(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Generate New Song</button>
       </div>
 
       {showGenModal && (
-        <div className="bg-white border rounded-lg p-4 mb-3 space-y-3">
-          <h3 className="font-semibold text-sm">Generate New Song</h3>
-          <input placeholder="Title" value={genForm.title} onChange={(e) => setGenForm({ ...genForm, title: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3 space-y-3">
+          <h3 className="font-medium text-sm text-[rgba(255,255,255,0.87)]">Generate New Song</h3>
+          <input placeholder="Title" value={genForm.title} onChange={(e) => setGenForm({ ...genForm, title: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           <FileUpload onUploaded={(url) => setGenForm({ ...genForm, audio_file_url: url })} />
-          {genForm.audio_file_url && <p className="text-green-600 text-xs">Audio file uploaded</p>}
-          <input placeholder="Duration (seconds)" type="number" value={genForm.duration_seconds} onChange={(e) => setGenForm({ ...genForm, duration_seconds: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
-          <select value={genForm.generation_system_id} onChange={(e) => setGenForm({ ...genForm, generation_system_id: e.target.value })} className="w-full border rounded px-3 py-2 text-sm">
+          {genForm.audio_file_url && <p className="text-[#27ae60] text-xs">Audio file uploaded</p>}
+          <input placeholder="Duration (seconds)" type="number" value={genForm.duration_seconds} onChange={(e) => setGenForm({ ...genForm, duration_seconds: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+          <select value={genForm.generation_system_id} onChange={(e) => setGenForm({ ...genForm, generation_system_id: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]">
             <option value="">Generation System (optional)</option>
             {genSystems.map((gs: any) => (
               <option key={gs.id} value={gs.id}>{gs.name}</option>
@@ -114,28 +114,28 @@ export default function PromptDetail() {
               type="button"
               onClick={() => generateMutation.mutate(genForm)}
               disabled={!genForm.title || !genForm.audio_file_url || generateMutation.isPending}
-              className="bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50"
+              className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
             >
               {generateMutation.isPending ? 'Creating...' : 'Create Song'}
             </button>
-            <button type="button" onClick={() => setShowGenModal(false)} className="border px-4 py-2 rounded text-sm">Cancel</button>
+            <button type="button" onClick={() => setShowGenModal(false)} className="border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
           </div>
-          {generateMutation.isError && <p className="text-red-600 text-sm">{(generateMutation.error as Error).message}</p>}
+          {generateMutation.isError && <p className="text-[#e74c3c] text-sm">{(generateMutation.error as Error).message}</p>}
         </div>
       )}
 
-      <div className="bg-white border rounded-lg">
+      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
         {songs.map((s: any) => (
           <div
             key={s.id}
             onClick={() => navigate(`/songs/${s.id}`)}
-            className="flex items-center justify-between px-4 py-3 border-b last:border-0 hover:bg-gray-50 cursor-pointer text-sm"
+            className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm transition-colors"
           >
-            <span className="font-medium">{s.title}</span>
+            <span className="font-medium text-[rgba(255,255,255,0.87)]">{s.title}</span>
             <StatusBadge status={s.status || 'active'} />
           </div>
         ))}
-        {songs.length === 0 && <p className="px-4 py-6 text-center text-gray-500 text-sm">No songs generated yet</p>}
+        {songs.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No songs generated yet</p>}
       </div>
     </div>
   );

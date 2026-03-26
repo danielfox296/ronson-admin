@@ -6,12 +6,12 @@ import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-green-100 text-green-800', online: 'bg-green-100 text-green-800',
-    onboarding: 'bg-yellow-100 text-yellow-800', draft: 'bg-yellow-100 text-yellow-800',
-    inactive: 'bg-red-100 text-red-800', flagged: 'bg-red-100 text-red-800',
-    archived: 'bg-gray-100 text-gray-800',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]', online: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
+    onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]', draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
+    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]', flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{status}</span>;
 }
 
 export default function StoreDetail() {
@@ -83,9 +83,9 @@ export default function StoreDetail() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store', storeId] }); setPasswordSaved(true); setTimeout(() => setPasswordSaved(false), 3000); },
   });
 
-  if (isLoading) return <p className="text-gray-500">Loading...</p>;
+  if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
   const store = storeData?.data;
-  if (!store) return <p className="text-red-600">Store not found</p>;
+  if (!store) return <p className="text-[#e74c3c]">Store not found</p>;
 
   const icps = icpsData?.data || [];
   const playlist = playlistData?.data || [];
@@ -113,48 +113,48 @@ export default function StoreDetail() {
       ]} />
 
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">{store.name}</h1>
+        <h1 className="text-2xl font-light text-[rgba(255,255,255,0.87)]">{store.name}</h1>
         <StatusBadge status={store.status || 'active'} />
       </div>
 
       {editing ? (
-        <div className="bg-white border rounded-lg p-4 mb-6 space-y-3">
-          <input placeholder="Name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
-          <input placeholder="Address" value={editForm.address_line_1 || ''} onChange={(e) => setEditForm({ ...editForm, address_line_1: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 space-y-3">
+          <input placeholder="Name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+          <input placeholder="Address" value={editForm.address_line_1 || ''} onChange={(e) => setEditForm({ ...editForm, address_line_1: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           <div className="grid grid-cols-3 gap-2">
-            <input placeholder="City" value={editForm.city || ''} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} className="border rounded px-3 py-2 text-sm" />
-            <input placeholder="State" value={editForm.state || ''} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} className="border rounded px-3 py-2 text-sm" />
-            <input placeholder="Zip" value={editForm.zip || ''} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} className="border rounded px-3 py-2 text-sm" />
+            <input placeholder="City" value={editForm.city || ''} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            <input placeholder="State" value={editForm.state || ''} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            <input placeholder="Zip" value={editForm.zip || ''} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <input placeholder="Country" value={editForm.country || ''} onChange={(e) => setEditForm({ ...editForm, country: e.target.value })} className="border rounded px-3 py-2 text-sm" />
-            <input placeholder="Timezone" value={editForm.timezone || ''} onChange={(e) => setEditForm({ ...editForm, timezone: e.target.value })} className="border rounded px-3 py-2 text-sm" />
+            <input placeholder="Country" value={editForm.country || ''} onChange={(e) => setEditForm({ ...editForm, country: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            <input placeholder="Timezone" value={editForm.timezone || ''} onChange={(e) => setEditForm({ ...editForm, timezone: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={() => updateMutation.mutate(editForm)} className="bg-blue-600 text-white px-4 py-2 rounded text-sm">Save</button>
-            <button type="button" onClick={() => setEditing(false)} className="border px-4 py-2 rounded text-sm">Cancel</button>
+            <button type="button" onClick={() => updateMutation.mutate(editForm)} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
+            <button type="button" onClick={() => setEditing(false)} className="border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
           </div>
         </div>
       ) : (
-        <div className="bg-white border rounded-lg p-4 mb-6">
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-gray-500">Address:</span> {store.address_line_1}</div>
-            <div><span className="text-gray-500">City:</span> {store.city}, {store.state} {store.zip}</div>
-            <div><span className="text-gray-500">Country:</span> {store.country}</div>
-            <div><span className="text-gray-500">Timezone:</span> {store.timezone}</div>
+            <div><span className="text-[rgba(255,255,255,0.4)]">Address:</span> <span className="text-[rgba(255,255,255,0.87)]">{store.address_line_1}</span></div>
+            <div><span className="text-[rgba(255,255,255,0.4)]">City:</span> <span className="text-[rgba(255,255,255,0.87)]">{store.city}, {store.state} {store.zip}</span></div>
+            <div><span className="text-[rgba(255,255,255,0.4)]">Country:</span> <span className="text-[rgba(255,255,255,0.87)]">{store.country}</span></div>
+            <div><span className="text-[rgba(255,255,255,0.4)]">Timezone:</span> <span className="text-[rgba(255,255,255,0.87)]">{store.timezone}</span></div>
           </div>
-          <button type="button" onClick={startEdit} className="mt-3 text-sm text-blue-600 hover:underline">Edit</button>
+          <button type="button" onClick={startEdit} className="mt-3 text-sm text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">Edit</button>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b mb-4">
+      <div className="flex gap-1 border-b border-[rgba(255,255,255,0.06)] mb-4">
         {tabs.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === t.key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === t.key ? 'border-[#4a90a4] text-white' : 'border-transparent text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)]'}`}
           >
             {t.label}
           </button>
@@ -165,31 +165,31 @@ export default function StoreDetail() {
       {tab === 'icps' && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold">ICPs</h2>
-            <button type="button" onClick={() => setShowIcpForm(true)} className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">+ New ICP</button>
+            <h2 className="font-medium text-[rgba(255,255,255,0.87)]">ICPs</h2>
+            <button type="button" onClick={() => setShowIcpForm(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ New ICP</button>
           </div>
           {showIcpForm && (
-            <div className="bg-white border rounded-lg p-4 mb-3 space-y-3">
-              <input placeholder="ICP Name" value={icpForm.name} onChange={(e) => setIcpForm({ ...icpForm, name: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
-              <textarea placeholder="Psychographic Summary" value={icpForm.psychographic_summary} onChange={(e) => setIcpForm({ ...icpForm, psychographic_summary: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" rows={2} />
+            <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3 space-y-3">
+              <input placeholder="ICP Name" value={icpForm.name} onChange={(e) => setIcpForm({ ...icpForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+              <textarea placeholder="Psychographic Summary" value={icpForm.psychographic_summary} onChange={(e) => setIcpForm({ ...icpForm, psychographic_summary: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" rows={2} />
               <div className="flex gap-2">
-                <button type="button" onClick={() => createIcpMutation.mutate(icpForm)} disabled={!icpForm.name} className="bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">Create</button>
-                <button type="button" onClick={() => setShowIcpForm(false)} className="border px-4 py-2 rounded text-sm">Cancel</button>
+                <button type="button" onClick={() => createIcpMutation.mutate(icpForm)} disabled={!icpForm.name} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">Create</button>
+                <button type="button" onClick={() => setShowIcpForm(false)} className="border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
               </div>
             </div>
           )}
-          <div className="bg-white border rounded-lg">
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
             {icps.map((icp: any) => (
               <div
                 key={icp.id}
                 onClick={() => navigate(`/clients/${clientId}/stores/${storeId}/icps/${icp.id}`)}
-                className="px-4 py-3 border-b last:border-0 hover:bg-gray-50 cursor-pointer text-sm"
+                className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm transition-colors"
               >
-                <span className="font-medium">{icp.name}</span>
-                {icp.description && <p className="text-gray-500 text-xs mt-1">{icp.description}</p>}
+                <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
+                {icp.description && <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">{icp.description}</p>}
               </div>
             ))}
-            {icps.length === 0 && <p className="px-4 py-6 text-center text-gray-500 text-sm">No ICPs yet</p>}
+            {icps.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No ICPs yet</p>}
           </div>
         </div>
       )}
@@ -198,32 +198,32 @@ export default function StoreDetail() {
       {tab === 'playlist' && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold">Playlist</h2>
-            <button type="button" onClick={() => setShowSongPicker(true)} className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">+ Assign Song</button>
+            <h2 className="font-medium text-[rgba(255,255,255,0.87)]">Playlist</h2>
+            <button type="button" onClick={() => setShowSongPicker(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ Assign Song</button>
           </div>
           {showSongPicker && (
-            <div className="bg-white border rounded-lg p-4 mb-3">
-              <h3 className="font-medium text-sm mb-2">Pick a song to assign</h3>
+            <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3">
+              <h3 className="font-medium text-sm mb-2 text-[rgba(255,255,255,0.87)]">Pick a song to assign</h3>
               <div className="max-h-60 overflow-auto space-y-1">
                 {allSongs.map((s: any) => (
-                  <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 rounded text-sm">
-                    <span>{s.title}</span>
-                    <button type="button" onClick={() => assignSongMutation.mutate(s.id)} className="text-blue-600 hover:underline text-xs">Assign</button>
+                  <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg text-sm transition-colors">
+                    <span className="text-[rgba(255,255,255,0.87)]">{s.title}</span>
+                    <button type="button" onClick={() => assignSongMutation.mutate(s.id)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">Assign</button>
                   </div>
                 ))}
-                {allSongs.length === 0 && <p className="text-gray-500 text-sm">No songs available</p>}
+                {allSongs.length === 0 && <p className="text-[rgba(255,255,255,0.3)] text-sm">No songs available</p>}
               </div>
-              <button type="button" onClick={() => setShowSongPicker(false)} className="mt-2 border px-3 py-1 rounded text-sm">Close</button>
+              <button type="button" onClick={() => setShowSongPicker(false)} className="mt-2 border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Close</button>
             </div>
           )}
-          <div className="bg-white border rounded-lg">
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
             {playlist.map((entry: any) => (
-              <div key={entry.id} className="flex items-center justify-between px-4 py-3 border-b last:border-0 text-sm">
-                <span>{entry.song?.title || entry.title || 'Untitled'}</span>
-                <button type="button" onClick={() => removeSongMutation.mutate(entry.id)} className="text-red-600 hover:underline text-xs">Remove</button>
+              <div key={entry.id} className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
+                <span className="text-[rgba(255,255,255,0.87)]">{entry.song?.title || entry.title || 'Untitled'}</span>
+                <button type="button" onClick={() => removeSongMutation.mutate(entry.id)} className="text-[#e74c3c] hover:text-[#c0392b] text-xs transition-colors">Remove</button>
               </div>
             ))}
-            {playlist.length === 0 && <p className="px-4 py-6 text-center text-gray-500 text-sm">No songs in playlist</p>}
+            {playlist.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No songs in playlist</p>}
           </div>
         </div>
       )}
@@ -231,25 +231,25 @@ export default function StoreDetail() {
       {/* Play Log Tab */}
       {tab === 'playlog' && (
         <div>
-          <h2 className="font-semibold mb-3">Play Log</h2>
-          <table className="w-full bg-white border rounded-lg text-sm">
+          <h2 className="font-medium mb-3 text-[rgba(255,255,255,0.87)]">Play Log</h2>
+          <table className="w-full bg-[#12121a] rounded-xl text-sm">
             <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium">Song Title</th>
-                <th className="text-left px-4 py-3 font-medium">Started At</th>
-                <th className="text-left px-4 py-3 font-medium">Duration Played</th>
+              <tr className="border-b border-[rgba(255,255,255,0.06)]">
+                <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Song Title</th>
+                <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Started At</th>
+                <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Duration Played</th>
               </tr>
             </thead>
             <tbody>
               {playEvents.map((ev: any) => (
-                <tr key={ev.id} className="border-b">
-                  <td className="px-4 py-3">{ev.song?.title || ev.title || 'Unknown'}</td>
-                  <td className="px-4 py-3">{new Date(ev.started_at || ev.created_at).toLocaleString()}</td>
-                  <td className="px-4 py-3">{ev.duration_played ? `${ev.duration_played}s` : '-'}</td>
+                <tr key={ev.id} className="border-b border-[rgba(255,255,255,0.04)]">
+                  <td className="px-4 py-3 text-[rgba(255,255,255,0.87)]">{ev.song?.title || ev.title || 'Unknown'}</td>
+                  <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{new Date(ev.started_at || ev.created_at).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{ev.duration_played ? `${ev.duration_played}s` : '-'}</td>
                 </tr>
               ))}
               {playEvents.length === 0 && (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-gray-500">No play events yet</td></tr>
+                <tr><td colSpan={3} className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)]">No play events yet</td></tr>
               )}
             </tbody>
           </table>
@@ -258,7 +258,6 @@ export default function StoreDetail() {
 
       {/* Wonder Setup Tab */}
       {tab === 'wonder' && (() => {
-        // Load email from store data on first render of this tab
         if (!playerEmailLoaded && store.player_email) {
           setPlayerEmail(store.player_email);
           setPlayerEmailLoaded(true);
@@ -267,51 +266,25 @@ export default function StoreDetail() {
         }
         return (
         <div>
-          <h2 className="font-semibold mb-3">Wonder Setup</h2>
-          <div className="bg-white border rounded-lg p-4 text-sm space-y-4">
+          <h2 className="font-medium mb-3 text-[rgba(255,255,255,0.87)]">Wonder Setup</h2>
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-4">
             <div>
-              <label className="text-gray-500 block mb-1">Player Login Email</label>
+              <label className="text-[rgba(255,255,255,0.4)] block mb-1">Player Login Email</label>
               <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="store@example.com"
-                  value={playerEmail}
-                  onChange={(e) => setPlayerEmail(e.target.value)}
-                  className="border rounded px-3 py-2 text-sm flex-1"
-                />
-                <button
-                  type="button"
-                  onClick={() => saveWonderCredsMutation.mutate({ player_email: playerEmail })}
-                  disabled={!playerEmail.trim()}
-                  className="bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50"
-                >
-                  Save
-                </button>
+                <input type="email" placeholder="store@example.com" value={playerEmail} onChange={(e) => setPlayerEmail(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm flex-1 bg-[rgba(255,255,255,0.03)]" />
+                <button type="button" onClick={() => saveWonderCredsMutation.mutate({ player_email: playerEmail })} disabled={!playerEmail.trim()} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">Save</button>
               </div>
-              {store.player_email && <p className="text-gray-400 text-xs mt-1">Current: {store.player_email}</p>}
+              {store.player_email && <p className="text-[rgba(255,255,255,0.2)] text-xs mt-1">Current: {store.player_email}</p>}
             </div>
             <div>
-              <label className="text-gray-500 block mb-1">{store.has_player_password ? 'Reset Player Password' : 'Set Player Password'}</label>
+              <label className="text-[rgba(255,255,255,0.4)] block mb-1">{store.has_player_password ? 'Reset Player Password' : 'Set Player Password'}</label>
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="border rounded px-3 py-2 text-sm flex-1"
-                />
-                <button
-                  type="button"
-                  onClick={() => { saveWonderCredsMutation.mutate({ player_password: newPassword }); setNewPassword(''); }}
-                  disabled={!newPassword.trim()}
-                  className="bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50"
-                >
-                  {store.has_player_password ? 'Reset' : 'Set'}
-                </button>
+                <input type="text" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm flex-1 bg-[rgba(255,255,255,0.03)]" />
+                <button type="button" onClick={() => { saveWonderCredsMutation.mutate({ player_password: newPassword }); setNewPassword(''); }} disabled={!newPassword.trim()} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">{store.has_player_password ? 'Reset' : 'Set'}</button>
               </div>
-              {passwordSaved && <p className="text-green-600 text-xs mt-1">Saved successfully.</p>}
+              {passwordSaved && <p className="text-[#27ae60] text-xs mt-1">Saved successfully.</p>}
             </div>
-            <div className="border-t pt-3 text-gray-500 text-xs">
+            <div className="border-t border-[rgba(255,255,255,0.06)] pt-3 text-[rgba(255,255,255,0.4)] text-xs">
               <p>To set up Wonder at this store:</p>
               <ol className="list-decimal ml-4 mt-1 space-y-1">
                 <li>Open Wonder on the store device</li>
