@@ -31,7 +31,7 @@ export default function IcpDetail() {
 
   const deleteMutation = useMutation({
     mutationFn: () => api(`/api/store-icps/${icpId}`, { method: 'DELETE' }),
-    onSuccess: () => navigate(`/clients/${clientId}/stores/${storeId}`),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store-icps'] }); navigate(`/clients/${clientId}/stores/${storeId}`); },
   });
 
   const createRefMutation = useMutation({
@@ -52,7 +52,7 @@ export default function IcpDetail() {
   const clientName = icp.store?.client?.name || 'Client';
 
   const startEdit = () => {
-    setEditForm({ name: icp.name, description: icp.description || '' });
+    setEditForm({ name: icp.name, psychographic_summary: icp.psychographic_summary || '' });
     setEditing(true);
   };
 
@@ -70,7 +70,7 @@ export default function IcpDetail() {
       {editing ? (
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 space-y-3">
           <input placeholder="Name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-          <textarea placeholder="Description" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" rows={3} />
+          <textarea placeholder="Psychographic Summary" value={editForm.psychographic_summary} onChange={(e) => setEditForm({ ...editForm, psychographic_summary: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" rows={3} />
           <div className="flex gap-2">
             <button type="button" onClick={() => updateMutation.mutate(editForm)} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
             <button type="button" onClick={() => setEditing(false)} className="border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
@@ -78,7 +78,7 @@ export default function IcpDetail() {
         </div>
       ) : (
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 text-sm">
-          {icp.description && <p className="text-[rgba(255,255,255,0.5)] mb-2">{icp.description}</p>}
+          {icp.psychographic_summary && <p className="text-[rgba(255,255,255,0.5)] mb-2">{icp.psychographic_summary}</p>}
           {icp.age_range && <div><span className="text-[rgba(255,255,255,0.4)]">Age Range:</span> <span className="text-[rgba(255,255,255,0.87)]">{icp.age_range}</span></div>}
           {icp.gender && <div><span className="text-[rgba(255,255,255,0.4)]">Gender:</span> <span className="text-[rgba(255,255,255,0.87)]">{icp.gender}</span></div>}
           {icp.lifestyle_tags && <div><span className="text-[rgba(255,255,255,0.4)]">Lifestyle:</span> <span className="text-[rgba(255,255,255,0.87)]">{Array.isArray(icp.lifestyle_tags) ? icp.lifestyle_tags.join(', ') : icp.lifestyle_tags}</span></div>}

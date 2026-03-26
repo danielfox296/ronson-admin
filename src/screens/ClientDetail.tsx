@@ -43,8 +43,8 @@ export default function ClientDetail() {
   });
 
   const deactivateMutation = useMutation({
-    mutationFn: () => api(`/api/clients/${id}`, { method: 'PUT', body: { status: 'inactive' } }),
-    onSuccess: () => navigate('/clients'),
+    mutationFn: () => api(`/api/clients/${id}`, { method: 'DELETE' }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); navigate('/clients'); },
   });
 
   if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;

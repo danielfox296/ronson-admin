@@ -32,7 +32,7 @@ export default function RefTrackDetail() {
 
   const deleteMutation = useMutation({
     mutationFn: () => api(`/api/reference-tracks/${refTrackId}`, { method: 'DELETE' }),
-    onSuccess: () => navigate(`/clients/${clientId}/stores/${storeId}/icps/${icpId}`),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks'] }); navigate(`/clients/${clientId}/stores/${storeId}/icps/${icpId}`); },
   });
 
   const createTemplateMutation = useMutation({

@@ -35,7 +35,7 @@ export default function TemplateDetail() {
 
   const deleteMutation = useMutation({
     mutationFn: () => api(`/api/templates/${templateId}`, { method: 'DELETE' }),
-    onSuccess: () => navigate(`/clients/${clientId}/stores/${storeId}/icps/${icpId}/ref-tracks/${refTrackId}`),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['ref-track'] }); navigate(`/clients/${clientId}/stores/${storeId}/icps/${icpId}/ref-tracks/${refTrackId}`); },
   });
 
   const createPromptMutation = useMutation({
