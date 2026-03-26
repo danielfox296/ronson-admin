@@ -33,7 +33,9 @@ function Layout() {
   return (
     <div className="flex h-screen bg-[#0a0a0f]">
       <aside className="w-[220px] bg-[#0d0d14] text-white flex flex-col shrink-0 border-r border-[rgba(255,255,255,0.06)]">
-        <div className="px-5 py-5 text-base font-light tracking-wide text-[rgba(255,255,255,0.87)] border-b border-[rgba(255,255,255,0.06)]">Entune Admin</div>
+        <div className="px-5 py-5 border-b border-[rgba(255,255,255,0.06)]">
+          <img src="/logo.png" alt="Entuned" className="h-5" />
+        </div>
         <nav className="flex-1 p-3 space-y-1">
           {links.map((l) => (
             <NavLink
