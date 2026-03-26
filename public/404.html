@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    // SPA redirect for GitHub Pages
+    // Redirects all 404s back to index.html with the path preserved
+    const path = window.location.pathname;
+    const search = window.location.search;
+    const hash = window.location.hash;
+    window.location.replace(
+      window.location.origin + '/?p=' + encodeURIComponent(path + search + hash)
+    );
+  </script>
+</head>
+<body></body>
+</html>
