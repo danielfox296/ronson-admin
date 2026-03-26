@@ -22,7 +22,7 @@ export default function StoreDetail() {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
   const [showIcpForm, setShowIcpForm] = useState(false);
-  const [icpForm, setIcpForm] = useState({ name: '', description: '' });
+  const [icpForm, setIcpForm] = useState({ name: '', psychographic_summary: '' });
   const [showSongPicker, setShowSongPicker] = useState(false);
   const [tab, setTab] = useState<'icps' | 'playlist' | 'playlog' | 'wonder'>('icps');
   const [playerEmail, setPlayerEmail] = useState('');
@@ -65,7 +65,7 @@ export default function StoreDetail() {
 
   const createIcpMutation = useMutation({
     mutationFn: (body: typeof icpForm) => api(`/api/stores/${storeId}/icps`, { method: 'POST', body }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store-icps', storeId] }); setShowIcpForm(false); setIcpForm({ name: '', description: '' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store-icps', storeId] }); setShowIcpForm(false); setIcpForm({ name: '', psychographic_summary: '' }); },
   });
 
   const assignSongMutation = useMutation({
@@ -171,7 +171,7 @@ export default function StoreDetail() {
           {showIcpForm && (
             <div className="bg-white border rounded-lg p-4 mb-3 space-y-3">
               <input placeholder="ICP Name" value={icpForm.name} onChange={(e) => setIcpForm({ ...icpForm, name: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
-              <textarea placeholder="Description" value={icpForm.description} onChange={(e) => setIcpForm({ ...icpForm, description: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" rows={2} />
+              <textarea placeholder="Psychographic Summary" value={icpForm.psychographic_summary} onChange={(e) => setIcpForm({ ...icpForm, psychographic_summary: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" rows={2} />
               <div className="flex gap-2">
                 <button type="button" onClick={() => createIcpMutation.mutate(icpForm)} disabled={!icpForm.name} className="bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">Create</button>
                 <button type="button" onClick={() => setShowIcpForm(false)} className="border px-4 py-2 rounded text-sm">Cancel</button>
