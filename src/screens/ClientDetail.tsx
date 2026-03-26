@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
+import { humanize } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
@@ -11,7 +12,7 @@ function StatusBadge({ status }: { status: string }) {
     inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
     archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{status}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
 }
 
 export default function ClientDetail() {
@@ -72,7 +73,7 @@ export default function ClientDetail() {
             {['independent', 'franchisee', 'corporate_parent'].map((t) => (
               <label key={t} className="flex items-center gap-1">
                 <input type="radio" name="type" value={t} checked={editForm.type === t} onChange={() => setEditForm({ ...editForm, type: t })} />
-                {t.replace('_', ' ')}
+                {humanize(t)}
               </label>
             ))}
           </div>
@@ -86,8 +87,8 @@ export default function ClientDetail() {
       ) : (
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-[rgba(255,255,255,0.4)]">Type:</span> <span className="text-[rgba(255,255,255,0.87)]">{client.type}</span></div>
-            <div><span className="text-[rgba(255,255,255,0.4)]">Status:</span> <span className="text-[rgba(255,255,255,0.87)]">{client.status}</span></div>
+            <div><span className="text-[rgba(255,255,255,0.4)]">Type:</span> <span className="text-[rgba(255,255,255,0.87)]">{humanize(client.type)}</span></div>
+            <div><span className="text-[rgba(255,255,255,0.4)]">Status:</span> <span className="text-[rgba(255,255,255,0.87)]">{humanize(client.status)}</span></div>
             <div><span className="text-[rgba(255,255,255,0.4)]">Contact:</span> <span className="text-[rgba(255,255,255,0.87)]">{client.primary_contact_name}</span></div>
             <div><span className="text-[rgba(255,255,255,0.4)]">Email:</span> <span className="text-[rgba(255,255,255,0.87)]">{client.primary_contact_email}</span></div>
           </div>
@@ -143,7 +144,22 @@ export default function ClientDetail() {
         </div>
       </div>
 
-      {/* Deactivate Client */}
+      {/* Corporate Audience Profiles */}
+      {client.corporate_icps && client.corporate_icps.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Corporate Audience Profiles</h2>
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
+            {client.corporate_icps.map((icp: any) => (
+              <div key={icp.id} className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
+                <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name || icp.label}</span>
+                {icp.description && <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">{icp.description}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Deactivate Client - moved to very bottom */}
       <div className="mt-8 border-t border-[rgba(255,255,255,0.06)] pt-6">
         <button
           type="button"
@@ -158,21 +174,6 @@ export default function ClientDetail() {
           {deactivateMutation.isPending ? 'Deactivating...' : 'Deactivate Client'}
         </button>
       </div>
-
-      {/* Corporate ICPs */}
-      {client.corporate_icps && client.corporate_icps.length > 0 && (
-        <div>
-          <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Corporate ICPs</h2>
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
-            {client.corporate_icps.map((icp: any) => (
-              <div key={icp.id} className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
-                <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name || icp.label}</span>
-                {icp.description && <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">{icp.description}</p>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

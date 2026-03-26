@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api.js';
+import { humanize } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
@@ -16,7 +17,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>
-      {status}
+      {humanize(status)}
     </span>
   );
 }
@@ -76,7 +77,7 @@ export default function ClientList() {
             {['independent', 'franchisee', 'corporate_parent'].map((t) => (
               <label key={t} className="flex items-center gap-1">
                 <input type="radio" name="client_type" value={t} checked={form.type === t} onChange={() => setForm({ ...form, type: t })} />
-                {t.replace('_', ' ')}
+                {humanize(t)}
               </label>
             ))}
           </div>
@@ -108,7 +109,7 @@ export default function ClientList() {
             {clients.map((c: any) => (
               <tr key={c.id} onClick={() => navigate(`/clients/${c.id}`)} className="border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors">
                 <td className="px-4 py-3 text-[rgba(255,255,255,0.87)]">{c.name}</td>
-                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{c.type}</td>
+                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{humanize(c.type)}</td>
                 <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{c._count?.stores ?? 0}</td>
                 <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
               </tr>

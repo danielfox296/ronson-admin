@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
+import { humanize, formatDuration } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
@@ -11,7 +12,7 @@ function StatusBadge({ status }: { status: string }) {
     inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]', flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
     archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{status}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
 }
 
 export default function StoreDetail() {
@@ -24,7 +25,7 @@ export default function StoreDetail() {
   const [showIcpForm, setShowIcpForm] = useState(false);
   const [icpForm, setIcpForm] = useState({ name: '', psychographic_summary: '' });
   const [showSongPicker, setShowSongPicker] = useState(false);
-  const [tab, setTab] = useState<'icps' | 'playlist' | 'playlog' | 'wonder'>('icps');
+  const [tab, setTab] = useState<'audiences' | 'playlist' | 'playlog' | 'player'>('audiences');
   const [playerEmail, setPlayerEmail] = useState('');
   const [playerEmailLoaded, setPlayerEmailLoaded] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -58,6 +59,18 @@ export default function StoreDetail() {
     enabled: showSongPicker,
   });
 
+  const store = storeData?.data;
+
+  // Fix: use useEffect instead of render-time setState for player email
+  useEffect(() => {
+    if (store && !playerEmailLoaded) {
+      if (store.player_email) {
+        setPlayerEmail(store.player_email);
+      }
+      setPlayerEmailLoaded(true);
+    }
+  }, [store, playerEmailLoaded]);
+
   const updateMutation = useMutation({
     mutationFn: (body: any) => api(`/api/stores/${storeId}`, { method: 'PUT', body }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store', storeId] }); setEditing(false); },
@@ -84,7 +97,6 @@ export default function StoreDetail() {
   });
 
   if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
-  const store = storeData?.data;
   if (!store) return <p className="text-[#e74c3c]">Store not found</p>;
 
   const icps = icpsData?.data || [];
@@ -98,10 +110,10 @@ export default function StoreDetail() {
   };
 
   const tabs = [
-    { key: 'icps', label: 'ICPs' },
+    { key: 'audiences', label: 'Audiences' },
     { key: 'playlist', label: 'Playlist' },
     { key: 'playlog', label: 'Play Log' },
-    { key: 'wonder', label: 'Wonder Setup' },
+    { key: 'player', label: 'Player Setup' },
   ] as const;
 
   return (
@@ -161,16 +173,16 @@ export default function StoreDetail() {
         ))}
       </div>
 
-      {/* ICPs Tab */}
-      {tab === 'icps' && (
+      {/* Audiences Tab */}
+      {tab === 'audiences' && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-medium text-[rgba(255,255,255,0.87)]">ICPs</h2>
-            <button type="button" onClick={() => setShowIcpForm(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ New ICP</button>
+            <h2 className="font-medium text-[rgba(255,255,255,0.87)]">Audiences</h2>
+            <button type="button" onClick={() => setShowIcpForm(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ New Audience</button>
           </div>
           {showIcpForm && (
             <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3 space-y-3">
-              <input placeholder="ICP Name" value={icpForm.name} onChange={(e) => setIcpForm({ ...icpForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+              <input placeholder="Audience Name" value={icpForm.name} onChange={(e) => setIcpForm({ ...icpForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
               <textarea placeholder="Psychographic Summary" value={icpForm.psychographic_summary} onChange={(e) => setIcpForm({ ...icpForm, psychographic_summary: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" rows={2} />
               <div className="flex gap-2">
                 <button type="button" onClick={() => createIcpMutation.mutate(icpForm)} disabled={!icpForm.name} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">Create</button>
@@ -182,14 +194,14 @@ export default function StoreDetail() {
             {icps.map((icp: any) => (
               <div
                 key={icp.id}
-                onClick={() => navigate(`/clients/${clientId}/stores/${storeId}/icps/${icp.id}`)}
+                onClick={() => navigate(`/clients/${clientId}/stores/${storeId}/audiences/${icp.id}`)}
                 className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm transition-colors"
               >
                 <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
                 {icp.description && <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">{icp.description}</p>}
               </div>
             ))}
-            {icps.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No ICPs yet</p>}
+            {icps.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No audiences yet</p>}
           </div>
         </div>
       )}
@@ -245,7 +257,7 @@ export default function StoreDetail() {
                 <tr key={ev.id} className="border-b border-[rgba(255,255,255,0.04)]">
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.87)]">{ev.song?.title || ev.title || 'Unknown'}</td>
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{new Date(ev.started_at || ev.created_at).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{ev.duration_played ? `${ev.duration_played}s` : '-'}</td>
+                  <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{ev.duration_played ? formatDuration(Math.round(ev.duration_played)) : '-'}</td>
                 </tr>
               ))}
               {playEvents.length === 0 && (
@@ -256,17 +268,10 @@ export default function StoreDetail() {
         </div>
       )}
 
-      {/* Wonder Setup Tab */}
-      {tab === 'wonder' && (() => {
-        if (!playerEmailLoaded && store.player_email) {
-          setPlayerEmail(store.player_email);
-          setPlayerEmailLoaded(true);
-        } else if (!playerEmailLoaded) {
-          setPlayerEmailLoaded(true);
-        }
-        return (
+      {/* Player Setup Tab */}
+      {tab === 'player' && (
         <div>
-          <h2 className="font-medium mb-3 text-[rgba(255,255,255,0.87)]">Wonder Setup</h2>
+          <h2 className="font-medium mb-3 text-[rgba(255,255,255,0.87)]">Player Setup</h2>
           <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-4">
             <div>
               <label className="text-[rgba(255,255,255,0.4)] block mb-1">Player Login Email</label>
@@ -285,16 +290,15 @@ export default function StoreDetail() {
               {passwordSaved && <p className="text-[#27ae60] text-xs mt-1">Saved successfully.</p>}
             </div>
             <div className="border-t border-[rgba(255,255,255,0.06)] pt-3 text-[rgba(255,255,255,0.4)] text-xs">
-              <p>To set up Wonder at this store:</p>
+              <p>To set up the player at this store:</p>
               <ol className="list-decimal ml-4 mt-1 space-y-1">
-                <li>Open Wonder on the store device</li>
+                <li>Open the player on the store device</li>
                 <li>Enter the email and password set above</li>
               </ol>
             </div>
           </div>
         </div>
-        );
-      })()}
+      )}
     </div>
   );
 }

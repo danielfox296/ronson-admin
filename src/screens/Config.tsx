@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
+import { humanize } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
 
 export default function Config() {
   const queryClient = useQueryClient();
+
+  // --- Change Password ---
+  const [pwForm, setPwForm] = useState({ current_password: '', new_password: '' });
+  const [pwMsg, setPwMsg] = useState('');
+  const changePwMutation = useMutation({
+    mutationFn: (body: typeof pwForm) => api('/api/auth/change-password', { method: 'POST', body }),
+    onSuccess: () => { setPwForm({ current_password: '', new_password: '' }); setPwMsg('Password changed successfully'); },
+    onError: (e: any) => setPwMsg(e.message || 'Failed to change password'),
+  });
 
   // --- Flow Factors ---
   const { data: ffData, isLoading: ffLoading } = useQuery({
@@ -72,22 +82,44 @@ export default function Config() {
     updateGsMutation.mutate({ id: gs.id, body: { is_active: !gs.is_active } });
   };
 
-  // --- Change Password ---
-  const [pwForm, setPwForm] = useState({ current_password: '', new_password: '' });
-  const [pwMsg, setPwMsg] = useState('');
-  const changePwMutation = useMutation({
-    mutationFn: (body: typeof pwForm) => api('/api/auth/change-password', { method: 'POST', body }),
-    onSuccess: () => { setPwForm({ current_password: '', new_password: '' }); setPwMsg('Password changed successfully'); },
-    onError: (e: any) => setPwMsg(e.message || 'Failed to change password'),
-  });
-
   const flowFactors = ffData?.data || [];
   const genSystems = gsData?.data || [];
 
   return (
     <div>
-      <Breadcrumb items={[{ label: 'Config' }]} />
-      <h1 className="text-2xl font-light mb-6 text-[rgba(255,255,255,0.87)]">Configuration</h1>
+      <Breadcrumb items={[{ label: 'Settings' }]} />
+      <h1 className="text-2xl font-light mb-6 text-[rgba(255,255,255,0.87)]">Settings</h1>
+
+      {/* Account / Change Password - moved to top */}
+      <section className="mb-8">
+        <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Account</h2>
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 space-y-3 max-w-md">
+          <h3 className="font-medium text-sm text-[rgba(255,255,255,0.87)]">Change Password</h3>
+          <input
+            type="password"
+            placeholder="Current Password"
+            value={pwForm.current_password}
+            onChange={(e) => setPwForm({ ...pwForm, current_password: e.target.value })}
+            className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]"
+          />
+          <input
+            type="password"
+            placeholder="New Password"
+            value={pwForm.new_password}
+            onChange={(e) => setPwForm({ ...pwForm, new_password: e.target.value })}
+            className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]"
+          />
+          <button
+            type="button"
+            onClick={() => { setPwMsg(''); changePwMutation.mutate(pwForm); }}
+            disabled={!pwForm.current_password || !pwForm.new_password || changePwMutation.isPending}
+            className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
+          >
+            {changePwMutation.isPending ? 'Changing...' : 'Change Password'}
+          </button>
+          {pwMsg && <p className={`text-sm ${changePwMutation.isError ? 'text-[#e74c3c]' : 'text-[#27ae60]'}`}>{pwMsg}</p>}
+        </div>
+      </section>
 
       {/* Flow Factors */}
       <section className="mb-8">
@@ -98,17 +130,32 @@ export default function Config() {
 
         {showFfForm && (
           <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3 space-y-3">
-            <input placeholder="Name" value={ffForm.name} onChange={(e) => setFfForm({ ...ffForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-            <input placeholder="Display Name" value={ffForm.display_name} onChange={(e) => setFfForm({ ...ffForm, display_name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            <div>
+              <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Key (internal identifier)</label>
+              <input placeholder="e.g. tempo_bpm" value={ffForm.name} onChange={(e) => setFfForm({ ...ffForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            </div>
+            <div>
+              <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Label (shown in admin)</label>
+              <input placeholder="e.g. Tempo (BPM)" value={ffForm.display_name} onChange={(e) => setFfForm({ ...ffForm, display_name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            </div>
             <div className="grid grid-cols-3 gap-2">
-              <input placeholder="Category" value={ffForm.category} onChange={(e) => setFfForm({ ...ffForm, category: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-              <select value={ffForm.value_type} onChange={(e) => setFfForm({ ...ffForm, value_type: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]">
-                <option value="number">number</option>
-                <option value="string">string</option>
-                <option value="boolean">boolean</option>
-                <option value="enum">enum</option>
-              </select>
-              <input placeholder="Weight" type="number" step="0.01" value={ffForm.importance_weight} onChange={(e) => setFfForm({ ...ffForm, importance_weight: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+              <div>
+                <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Category</label>
+                <input placeholder="Category" value={ffForm.category} onChange={(e) => setFfForm({ ...ffForm, category: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)] w-full" />
+              </div>
+              <div>
+                <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Value Type</label>
+                <select value={ffForm.value_type} onChange={(e) => setFfForm({ ...ffForm, value_type: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)] w-full">
+                  <option value="number">Number</option>
+                  <option value="string">String</option>
+                  <option value="boolean">Boolean</option>
+                  <option value="enum">Enum</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Importance Weight (0-1)</label>
+                <input placeholder="0.5" type="number" step="0.01" min="0" max="1" value={ffForm.importance_weight} onChange={(e) => setFfForm({ ...ffForm, importance_weight: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)] w-full" />
+              </div>
             </div>
             <div className="flex gap-2">
               <button
@@ -128,8 +175,8 @@ export default function Config() {
           <table className="w-full bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl text-sm">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.06)]">
-                <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Display Name</th>
+                <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Key</th>
+                <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Label</th>
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Category</th>
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Type</th>
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Weight</th>
@@ -142,7 +189,7 @@ export default function Config() {
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.87)]">{ff.name}</td>
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{ff.display_name}</td>
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{ff.category}</td>
-                  <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{ff.value_type}</td>
+                  <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{humanize(ff.value_type || '')}</td>
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{ff.importance_weight}</td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <button type="button" onClick={() => startEditFf(ff)} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">Edit</button>
@@ -218,37 +265,6 @@ export default function Config() {
             </tbody>
           </table>
         )}
-      </section>
-
-      {/* Change Password */}
-      <section>
-        <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Account</h2>
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 space-y-3 max-w-md">
-          <h3 className="font-medium text-sm text-[rgba(255,255,255,0.87)]">Change Password</h3>
-          <input
-            type="password"
-            placeholder="Current Password"
-            value={pwForm.current_password}
-            onChange={(e) => setPwForm({ ...pwForm, current_password: e.target.value })}
-            className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]"
-          />
-          <input
-            type="password"
-            placeholder="New Password"
-            value={pwForm.new_password}
-            onChange={(e) => setPwForm({ ...pwForm, new_password: e.target.value })}
-            className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]"
-          />
-          <button
-            type="button"
-            onClick={() => { setPwMsg(''); changePwMutation.mutate(pwForm); }}
-            disabled={!pwForm.current_password || !pwForm.new_password || changePwMutation.isPending}
-            className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
-          >
-            {changePwMutation.isPending ? 'Changing...' : 'Change Password'}
-          </button>
-          {pwMsg && <p className={`text-sm ${changePwMutation.isError ? 'text-[#e74c3c]' : 'text-[#27ae60]'}`}>{pwMsg}</p>}
-        </div>
       </section>
     </div>
   );

@@ -3,10 +3,7 @@ import Login from './screens/Login.js';
 import ClientList from './screens/ClientList.js';
 import ClientDetail from './screens/ClientDetail.js';
 import StoreDetail from './screens/StoreDetail.js';
-import IcpDetail from './screens/IcpDetail.js';
-import RefTrackDetail from './screens/RefTrackDetail.js';
-import TemplateDetail from './screens/TemplateDetail.js';
-import PromptDetail from './screens/PromptDetail.js';
+import AudiencePipeline from './screens/AudiencePipeline.js';
 import SongLibrary from './screens/SongLibrary.js';
 import SongDetail from './screens/SongDetail.js';
 import Config from './screens/Config.js';
@@ -22,7 +19,7 @@ function Layout() {
   const links = [
     { to: '/clients', label: 'Clients' },
     { to: '/songs', label: 'Song Library' },
-    { to: '/config', label: 'Config' },
+    { to: '/config', label: 'Settings' },
   ];
 
   const logout = () => {
@@ -75,10 +72,7 @@ export default function App() {
         <Route path="clients" element={<ClientList />} />
         <Route path="clients/:id" element={<ClientDetail />} />
         <Route path="clients/:clientId/stores/:storeId" element={<StoreDetail />} />
-        <Route path="clients/:clientId/stores/:storeId/icps/:icpId" element={<IcpDetail />} />
-        <Route path="clients/:clientId/stores/:storeId/icps/:icpId/ref-tracks/:refTrackId" element={<RefTrackDetail />} />
-        <Route path="clients/:clientId/stores/:storeId/icps/:icpId/ref-tracks/:refTrackId/templates/:templateId" element={<TemplateDetail />} />
-        <Route path="clients/:clientId/stores/:storeId/icps/:icpId/ref-tracks/:refTrackId/templates/:templateId/prompts/:promptId" element={<PromptDetail />} />
+        <Route path="clients/:clientId/stores/:storeId/audiences/:icpId" element={<AudiencePipeline />} />
         <Route path="songs" element={<SongLibrary />} />
         <Route path="songs/:id" element={<SongDetail />} />
         <Route path="config" element={<Config />} />

@@ -1,17 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
+import { humanize, formatDuration } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]', online: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
+    generated: 'bg-[rgba(74,144,164,0.15)] text-[#4a90a4]',
     draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]', onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
     flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]', inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    removed: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
     archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{status}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
 }
 
 export default function SongDetail() {
@@ -23,6 +26,7 @@ export default function SongDetail() {
   const [titleVal, setTitleVal] = useState('');
   const [editingStatus, setEditingStatus] = useState(false);
   const [statusVal, setStatusVal] = useState('');
+  const [storeSearch, setStoreSearch] = useState('');
 
   const { data: songData, isLoading } = useQuery({
     queryKey: ['song', id],
@@ -34,6 +38,17 @@ export default function SongDetail() {
     queryFn: () => api<{ data: any[] }>('/api/stores'),
     enabled: showAssign,
   });
+
+  const { data: gsData } = useQuery({
+    queryKey: ['generation-systems'],
+    queryFn: () => api<{ data: any[] }>('/api/generation-systems'),
+  });
+
+  const gsNameMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    (gsData?.data || []).forEach((gs: any) => { m[gs.id] = gs.name; });
+    return m;
+  }, [gsData]);
 
   const updateMutation = useMutation({
     mutationFn: (body: any) => api(`/api/songs/${id}`, { method: 'PUT', body }),
@@ -69,6 +84,11 @@ export default function SongDetail() {
   const lineageTemplate = lineage.template;
   const lineagePrompt = lineage.prompt;
 
+  // Filter stores by search term
+  const filteredStores = storeSearch
+    ? stores.filter((s: any) => (s.name || '').toLowerCase().includes(storeSearch.toLowerCase()))
+    : stores;
+
   return (
     <div>
       <Breadcrumb items={[
@@ -93,10 +113,10 @@ export default function SongDetail() {
           {editingStatus ? (
             <div className="flex items-center gap-2">
               <select value={statusVal} onChange={(e) => setStatusVal(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-sm bg-[rgba(255,255,255,0.03)]">
-                <option value="generated">generated</option>
-                <option value="active">active</option>
-                <option value="flagged">flagged</option>
-                <option value="removed">removed</option>
+                <option value="generated">Generated</option>
+                <option value="active">Active</option>
+                <option value="flagged">Flagged</option>
+                <option value="removed">Removed</option>
               </select>
               <button type="button" onClick={() => updateMutation.mutate({ status: statusVal })} className="bg-[#4a90a4] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
               <button type="button" onClick={() => setEditingStatus(false)} className="border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
@@ -108,21 +128,14 @@ export default function SongDetail() {
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => { if (window.confirm('Delete this song?')) deleteMutation.mutate(); }}
-          className="border border-[rgba(231,76,60,0.3)] text-[#e74c3c] px-4 py-2 rounded-lg text-sm hover:bg-[rgba(231,76,60,0.1)] transition-colors"
-        >
-          Delete
-        </button>
       </div>
 
       {/* Song Info */}
       <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 text-sm space-y-3">
         <div className="grid grid-cols-2 gap-4">
-          <div><span className="text-[rgba(255,255,255,0.4)]">Duration:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.duration_seconds ? `${song.duration_seconds}s` : '-'}</span></div>
-          <div><span className="text-[rgba(255,255,255,0.4)]">Status:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.status}</span></div>
-          <div><span className="text-[rgba(255,255,255,0.4)]">Generation System:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.generation_system_id || '-'}</span></div>
+          <div><span className="text-[rgba(255,255,255,0.4)]">Duration:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.duration_seconds ? formatDuration(Math.round(song.duration_seconds)) : '-'}</span></div>
+          <div><span className="text-[rgba(255,255,255,0.4)]">Status:</span> <span className="text-[rgba(255,255,255,0.87)]">{humanize(song.status || 'active')}</span></div>
+          <div><span className="text-[rgba(255,255,255,0.4)]">Generation System:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.generation_system_id ? (gsNameMap[song.generation_system_id] || song.generation_system_id) : '-'}</span></div>
           <div><span className="text-[rgba(255,255,255,0.4)]">Created:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.created_at ? new Date(song.created_at).toLocaleDateString() : '-'}</span></div>
         </div>
         {song.audio_file_url && (
@@ -140,9 +153,9 @@ export default function SongDetail() {
           <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-2">
             {lineageIcp && (
               <div>
-                <span className="text-[rgba(255,255,255,0.4)]">ICP:</span>{' '}
+                <span className="text-[rgba(255,255,255,0.4)]">Audience:</span>{' '}
                 {lineageIcp.store ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">{lineageIcp.name}</Link>
+                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/audiences/${lineageIcp.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">{lineageIcp.name}</Link>
                 ) : (
                   <span className="text-[rgba(255,255,255,0.87)]">{lineageIcp.name}</span>
                 )}
@@ -151,31 +164,19 @@ export default function SongDetail() {
             {lineageRefTrack && (
               <div>
                 <span className="text-[rgba(255,255,255,0.4)]">Reference Track:</span>{' '}
-                {lineageIcp?.store ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">{lineageRefTrack.title}</Link>
-                ) : (
-                  <span className="text-[rgba(255,255,255,0.87)]">{lineageRefTrack.title}</span>
-                )}
+                <span className="text-[rgba(255,255,255,0.87)]">{lineageRefTrack.title}</span>
               </div>
             )}
             {lineageTemplate && (
               <div>
                 <span className="text-[rgba(255,255,255,0.4)]">Template:</span>{' '}
-                {lineageIcp?.store ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack?.id}/templates/${lineageTemplate.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">{lineageTemplate.name || 'Template'}</Link>
-                ) : (
-                  <span className="text-[rgba(255,255,255,0.87)]">{lineageTemplate.name || 'Template'}</span>
-                )}
+                <span className="text-[rgba(255,255,255,0.87)]">{lineageTemplate.name || 'Template'}</span>
               </div>
             )}
             {lineagePrompt && (
               <div>
                 <span className="text-[rgba(255,255,255,0.4)]">Prompt:</span>{' '}
-                {lineageIcp?.store && lineageTemplate ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/icps/${lineageIcp.id}/ref-tracks/${lineageRefTrack?.id}/templates/${lineageTemplate.id}/prompts/${lineagePrompt.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">Prompt #{(lineagePrompt.id || '').slice(-6)}</Link>
-                ) : (
-                  <span className="text-[rgba(255,255,255,0.87)]">Prompt #{(lineagePrompt.id || '').slice(-6)}</span>
-                )}
+                <span className="text-[rgba(255,255,255,0.87)]">Prompt #{(lineagePrompt.id || '').slice(-6)}</span>
               </div>
             )}
           </div>
@@ -216,19 +217,27 @@ export default function SongDetail() {
       {showAssign && (
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3">
           <h3 className="font-medium text-sm mb-2 text-[rgba(255,255,255,0.87)]">Pick a store</h3>
+          <input
+            type="text"
+            placeholder="Search stores..."
+            value={storeSearch}
+            onChange={(e) => setStoreSearch(e.target.value)}
+            className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm mb-2 bg-[rgba(255,255,255,0.03)]"
+          />
           <div className="max-h-60 overflow-auto space-y-1">
-            {stores.map((s: any) => (
+            {filteredStores.map((s: any) => (
               <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg text-sm transition-colors">
                 <span className="text-[rgba(255,255,255,0.87)]">{s.name}</span>
                 <button type="button" onClick={() => assignMutation.mutate(s.id)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">Assign</button>
               </div>
             ))}
+            {filteredStores.length === 0 && <p className="text-[rgba(255,255,255,0.3)] text-sm py-2">No stores found</p>}
           </div>
-          <button type="button" onClick={() => setShowAssign(false)} className="mt-2 border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Close</button>
+          <button type="button" onClick={() => { setShowAssign(false); setStoreSearch(''); }} className="mt-2 border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Close</button>
         </div>
       )}
 
-      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
+      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl mb-6">
         {assignments.map((a: any) => (
           <div key={a.id} className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
             <div>
@@ -239,6 +248,17 @@ export default function SongDetail() {
           </div>
         ))}
         {assignments.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">Not assigned to any stores</p>}
+      </div>
+
+      {/* Delete Song - moved to bottom */}
+      <div className="mt-8 border-t border-[rgba(255,255,255,0.06)] pt-6">
+        <button
+          type="button"
+          onClick={() => { if (window.confirm('Delete this song?')) deleteMutation.mutate(); }}
+          className="text-[#e74c3c] hover:text-[#c0392b] text-sm font-medium transition-colors"
+        >
+          Delete Song
+        </button>
       </div>
     </div>
   );
