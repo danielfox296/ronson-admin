@@ -66,6 +66,10 @@ export default function Config() {
     mutationFn: ({ id, body }: { id: string; body: any }) => api(`/api/generation-systems/${id}`, { method: 'PUT', body }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['generation-systems'] }); resetGsForm(); },
   });
+  const deleteGsMutation = useMutation({
+    mutationFn: (id: string) => api(`/api/generation-systems/${id}`, { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['generation-systems'] }),
+  });
 
   const resetGsForm = () => {
     setShowGsForm(false);
@@ -88,7 +92,6 @@ export default function Config() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Settings' }]} />
-      <h1 className="text-2xl font-light mb-6 text-[rgba(255,255,255,0.87)]">Settings</h1>
 
       {/* Account / Change Password - moved to top */}
       <section className="mb-8">
@@ -254,8 +257,9 @@ export default function Config() {
                       {gs.is_active ? 'Active' : 'Inactive'}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right space-x-3">
                     <button type="button" onClick={() => startEditGs(gs)} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">Edit</button>
+                    <button type="button" onClick={() => { if (window.confirm(`Delete "${gs.name}"?`)) deleteGsMutation.mutate(gs.id); }} className="text-[#e74c3c] hover:text-[#ff6b6b] transition-colors">Delete</button>
                   </td>
                 </tr>
               ))}

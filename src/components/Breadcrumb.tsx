@@ -6,20 +6,32 @@ interface BreadcrumbItem {
 }
 
 export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
+  const parents = items.slice(0, -1);
+  const current = items[items.length - 1];
+
   return (
-    <nav className="flex items-center gap-1 text-sm text-[rgba(255,255,255,0.3)] mb-4">
-      {items.map((item, i) => (
-        <span key={i} className="flex items-center gap-1">
-          {i > 0 && <span className="mx-1">/</span>}
-          {i < items.length - 1 && item.href ? (
-            <Link to={item.href} className="hover:text-[rgba(255,255,255,0.7)] transition-colors">
-              {item.label}
-            </Link>
-          ) : (
-            <span className="text-[rgba(255,255,255,0.7)] font-medium">{item.label}</span>
-          )}
-        </span>
-      ))}
-    </nav>
+    <div className="mb-6">
+      {parents.length > 0 && (
+        <nav className="flex items-center gap-1 text-xs text-[rgba(255,255,255,0.25)] mb-2 tracking-wide">
+          {parents.map((item, i) => (
+            <span key={i} className="flex items-center gap-1">
+              {i > 0 && <span className="mx-1">/</span>}
+              {item.href ? (
+                <Link to={item.href} className="hover:text-[rgba(255,255,255,0.5)] transition-colors">
+                  {item.label}
+                </Link>
+              ) : (
+                <span>{item.label}</span>
+              )}
+            </span>
+          ))}
+        </nav>
+      )}
+      {current && (
+        <h1 className="text-xl font-light text-[rgba(255,255,255,0.87)] uppercase tracking-widest">
+          {current.label}
+        </h1>
+      )}
+    </div>
   );
 }

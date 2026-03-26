@@ -273,13 +273,13 @@ export default function AudiencePipeline() {
       {/*  Section 1: Audience Profile                                  */}
       {/* ============================================================ */}
       <section className="mb-8">
-        <h1 className="text-2xl font-light mb-4 text-[rgba(255,255,255,0.87)]">
+        <div className="mb-4">
           <InlineEdit
             value={icp.name}
             onSave={(v) => updateIcpMutation.mutate({ name: v })}
-            className="text-2xl font-light text-[rgba(255,255,255,0.87)]"
+            className="text-base font-light text-[rgba(255,255,255,0.6)]"
           />
-        </h1>
+        </div>
 
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-3">
           <div>

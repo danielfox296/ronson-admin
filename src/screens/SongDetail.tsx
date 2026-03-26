@@ -106,8 +106,7 @@ export default function SongDetail() {
             </>
           ) : (
             <>
-              <h1 className="text-2xl font-light text-[rgba(255,255,255,0.87)]">{song.title}</h1>
-              <button type="button" onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }} className="text-[#4a90a4] hover:text-[#5ba3b8] text-sm transition-colors">Edit</button>
+              <button type="button" onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }} className="text-[#4a90a4] hover:text-[#5ba3b8] text-sm transition-colors">Edit Title</button>
             </>
           )}
           {editingStatus ? (

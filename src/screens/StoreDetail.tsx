@@ -125,7 +125,7 @@ export default function StoreDetail() {
       ]} />
 
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-light text-[rgba(255,255,255,0.87)]">{store.name}</h1>
+        <div />
         <StatusBadge status={store.status || 'active'} />
       </div>
 

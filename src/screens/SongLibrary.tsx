@@ -74,7 +74,6 @@ export default function SongLibrary() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Song Library' }]} />
-      <h1 className="text-2xl font-light mb-4 text-[rgba(255,255,255,0.87)]">Song Library</h1>
 
       <div className="flex gap-2 mb-4">
         {filters.map((f) => (

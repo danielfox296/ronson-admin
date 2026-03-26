@@ -62,7 +62,7 @@ export default function ClientDetail() {
       <Breadcrumb items={[{ label: 'Clients', href: '/clients' }, { label: client.name }]} />
 
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-light text-[rgba(255,255,255,0.87)]">{client.name}</h1>
+        <div />
         <StatusBadge status={client.status} />
       </div>
 

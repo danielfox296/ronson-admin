@@ -55,7 +55,7 @@ export default function ClientList() {
     <div>
       <Breadcrumb items={[{ label: 'Clients' }]} />
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-light text-[rgba(255,255,255,0.87)]">Clients</h1>
+        <div />
         <button type="button" onClick={() => setShowForm(true)} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">
           + New Client
         </button>
