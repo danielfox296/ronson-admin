@@ -27,6 +27,7 @@ export default function ClientList() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
+  const [showInactive, setShowInactive] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'independent' as string, primary_contact_name: '', primary_contact_email: '' });
 
@@ -49,7 +50,8 @@ export default function ClientList() {
     },
   });
 
-  const clients = data?.data || [];
+  const allClients = data?.data || [];
+  const clients = showInactive ? allClients : allClients.filter((c: any) => c.status !== 'inactive');
 
   return (
     <div>
@@ -61,13 +63,19 @@ export default function ClientList() {
         </button>
       </div>
 
-      <input
-        type="text"
-        placeholder="Search clients..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm mb-4 bg-[rgba(255,255,255,0.03)]"
-      />
+      <div className="flex items-center gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Search clients..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]"
+        />
+        <label className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.4)] cursor-pointer shrink-0 select-none">
+          <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} className="accent-[#4a90a4]" />
+          Show inactive
+        </label>
+      </div>
 
       {showForm && (
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-4 space-y-3">

@@ -24,8 +24,7 @@ export default function StoreDetail() {
   const [editForm, setEditForm] = useState<any>({});
   const [showIcpForm, setShowIcpForm] = useState(false);
   const [icpForm, setIcpForm] = useState({ name: '', psychographic_summary: '' });
-  const [showSongPicker, setShowSongPicker] = useState(false);
-  const [tab, setTab] = useState<'audiences' | 'playlist' | 'playlog' | 'player'>('audiences');
+  const [tab, setTab] = useState<'audiences' | 'playlog' | 'player'>('audiences');
   const [deleteIcpTarget, setDeleteIcpTarget] = useState<{ id: string; name: string; songCount: number } | null>(null);
   const [undoIcpTarget, setUndoIcpTarget] = useState<{ id: string; name: string; timerId: ReturnType<typeof setTimeout> } | null>(null);
   const [playerEmail, setPlayerEmail] = useState('');
@@ -43,22 +42,10 @@ export default function StoreDetail() {
     queryFn: () => api<{ data: any[] }>(`/api/stores/${storeId}/icps`),
   });
 
-  const { data: playlistData } = useQuery({
-    queryKey: ['store-playlist', storeId],
-    queryFn: () => api<{ data: any[] }>(`/api/stores/${storeId}/playlist`),
-    enabled: tab === 'playlist',
-  });
-
   const { data: playEventsData } = useQuery({
     queryKey: ['store-play-events', storeId],
     queryFn: () => api<{ data: any[] }>(`/api/stores/${storeId}/play-events`),
     enabled: tab === 'playlog',
-  });
-
-  const { data: allSongsData } = useQuery({
-    queryKey: ['songs-for-picker'],
-    queryFn: () => api<{ data: any[] }>('/api/songs'),
-    enabled: showSongPicker,
   });
 
   const store = storeData?.data;
@@ -83,19 +70,9 @@ export default function StoreDetail() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store-icps', storeId] }); setShowIcpForm(false); setIcpForm({ name: '', psychographic_summary: '' }); },
   });
 
-  const assignSongMutation = useMutation({
-    mutationFn: (songId: string) => api(`/api/stores/${storeId}/playlist`, { method: 'POST', body: { song_id: songId, added_by: 'admin' } }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store-playlist', storeId] }); setShowSongPicker(false); },
-  });
-
   const deleteIcpMutation = useMutation({
     mutationFn: (id: string) => api(`/api/store-icps/${id}`, { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['store-icps', storeId] }),
-  });
-
-  const removeSongMutation = useMutation({
-    mutationFn: (entryId: string) => api(`/api/stores/${storeId}/playlist/${entryId}`, { method: 'DELETE' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['store-playlist', storeId] }),
   });
 
   const saveWonderCredsMutation = useMutation({
@@ -107,9 +84,7 @@ export default function StoreDetail() {
   if (!store) return <p className="text-[#e74c3c]">Store not found</p>;
 
   const icps = icpsData?.data || [];
-  const playlist = playlistData?.data || [];
   const playEvents = playEventsData?.data || [];
-  const allSongs = allSongsData?.data || [];
 
   const startEdit = () => {
     setEditForm({ name: store.name, address_line_1: store.address_line_1, city: store.city, state: store.state, zip: store.zip, country: store.country, timezone: store.timezone });
@@ -118,7 +93,6 @@ export default function StoreDetail() {
 
   const tabs = [
     { key: 'audiences', label: 'Audiences' },
-    { key: 'playlist', label: 'Playlist' },
     { key: 'playlog', label: 'Play Log' },
     { key: 'player', label: 'Player Setup' },
   ] as const;
@@ -138,16 +112,37 @@ export default function StoreDetail() {
 
       {editing ? (
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 space-y-3">
-          <input placeholder="Name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-          <input placeholder="Address" value={editForm.address_line_1 || ''} onChange={(e) => setEditForm({ ...editForm, address_line_1: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+          <div>
+            <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-1">Store Name</label>
+            <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+          </div>
+          <div>
+            <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-1">Address</label>
+            <input value={editForm.address_line_1 || ''} onChange={(e) => setEditForm({ ...editForm, address_line_1: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+          </div>
           <div className="grid grid-cols-3 gap-2">
-            <input placeholder="City" value={editForm.city || ''} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-            <input placeholder="State" value={editForm.state || ''} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-            <input placeholder="Zip" value={editForm.zip || ''} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-1">City</label>
+              <input value={editForm.city || ''} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            </div>
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-1">State</label>
+              <input value={editForm.state || ''} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            </div>
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-1">Zip</label>
+              <input value={editForm.zip || ''} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <input placeholder="Country" value={editForm.country || ''} onChange={(e) => setEditForm({ ...editForm, country: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-            <input placeholder="Timezone" value={editForm.timezone || ''} onChange={(e) => setEditForm({ ...editForm, timezone: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-1">Country</label>
+              <input value={editForm.country || ''} onChange={(e) => setEditForm({ ...editForm, country: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            </div>
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-1">Timezone</label>
+              <input value={editForm.timezone || ''} onChange={(e) => setEditForm({ ...editForm, timezone: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+            </div>
           </div>
           <div className="flex gap-2">
             <button type="button" onClick={() => updateMutation.mutate(editForm)} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
@@ -223,40 +218,6 @@ export default function StoreDetail() {
               </div>
             ))}
             {icps.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No audiences yet</p>}
-          </div>
-        </div>
-      )}
-
-      {/* Playlist Tab */}
-      {tab === 'playlist' && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-medium text-[rgba(255,255,255,0.87)]">Playlist</h2>
-            <button type="button" onClick={() => setShowSongPicker(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ Assign Song</button>
-          </div>
-          {showSongPicker && (
-            <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3">
-              <h3 className="font-medium text-sm mb-2 text-[rgba(255,255,255,0.87)]">Pick a song to assign</h3>
-              <div className="max-h-60 overflow-auto space-y-1">
-                {allSongs.map((s: any) => (
-                  <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg text-sm transition-colors">
-                    <span className="text-[rgba(255,255,255,0.87)]">{s.title}</span>
-                    <button type="button" onClick={() => assignSongMutation.mutate(s.id)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">Assign</button>
-                  </div>
-                ))}
-                {allSongs.length === 0 && <p className="text-[rgba(255,255,255,0.3)] text-sm">No songs available</p>}
-              </div>
-              <button type="button" onClick={() => setShowSongPicker(false)} className="mt-2 border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Close</button>
-            </div>
-          )}
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
-            {playlist.map((entry: any) => (
-              <div key={entry.id} className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
-                <span className="text-[rgba(255,255,255,0.87)]">{entry.song?.title || entry.title || 'Untitled'}</span>
-                <button type="button" onClick={() => removeSongMutation.mutate(entry.id)} className="text-[#e74c3c] hover:text-[#c0392b] text-xs transition-colors">Remove</button>
-              </div>
-            ))}
-            {playlist.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No songs in playlist</p>}
           </div>
         </div>
       )}
