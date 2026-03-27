@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 import { humanize, formatDuration } from '../lib/utils.js';
@@ -75,14 +75,13 @@ export default function SongDetail() {
   if (!song) return <p className="text-[#e74c3c]">Song not found</p>;
 
   const lineage = song.lineage || {};
-  const flowFactors = lineage.template?.flow_factor_values || {};
+  const flowFactors = song.flow_factor_values || {};
   const assignments = song.store_playlists || [];
   const stores = storesData?.data || [];
 
-  const lineageIcp = lineage.icp;
-  const lineageRefTrack = lineage.reference_track;
-  const lineageTemplate = lineage.template;
-  const lineagePrompt = lineage.prompt;
+  const lineageIcp = lineage.store_icp;
+  const lineageStore = lineage.store;
+  const lineageClient = lineage.client;
 
   // Filter stores by search term
   const filteredStores = storeSearch
@@ -146,36 +145,26 @@ export default function SongDetail() {
       </div>
 
       {/* Lineage */}
-      {(lineageIcp || lineageRefTrack || lineageTemplate || lineagePrompt) && (
+      {(lineageIcp || lineageStore || lineageClient) && (
         <div className="mb-6">
           <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Lineage</h2>
           <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-2">
+            {lineageClient && (
+              <div>
+                <span className="text-[rgba(255,255,255,0.4)]">Client:</span>{' '}
+                <span className="text-[rgba(255,255,255,0.87)]">{lineageClient.name}</span>
+              </div>
+            )}
+            {lineageStore && (
+              <div>
+                <span className="text-[rgba(255,255,255,0.4)]">Store:</span>{' '}
+                <span className="text-[rgba(255,255,255,0.87)]">{lineageStore.name}</span>
+              </div>
+            )}
             {lineageIcp && (
               <div>
                 <span className="text-[rgba(255,255,255,0.4)]">Audience:</span>{' '}
-                {lineageIcp.store ? (
-                  <Link to={`/clients/${lineageIcp.store.client_id}/stores/${lineageIcp.store.id}/audiences/${lineageIcp.id}`} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">{lineageIcp.name}</Link>
-                ) : (
-                  <span className="text-[rgba(255,255,255,0.87)]">{lineageIcp.name}</span>
-                )}
-              </div>
-            )}
-            {lineageRefTrack && (
-              <div>
-                <span className="text-[rgba(255,255,255,0.4)]">Reference Track:</span>{' '}
-                <span className="text-[rgba(255,255,255,0.87)]">{lineageRefTrack.title}</span>
-              </div>
-            )}
-            {lineageTemplate && (
-              <div>
-                <span className="text-[rgba(255,255,255,0.4)]">Template:</span>{' '}
-                <span className="text-[rgba(255,255,255,0.87)]">{lineageTemplate.name || 'Template'}</span>
-              </div>
-            )}
-            {lineagePrompt && (
-              <div>
-                <span className="text-[rgba(255,255,255,0.4)]">Prompt:</span>{' '}
-                <span className="text-[rgba(255,255,255,0.87)]">Prompt #{(lineagePrompt.id || '').slice(-6)}</span>
+                <span className="text-[rgba(255,255,255,0.87)]">{lineageIcp.name}</span>
               </div>
             )}
           </div>
@@ -200,10 +189,10 @@ export default function SongDetail() {
       )}
 
       {/* Prompt Text (read-only) */}
-      {lineagePrompt?.prompt_text && (
+      {song.prompt_text && (
         <div className="mb-6">
           <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Prompt Text</h2>
-          <pre className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)]">{lineagePrompt.prompt_text}</pre>
+          <pre className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)]">{song.prompt_text}</pre>
         </div>
       )}
 
