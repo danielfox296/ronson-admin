@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
@@ -101,6 +101,11 @@ export default function AudiencePipeline() {
   const [refForm, setRefForm] = useState({ title: '', artist: '', genre: '', album: '', duration_seconds: '', release_year: '' });
   const [expandedTracks, setExpandedTracks] = useState<Set<string>>(new Set());
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [undoCountdown, setUndoCountdown] = useState(0);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const undoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const [showSongForm, setShowSongForm] = useState(false);
   const [songForm, setSongForm] = useState({
     title: '',
@@ -169,6 +174,25 @@ export default function AudiencePipeline() {
       navigate(`/clients/${clientId}/stores/${storeId}`);
     },
   });
+
+  const startDeleteWithUndo = () => {
+    setShowDeleteModal(false);
+    setUndoCountdown(5);
+    undoIntervalRef.current = setInterval(() => {
+      setUndoCountdown((n) => n - 1);
+    }, 1000);
+    undoTimerRef.current = setTimeout(() => {
+      clearInterval(undoIntervalRef.current!);
+      setUndoCountdown(0);
+      deleteIcpMutation.mutate();
+    }, 5000);
+  };
+
+  const cancelDelete = () => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    if (undoIntervalRef.current) clearInterval(undoIntervalRef.current);
+    setUndoCountdown(0);
+  };
 
   const createRefMutation = useMutation({
     mutationFn: (body: any) =>
@@ -534,17 +558,68 @@ export default function AudiencePipeline() {
       <div className="mt-12 border-t border-[rgba(255,255,255,0.06)] pt-6">
         <button
           type="button"
-          onClick={() => {
-            if (window.confirm(`Are you sure you want to delete "${icp.name}"?`)) {
-              deleteIcpMutation.mutate();
-            }
-          }}
-          disabled={deleteIcpMutation.isPending}
-          className="text-[#e74c3c] hover:text-[#c0392b] text-sm font-medium transition-colors"
+          onClick={() => setShowDeleteModal(true)}
+          disabled={deleteIcpMutation.isPending || undoCountdown > 0}
+          className="text-[#e74c3c] hover:text-[#c0392b] text-sm font-medium transition-colors disabled:opacity-40"
         >
-          {deleteIcpMutation.isPending ? 'Deleting...' : 'Delete Audience'}
+          Delete Audience
         </button>
       </div>
+
+      {/* ── Delete confirmation modal ── */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#12121a] border border-[rgba(231,76,60,0.3)] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">⚠️</span>
+              <h2 className="text-base font-medium text-[rgba(255,255,255,0.87)]">Delete Audience</h2>
+            </div>
+            <p className="text-sm text-[rgba(255,255,255,0.6)] mb-2">
+              You're about to permanently delete <span className="text-[rgba(255,255,255,0.87)] font-medium">"{icp.name}"</span>.
+            </p>
+            {songs.length > 0 && (
+              <div className="bg-[rgba(231,76,60,0.1)] border border-[rgba(231,76,60,0.2)] rounded-lg px-3 py-2 mb-4 text-sm text-[#e74c3c]">
+                This will also delete <strong>{songs.length} song{songs.length !== 1 ? 's' : ''}</strong> attached to this audience.
+              </div>
+            )}
+            <p className="text-xs text-[rgba(255,255,255,0.3)] mb-5">
+              You'll have 5 seconds to undo after confirming.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={startDeleteWithUndo}
+                className="flex-1 bg-[#e74c3c] hover:bg-[#c0392b] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Yes, delete everything
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Undo toast ── */}
+      {undoCountdown > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-[#1e1e2e] border border-[rgba(231,76,60,0.4)] rounded-xl px-5 py-3 shadow-2xl">
+          <span className="text-sm text-[rgba(255,255,255,0.7)]">
+            Deleting "{icp.name}" in <span className="text-[#e74c3c] font-medium tabular-nums">{undoCountdown}s</span>…
+          </span>
+          <button
+            type="button"
+            onClick={cancelDelete}
+            className="bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)] text-[rgba(255,255,255,0.87)] text-sm font-medium px-3 py-1 rounded-lg transition-colors"
+          >
+            Undo
+          </button>
+        </div>
+      )}
     </div>
   );
 }
