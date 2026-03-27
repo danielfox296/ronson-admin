@@ -26,6 +26,8 @@ export default function StoreDetail() {
   const [icpForm, setIcpForm] = useState({ name: '', psychographic_summary: '' });
   const [showSongPicker, setShowSongPicker] = useState(false);
   const [tab, setTab] = useState<'audiences' | 'playlist' | 'playlog' | 'player'>('audiences');
+  const [deleteIcpTarget, setDeleteIcpTarget] = useState<{ id: string; name: string; songCount: number } | null>(null);
+  const [undoIcpTarget, setUndoIcpTarget] = useState<{ id: string; name: string; timerId: ReturnType<typeof setTimeout> } | null>(null);
   const [playerEmail, setPlayerEmail] = useState('');
   const [playerEmailLoaded, setPlayerEmailLoaded] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -84,6 +86,11 @@ export default function StoreDetail() {
   const assignSongMutation = useMutation({
     mutationFn: (songId: string) => api(`/api/stores/${storeId}/playlist`, { method: 'POST', body: { song_id: songId, added_by: 'admin' } }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store-playlist', storeId] }); setShowSongPicker(false); },
+  });
+
+  const deleteIcpMutation = useMutation({
+    mutationFn: (id: string) => api(`/api/store-icps/${id}`, { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['store-icps', storeId] }),
   });
 
   const removeSongMutation = useMutation({
@@ -194,11 +201,25 @@ export default function StoreDetail() {
             {icps.map((icp: any) => (
               <div
                 key={icp.id}
-                onClick={() => navigate(`/clients/${clientId}/stores/${storeId}/audiences/${icp.id}`)}
-                className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm transition-colors"
+                className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors group"
               >
-                <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
-                {icp.description && <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">{icp.description}</p>}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/clients/${clientId}/stores/${storeId}/audiences/${icp.id}`)}
+                  className="flex-1 text-left"
+                >
+                  <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
+                  {icp._count?.songs > 0 && (
+                    <span className="ml-2 text-[rgba(255,255,255,0.3)] text-xs">{icp._count.songs} song{icp._count.songs !== 1 ? 's' : ''}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setDeleteIcpTarget({ id: icp.id, name: icp.name, songCount: icp._count?.songs || 0 }); }}
+                  className="opacity-0 group-hover:opacity-100 text-[rgba(255,255,255,0.2)] hover:text-[#e74c3c] text-xs transition-all ml-4 shrink-0"
+                >
+                  Delete
+                </button>
               </div>
             ))}
             {icps.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No audiences yet</p>}
@@ -265,6 +286,67 @@ export default function StoreDetail() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete ICP warning modal */}
+      {deleteIcpTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-[#0e0e1a] border border-[rgba(231,76,60,0.3)] rounded-2xl w-full max-w-sm shadow-2xl p-6">
+            <h2 className="text-base font-medium text-[rgba(255,255,255,0.87)] mb-2">Delete Audience?</h2>
+            <p className="text-sm text-[rgba(255,255,255,0.5)] mb-1">
+              <span className="text-[rgba(255,255,255,0.87)]">{deleteIcpTarget.name}</span> will be permanently removed.
+            </p>
+            {deleteIcpTarget.songCount > 0 && (
+              <div className="bg-[rgba(231,76,60,0.08)] border border-[rgba(231,76,60,0.2)] rounded-lg px-4 py-3 my-4">
+                <p className="text-[#e74c3c] text-sm font-medium">
+                  {deleteIcpTarget.songCount} song{deleteIcpTarget.songCount !== 1 ? 's' : ''} will also be deleted.
+                </p>
+                <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">This cannot be fully undone — you'll have a 5-second window to cancel.</p>
+              </div>
+            )}
+            <div className="flex gap-2 mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  const target = deleteIcpTarget;
+                  setDeleteIcpTarget(null);
+                  const timerId = setTimeout(() => {
+                    deleteIcpMutation.mutate(target.id);
+                    setUndoIcpTarget(null);
+                  }, 5000);
+                  setUndoIcpTarget({ id: target.id, name: target.name, timerId });
+                }}
+                className="flex-1 bg-[#e74c3c] text-white py-2 rounded-lg text-sm font-medium hover:bg-[#c0392b] transition-colors"
+              >
+                Yes, Delete
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteIcpTarget(null)}
+                className="flex-1 border border-[rgba(255,255,255,0.1)] py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Undo toast */}
+      {undoIcpTarget && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-[#1a1a2a] border border-[rgba(255,255,255,0.1)] rounded-full px-5 py-3 shadow-2xl">
+          <span className="text-sm text-[rgba(255,255,255,0.7)]">Deleting <span className="text-[rgba(255,255,255,0.87)]">{undoIcpTarget.name}</span>…</span>
+          <button
+            type="button"
+            onClick={() => {
+              clearTimeout(undoIcpTarget.timerId);
+              setUndoIcpTarget(null);
+            }}
+            className="bg-[#4a90a4] text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-[#5ba3b8] transition-colors"
+          >
+            Undo
+          </button>
         </div>
       )}
 
