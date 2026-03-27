@@ -150,14 +150,26 @@ export default function StoreDetail() {
           </div>
         </div>
       ) : (
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-[rgba(255,255,255,0.4)]">Address:</span> <span className="text-[rgba(255,255,255,0.87)]">{store.address_line_1}</span></div>
-            <div><span className="text-[rgba(255,255,255,0.4)]">City:</span> <span className="text-[rgba(255,255,255,0.87)]">{store.city}, {store.state} {store.zip}</span></div>
-            <div><span className="text-[rgba(255,255,255,0.4)]">Country:</span> <span className="text-[rgba(255,255,255,0.87)]">{store.country}</span></div>
-            <div><span className="text-[rgba(255,255,255,0.4)]">Timezone:</span> <span className="text-[rgba(255,255,255,0.87)]">{store.timezone}</span></div>
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 cursor-pointer hover:bg-[rgba(255,255,255,0.01)] transition-colors" onClick={startEdit}>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">Address</label>
+              <span className="text-[rgba(255,255,255,0.87)]">{store.address_line_1 || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
+            </div>
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">City / State / Zip</label>
+              <span className="text-[rgba(255,255,255,0.87)]">{[store.city, store.state, store.zip].filter(Boolean).join(', ') || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
+            </div>
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">Country</label>
+              <span className="text-[rgba(255,255,255,0.87)]">{store.country || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
+            </div>
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">Timezone</label>
+              <span className="text-[rgba(255,255,255,0.87)]">{store.timezone || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
+            </div>
           </div>
-          <button type="button" onClick={startEdit} className="mt-3 text-sm text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">Edit</button>
+          <p className="mt-3 text-xs text-[#4a90a4]">Click to edit</p>
         </div>
       )}
 
