@@ -272,92 +272,92 @@ export default function AudiencePipeline() {
         { label: icp.name },
       ]} />
 
-      {/* ── Compact profile bar (collapsed by default) ── */}
-      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl mb-4 overflow-hidden">
-        <button type="button" onClick={() => setShowProfile((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors text-left">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-[rgba(74,144,164,0.15)] border border-[rgba(74,144,164,0.3)] flex items-center justify-center text-[#4a90a4] text-sm font-semibold shrink-0">
-              {icp.name?.charAt(0)?.toUpperCase() || '?'}
-            </div>
-            <div className="min-w-0">
-              <span className="text-sm font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
-              {icp.psychographic_summary && (
-                <span className="text-xs text-[rgba(255,255,255,0.35)] ml-3 hidden sm:inline">{icp.psychographic_summary.slice(0, 80)}{icp.psychographic_summary.length > 80 ? '…' : ''}</span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden md:flex gap-2 text-xs text-[rgba(255,255,255,0.35)]">
-              {ageRange && <span>{ageRange}</span>}
-              {icp.gender && <><span className="opacity-30">·</span><span>{icp.gender}</span></>}
-              {icp.income_bracket && <><span className="opacity-30">·</span><span>{icp.income_bracket}</span></>}
-              {icp.location_type && <><span className="opacity-30">·</span><span>{icp.location_type}</span></>}
-            </div>
-            <span className={`text-[rgba(255,255,255,0.3)] text-xs transition-transform ${showProfile ? 'rotate-180' : ''}`}>▼</span>
-          </div>
-        </button>
+      {/* ── Row 1: Profile (left) + Reference Tracks (right) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 
-        {showProfile && (
-          <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-4 space-y-4">
-            {/* Demographics */}
-            <div>
-              <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Demographics</span>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                {[
-                  { label: 'Age Range', value: ageRange, hint: 'e.g. 25-45', onSave: (v: string) => { const parts = v.split(/[-–]/); updateIcpMutation.mutate({ age_range_low: parseInt(parts[0]) || null, age_range_high: parseInt(parts[1]) || null }); } },
-                  { label: 'Gender', value: icp.gender || '', hint: 'e.g. Female', onSave: (v: string) => updateIcpMutation.mutate({ gender: v || null }) },
-                  { label: 'Income', value: icp.income_bracket || '', hint: 'e.g. $50–80K', onSave: (v: string) => updateIcpMutation.mutate({ income_bracket: v || null }) },
-                  { label: 'Location', value: icp.location_type || '', hint: 'e.g. Urban', onSave: (v: string) => updateIcpMutation.mutate({ location_type: v || null }) },
-                ].map(({ label, value, hint, onSave }) => (
-                  <div key={label} className="flex items-baseline gap-2">
-                    <span className="text-[rgba(255,255,255,0.4)] shrink-0 w-20">{label}</span>
-                    <InlineEdit value={value} onSave={onSave} placeholder={hint} className="text-[rgba(255,255,255,0.87)]" />
-                  </div>
-                ))}
+        {/* ── Left: Audience Profile ── */}
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden">
+          <button type="button" onClick={() => setShowProfile((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors text-left">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-[rgba(74,144,164,0.15)] border border-[rgba(74,144,164,0.3)] flex items-center justify-center text-[#4a90a4] text-sm font-semibold shrink-0">
+                {icp.name?.charAt(0)?.toUpperCase() || '?'}
+              </div>
+              <div className="min-w-0">
+                <span className="text-sm font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
+                {icp.psychographic_summary && (
+                  <p className="text-xs text-[rgba(255,255,255,0.35)] mt-0.5 truncate">{icp.psychographic_summary.slice(0, 80)}{icp.psychographic_summary.length > 80 ? '…' : ''}</p>
+                )}
               </div>
             </div>
-
-            <div className="border-t border-[rgba(255,255,255,0.04)]" />
-
-            {/* Psychographics */}
-            <div>
-              <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Psychographics</span>
-              <div className="space-y-3">
-                {[
-                  { label: 'Summary', field: 'psychographic_summary', value: icp.psychographic_summary || '' },
-                  { label: 'Preferences & Values', field: 'preferences', value: icp.preferences || '' },
-                  { label: 'Media Consumption', field: 'media_consumption', value: icp.media_consumption || '' },
-                ].map(({ label, field, value }) => (
-                  <div key={field}>
-                    <span className="text-[rgba(255,255,255,0.4)] block mb-1 text-sm">{label}</span>
-                    <InlineEdit value={value} onSave={(v) => updateIcpMutation.mutate({ [field]: v || null })} as="textarea" className="text-[rgba(255,255,255,0.87)]" />
-                  </div>
-                ))}
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="hidden md:flex flex-wrap gap-1.5 text-[10px] text-[rgba(255,255,255,0.35)]">
+                {ageRange && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{ageRange}</span>}
+                {icp.gender && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{icp.gender}</span>}
+                {icp.income_bracket && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{icp.income_bracket}</span>}
+                {icp.location_type && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{icp.location_type}</span>}
               </div>
+              <span className={`text-[rgba(255,255,255,0.3)] text-xs transition-transform ${showProfile ? 'rotate-180' : ''}`}>▼</span>
             </div>
+          </button>
 
-            <div className="border-t border-[rgba(255,255,255,0.04)]" />
-
-            {/* Full details */}
-            <div>
-              <button type="button" onClick={() => setShowFullDetails((v) => !v)} className="flex items-center gap-2 text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.6)] text-xs uppercase tracking-widest transition-colors">
-                <span>{showFullDetails ? '▼' : '▶'}</span>Full Profile Details
-              </button>
-              {showFullDetails && (
-                <div className="mt-3">
-                  <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">Paste full audience research, extended notes, or any context here.</p>
-                  <InlineEdit value={icp.notes || ''} onSave={(v) => updateIcpMutation.mutate({ notes: v || null })} as="textarea" className="text-[rgba(255,255,255,0.7)]" />
+          {showProfile && (
+            <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-4 space-y-4 max-h-[50vh] overflow-y-auto">
+              {/* Demographics */}
+              <div>
+                <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Demographics</span>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                  {[
+                    { label: 'Age Range', value: ageRange, hint: 'e.g. 25-45', onSave: (v: string) => { const parts = v.split(/[-–]/); updateIcpMutation.mutate({ age_range_low: parseInt(parts[0]) || null, age_range_high: parseInt(parts[1]) || null }); } },
+                    { label: 'Gender', value: icp.gender || '', hint: 'e.g. Female', onSave: (v: string) => updateIcpMutation.mutate({ gender: v || null }) },
+                    { label: 'Income', value: icp.income_bracket || '', hint: 'e.g. $50–80K', onSave: (v: string) => updateIcpMutation.mutate({ income_bracket: v || null }) },
+                    { label: 'Location', value: icp.location_type || '', hint: 'e.g. Urban', onSave: (v: string) => updateIcpMutation.mutate({ location_type: v || null }) },
+                  ].map(({ label, value, hint, onSave }) => (
+                    <div key={label} className="flex items-baseline gap-2">
+                      <span className="text-[rgba(255,255,255,0.4)] shrink-0 w-16 text-xs">{label}</span>
+                      <InlineEdit value={value} onSave={onSave} placeholder={hint} className="text-[rgba(255,255,255,0.87)]" />
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+
+              <div className="border-t border-[rgba(255,255,255,0.04)]" />
+
+              {/* Psychographics */}
+              <div>
+                <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Psychographics</span>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Summary', field: 'psychographic_summary', value: icp.psychographic_summary || '' },
+                    { label: 'Preferences & Values', field: 'preferences', value: icp.preferences || '' },
+                    { label: 'Media Consumption', field: 'media_consumption', value: icp.media_consumption || '' },
+                  ].map(({ label, field, value }) => (
+                    <div key={field}>
+                      <span className="text-[rgba(255,255,255,0.4)] block mb-1 text-xs">{label}</span>
+                      <InlineEdit value={value} onSave={(v) => updateIcpMutation.mutate({ [field]: v || null })} as="textarea" className="text-[rgba(255,255,255,0.87)]" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-[rgba(255,255,255,0.04)]" />
+
+              {/* Full details */}
+              <div>
+                <button type="button" onClick={() => setShowFullDetails((v) => !v)} className="flex items-center gap-2 text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.6)] text-xs uppercase tracking-widest transition-colors">
+                  <span>{showFullDetails ? '▼' : '▶'}</span>Full Profile Details
+                </button>
+                {showFullDetails && (
+                  <div className="mt-3">
+                    <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">Paste full audience research, extended notes, or any context here.</p>
+                    <InlineEdit value={icp.notes || ''} onSave={(v) => updateIcpMutation.mutate({ notes: v || null })} as="textarea" className="text-[rgba(255,255,255,0.7)]" />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* ── Two-panel layout: Ref Tracks (left) | Songs (right) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-
-        {/* ── Left Panel: Reference Tracks ── */}
+        {/* ── Right: Reference Tracks ── */}
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.06)] shrink-0">
             <div className="flex items-baseline gap-2">
@@ -426,7 +426,10 @@ export default function AudiencePipeline() {
           </div>
         </div>
 
-        {/* ── Right Panel: Songs ── */}
+      </div>
+
+      {/* ── Row 2: Song Library (full width) ── */}
+      <div className="flex-1 min-h-0">
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.06)] shrink-0">
             <div className="flex items-baseline gap-2">
