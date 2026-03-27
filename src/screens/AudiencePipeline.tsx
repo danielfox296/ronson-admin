@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { parseBlob } from 'music-metadata-browser';
 import { api, uploadFile } from '../lib/api.js';
 import { humanize, formatDuration } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
@@ -47,16 +48,45 @@ function InlineEdit({ value, onSave, as = 'input', className = '', placeholder =
   );
 }
 
-async function readAudioMeta(file: File): Promise<{ title: string; duration: number }> {
-  const title = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
-    const audio = new Audio();
-    const done = (duration: number) => { URL.revokeObjectURL(url); resolve({ title, duration }); };
-    audio.addEventListener('loadedmetadata', () => done(Math.round(audio.duration)), { once: true });
-    audio.addEventListener('error', () => done(0), { once: true });
-    audio.src = url;
-  });
+interface AudioMeta {
+  title: string;
+  artist?: string;
+  album?: string;
+  genre?: string;
+  bpm?: number;
+  key?: string;
+  year?: number;
+  duration: number;
+}
+
+async function readAudioMeta(file: File): Promise<AudioMeta> {
+  const fallbackTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+  // Parse ID3 / Vorbis / MP4 tags via music-metadata-browser
+  let tags: AudioMeta = { title: fallbackTitle, duration: 0 };
+  try {
+    const metadata = await parseBlob(file);
+    const c = metadata.common;
+    tags.title = c.title || fallbackTitle;
+    tags.artist = c.artist || undefined;
+    tags.album = c.album || undefined;
+    tags.genre = c.genre?.[0] || undefined;
+    tags.bpm = c.bpm || undefined;
+    tags.key = (c as any).key || (c as any).initialkey || undefined;
+    tags.year = c.year || undefined;
+    if (metadata.format.duration) tags.duration = Math.round(metadata.format.duration);
+  } catch {
+    // Fallback: use HTML5 Audio for duration
+    tags.duration = await new Promise<number>((resolve) => {
+      const url = URL.createObjectURL(file);
+      const audio = new Audio();
+      const done = (d: number) => { URL.revokeObjectURL(url); resolve(d); };
+      audio.addEventListener('loadedmetadata', () => done(Math.round(audio.duration)), { once: true });
+      audio.addEventListener('error', () => done(0), { once: true });
+      audio.src = url;
+    });
+  }
+  return tags;
 }
 
 /* ------------------------------------------------------------------ */
@@ -83,6 +113,7 @@ export default function AudiencePipeline() {
   const [showSongModal, setShowSongModal] = useState(false);
   const [showFlowFactors, setShowFlowFactors] = useState(false);
   const [songForm, setSongForm] = useState({ title: '', audio_file_url: '', duration_seconds: '', generation_system_id: '', prompt_text: '', created_by: 'admin' });
+  const [fileMeta, setFileMeta] = useState<AudioMeta | null>(null);
   const [flowFactorValues, setFlowFactorValues] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -188,6 +219,7 @@ export default function AudiencePipeline() {
     setUploading(true);
     try {
       const [meta, result] = await Promise.all([readAudioMeta(file), uploadFile(file)]);
+      setFileMeta(meta);
       setSongForm((prev) => ({
         ...prev,
         audio_file_url: result.url,
@@ -206,6 +238,7 @@ export default function AudiencePipeline() {
     setShowSongModal(false);
     setSongForm({ title: '', audio_file_url: '', duration_seconds: '', generation_system_id: '', prompt_text: '', created_by: 'admin' });
     setFlowFactorValues({});
+    setFileMeta(null);
     setUploadError('');
     setShowFlowFactors(false);
   };
@@ -487,6 +520,21 @@ export default function AudiencePipeline() {
                 </div>
               )}
               {uploadError && <p className="text-[#e74c3c] text-xs">{uploadError}</p>}
+
+              {/* Detected metadata */}
+              {fileMeta && (fileMeta.artist || fileMeta.album || fileMeta.genre || fileMeta.bpm || fileMeta.key || fileMeta.year) && (
+                <div className="bg-[rgba(74,144,164,0.06)] border border-[rgba(74,144,164,0.15)] rounded-lg px-3 py-2.5">
+                  <span className="text-[#4a90a4] text-[10px] uppercase tracking-widest font-medium block mb-1.5">Detected from file</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                    {fileMeta.artist && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Artist:</span> {fileMeta.artist}</span>}
+                    {fileMeta.album && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Album:</span> {fileMeta.album}</span>}
+                    {fileMeta.genre && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Genre:</span> {fileMeta.genre}</span>}
+                    {fileMeta.bpm && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">BPM:</span> {fileMeta.bpm}</span>}
+                    {fileMeta.key && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Key:</span> {fileMeta.key}</span>}
+                    {fileMeta.year && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Year:</span> {fileMeta.year}</span>}
+                  </div>
+                </div>
+              )}
 
               {/* Title */}
               <div>
