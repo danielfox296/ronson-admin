@@ -106,8 +106,9 @@ export default function SongLibrary() {
             <tr className="border-b border-[rgba(255,255,255,0.06)]">
               <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Title</th>
               <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Status</th>
-              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Generation System</th>
-              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Stores Assigned</th>
+              <th className="text-center px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]" title="Loves">&#9829;</th>
+              <th className="text-center px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]" title="Reports">&#9888;</th>
+              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Stores</th>
               <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Created</th>
             </tr>
           </thead>
@@ -116,13 +117,14 @@ export default function SongLibrary() {
               <tr key={s.id} onClick={() => navigate(`/songs/${s.id}`)} className="border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors">
                 <td className="px-4 py-3 font-medium text-[rgba(255,255,255,0.87)]">{s.title}</td>
                 <td className="px-4 py-3"><StatusBadge status={s.status || 'active'} /></td>
-                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{s.generation_system_id ? (gsNameMap[s.generation_system_id] || s.generation_system_id) : '-'}</td>
+                <td className="px-4 py-3 text-center">{s.loves > 0 ? <span className="text-[#5dcaa5]">{s.loves}</span> : <span className="text-[rgba(255,255,255,0.15)]">0</span>}</td>
+                <td className="px-4 py-3 text-center">{s.reports > 0 ? <span className="text-[#f0997b]">{s.reports}</span> : <span className="text-[rgba(255,255,255,0.15)]">0</span>}</td>
                 <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{s._count?.store_playlists ?? 0}</td>
                 <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{s.created_at ? new Date(s.created_at).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
             {songs.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)]">No songs found</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)]">No songs found</td></tr>
             )}
           </tbody>
         </table>
