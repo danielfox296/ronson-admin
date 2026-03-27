@@ -102,6 +102,7 @@ export default function AudiencePipeline() {
   const [expandedTracks, setExpandedTracks] = useState<Set<string>>(new Set());
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showFullDetails, setShowFullDetails] = useState(false);
   const [undoCountdown, setUndoCountdown] = useState(0);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const undoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -279,6 +280,7 @@ export default function AudiencePipeline() {
       {/*  Section 1: Audience Profile                                  */}
       {/* ============================================================ */}
       <section className="mb-8">
+        {/* Audience name — inline editable */}
         <div className="mb-4">
           <InlineEdit
             value={icp.name}
@@ -287,34 +289,114 @@ export default function AudiencePipeline() {
           />
         </div>
 
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-3">
+        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-4">
+
+          {/* Demographics */}
           <div>
-            <span className="text-[rgba(255,255,255,0.4)] block mb-1">Psychographic Summary</span>
-            <InlineEdit
-              value={icp.psychographic_summary || ''}
-              onSave={(v) => updateIcpMutation.mutate({ psychographic_summary: v })}
-              as="textarea"
-              className="text-[rgba(255,255,255,0.87)]"
-            />
+            <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Demographics</span>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[rgba(255,255,255,0.4)] shrink-0 w-28">Age Range</span>
+                <InlineEdit
+                  value={[icp.age_range_low, icp.age_range_high].filter(Boolean).join('–') || ''}
+                  onSave={(v) => {
+                    const parts = v.split(/[-–]/);
+                    const low = parseInt(parts[0]);
+                    const high = parseInt(parts[1]);
+                    updateIcpMutation.mutate({
+                      age_range_low: isNaN(low) ? null : low,
+                      age_range_high: isNaN(high) ? null : high,
+                    });
+                  }}
+                  className="text-[rgba(255,255,255,0.87)]"
+                />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-[rgba(255,255,255,0.4)] shrink-0 w-28">Gender</span>
+                <InlineEdit
+                  value={icp.gender || ''}
+                  onSave={(v) => updateIcpMutation.mutate({ gender: v || null })}
+                  className="text-[rgba(255,255,255,0.87)]"
+                />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-[rgba(255,255,255,0.4)] shrink-0 w-28">Income</span>
+                <InlineEdit
+                  value={icp.income_bracket || ''}
+                  onSave={(v) => updateIcpMutation.mutate({ income_bracket: v || null })}
+                  className="text-[rgba(255,255,255,0.87)]"
+                />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-[rgba(255,255,255,0.4)] shrink-0 w-28">Location</span>
+                <InlineEdit
+                  value={icp.location_type || ''}
+                  onSave={(v) => updateIcpMutation.mutate({ location_type: v || null })}
+                  className="text-[rgba(255,255,255,0.87)]"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="text-[rgba(255,255,255,0.4)]">Age Range:</span>{' '}
-              <InlineEdit value={icp.age_range || ''} onSave={(v) => updateIcpMutation.mutate({ age_range: v })} className="text-[rgba(255,255,255,0.87)]" />
+          <div className="border-t border-[rgba(255,255,255,0.04)]" />
+
+          {/* Psychographics */}
+          <div>
+            <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Psychographics</span>
+            <div className="space-y-3">
+              <div>
+                <span className="text-[rgba(255,255,255,0.4)] block mb-1">Summary</span>
+                <InlineEdit
+                  value={icp.psychographic_summary || ''}
+                  onSave={(v) => updateIcpMutation.mutate({ psychographic_summary: v })}
+                  as="textarea"
+                  className="text-[rgba(255,255,255,0.87)]"
+                />
+              </div>
+              <div>
+                <span className="text-[rgba(255,255,255,0.4)] block mb-1">Preferences & Values</span>
+                <InlineEdit
+                  value={icp.preferences || ''}
+                  onSave={(v) => updateIcpMutation.mutate({ preferences: v || null })}
+                  as="textarea"
+                  className="text-[rgba(255,255,255,0.87)]"
+                />
+              </div>
+              <div>
+                <span className="text-[rgba(255,255,255,0.4)] block mb-1">Media Consumption</span>
+                <InlineEdit
+                  value={icp.media_consumption || ''}
+                  onSave={(v) => updateIcpMutation.mutate({ media_consumption: v || null })}
+                  as="textarea"
+                  className="text-[rgba(255,255,255,0.87)]"
+                />
+              </div>
             </div>
-            <div>
-              <span className="text-[rgba(255,255,255,0.4)]">Gender:</span>{' '}
-              <InlineEdit value={icp.gender || ''} onSave={(v) => updateIcpMutation.mutate({ gender: v })} className="text-[rgba(255,255,255,0.87)]" />
-            </div>
-            <div>
-              <span className="text-[rgba(255,255,255,0.4)]">Income Bracket:</span>{' '}
-              <InlineEdit value={icp.income_bracket || ''} onSave={(v) => updateIcpMutation.mutate({ income_bracket: v })} className="text-[rgba(255,255,255,0.87)]" />
-            </div>
-            <div>
-              <span className="text-[rgba(255,255,255,0.4)]">Location Type:</span>{' '}
-              <InlineEdit value={icp.location_type || ''} onSave={(v) => updateIcpMutation.mutate({ location_type: v })} className="text-[rgba(255,255,255,0.87)]" />
-            </div>
+          </div>
+
+          <div className="border-t border-[rgba(255,255,255,0.04)]" />
+
+          {/* Full Details — collapsible */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowFullDetails((v) => !v)}
+              className="flex items-center gap-2 text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.6)] text-xs uppercase tracking-widest transition-colors"
+            >
+              <span>{showFullDetails ? '▼' : '▶'}</span>
+              Full Profile Details
+            </button>
+            {showFullDetails && (
+              <div className="mt-3">
+                <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">Paste a full audience profile, research notes, or any extended context here.</p>
+                <InlineEdit
+                  value={icp.notes || ''}
+                  onSave={(v) => updateIcpMutation.mutate({ notes: v || null })}
+                  as="textarea"
+                  className="text-[rgba(255,255,255,0.7)]"
+                />
+              </div>
+            )}
           </div>
         </div>
       </section>
