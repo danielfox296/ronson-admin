@@ -105,6 +105,8 @@ export default function AudiencePipeline() {
   // Reference tracks
   const [showRefForm, setShowRefForm] = useState(false);
   const [refForm, setRefForm] = useState({ title: '', artist: '', genre: '', album: '', duration_seconds: '', release_year: '' });
+  const [bulkText, setBulkText] = useState('');
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [expandedTracks, setExpandedTracks] = useState<Set<string>>(new Set());
   const [refFilter, setRefFilter] = useState('');
 
@@ -183,6 +185,24 @@ export default function AudiencePipeline() {
     mutationFn: (body: any) => api(`/api/store-icps/${icpId}/reference-tracks`, { method: 'POST', body: { ...body, duration_seconds: body.duration_seconds ? Number(body.duration_seconds) : undefined, release_year: body.release_year ? Number(body.release_year) : undefined } }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }); setShowRefForm(false); setRefForm({ title: '', artist: '', genre: '', album: '', duration_seconds: '', release_year: '' }); },
   });
+
+  const bulkAddRefMutation = useMutation({
+    mutationFn: (tracks: { title: string; artist: string }[]) =>
+      api(`/api/store-icps/${icpId}/reference-tracks/bulk`, { method: 'POST', body: { tracks } }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }); setShowBulkAdd(false); setBulkText(''); },
+  });
+
+  const handleBulkSubmit = () => {
+    const lines = bulkText.split('\n').map((l) => l.trim()).filter(Boolean);
+    const tracks = lines.map((line) => {
+      // Support "Title - Artist" or "Title, Artist" or "Artist - Title" patterns
+      const sep = line.includes(' - ') ? ' - ' : line.includes(' — ') ? ' — ' : line.includes(', ') ? ', ' : null;
+      if (!sep) return { title: line, artist: '' };
+      const parts = line.split(sep);
+      return { title: parts[0].trim(), artist: parts.slice(1).join(sep).trim() };
+    }).filter((t) => t.title && t.artist);
+    if (tracks.length > 0) bulkAddRefMutation.mutate(tracks);
+  };
 
   const updateRefMutation = useMutation({
     mutationFn: ({ id, body }: { id: string; body: any }) => api(`/api/reference-tracks/${id}`, { method: 'PUT', body }),
@@ -369,24 +389,39 @@ export default function AudiencePipeline() {
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="4" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2"/><path d="M8.5 8.5L11 11" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeLinecap="round"/></svg>
                 <input value={refFilter} onChange={(e) => setRefFilter(e.target.value)} placeholder="Filter..." className="bg-transparent border-none outline-none text-xs text-[rgba(255,255,255,0.87)] w-16 placeholder:text-[rgba(255,255,255,0.2)]" />
               </div>
-              <button type="button" onClick={() => setShowRefForm(true)} className="border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.5)] hover:text-[rgba(255,255,255,0.8)] hover:border-[rgba(255,255,255,0.2)] rounded-lg px-2.5 py-1 text-xs transition-colors flex items-center gap-1">
+              <button type="button" onClick={() => { setShowBulkAdd(true); setShowRefForm(false); }} className="border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.5)] hover:text-[rgba(255,255,255,0.8)] hover:border-[rgba(255,255,255,0.2)] rounded-lg px-2.5 py-1 text-xs transition-colors flex items-center gap-1">
                 <span>+</span> Add
               </button>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {showRefForm && (
+            {showBulkAdd && (
               <div className="border-b border-[rgba(255,255,255,0.06)] px-4 py-3 space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <input placeholder="Title *" value={refForm.title} onChange={(e) => setRefForm({ ...refForm, title: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)]" />
-                  <input placeholder="Artist *" value={refForm.artist} onChange={(e) => setRefForm({ ...refForm, artist: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)]" />
-                  <input placeholder="Genre" value={refForm.genre} onChange={(e) => setRefForm({ ...refForm, genre: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)]" />
-                  <input placeholder="Album" value={refForm.album} onChange={(e) => setRefForm({ ...refForm, album: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)]" />
-                </div>
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => createRefMutation.mutate(refForm)} disabled={!refForm.title || !refForm.artist} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-xs disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">Add</button>
-                  <button type="button" onClick={() => setShowRefForm(false)} className="border border-[rgba(255,255,255,0.1)] px-3 py-1.5 rounded-lg text-xs text-[rgba(255,255,255,0.4)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
+                <p className="text-[10px] text-[rgba(255,255,255,0.35)] uppercase tracking-widest font-bold">One per line: Title - Artist</p>
+                <textarea
+                  value={bulkText}
+                  onChange={(e) => setBulkText(e.target.value)}
+                  placeholder={"Midnight City - M83\nSunday Morning - No Doubt\nBlue Monday - New Order"}
+                  rows={6}
+                  className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)] resize-none font-mono leading-relaxed placeholder:text-[rgba(255,255,255,0.15)]"
+                  autoFocus
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[rgba(255,255,255,0.25)]">
+                    {bulkText.split('\n').filter((l) => l.trim() && l.includes(' - ')).length} tracks detected
+                  </span>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => { setShowBulkAdd(false); setBulkText(''); }} className="border border-[rgba(255,255,255,0.1)] px-3 py-1.5 rounded-lg text-xs text-[rgba(255,255,255,0.4)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
+                    <button
+                      type="button"
+                      onClick={handleBulkSubmit}
+                      disabled={bulkAddRefMutation.isPending || !bulkText.trim()}
+                      className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-xs disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
+                    >
+                      {bulkAddRefMutation.isPending ? 'Adding...' : 'Add All'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -417,10 +452,10 @@ export default function AudiencePipeline() {
               </div>
             ))}
 
-            {refTracks.length === 0 && !showRefForm && (
+            {refTracks.length === 0 && !showBulkAdd && (
               <div className="px-4 py-8 text-center">
                 <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">No reference tracks</p>
-                <button type="button" onClick={() => setShowRefForm(true)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">+ Add one</button>
+                <button type="button" onClick={() => setShowBulkAdd(true)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">+ Add tracks</button>
               </div>
             )}
           </div>
