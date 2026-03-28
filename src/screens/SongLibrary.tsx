@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api.js';
-import { humanize } from '../lib/utils.js';
-import Breadcrumb from '../components/Breadcrumb.js';
+import { humanize, formatDuration } from '../lib/utils.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -15,7 +14,7 @@ function StatusBadge({ status }: { status: string }) {
     removed: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
     archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
+  return <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
 }
 
 type Filter = 'all' | 'unassigned' | 'active' | 'flagged';
@@ -57,7 +56,6 @@ export default function SongLibrary() {
 
   const allSongs = data?.data || [];
 
-  // Client-side search filter
   const songs = useMemo(() => {
     if (!debounced) return allSongs;
     const q = debounced.toLowerCase();
@@ -65,69 +63,168 @@ export default function SongLibrary() {
   }, [allSongs, debounced]);
 
   const filters: { key: Filter; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'unassigned', label: 'Unassigned' },
+    { key: 'all', label: 'All Tracks' },
     { key: 'active', label: 'Active' },
+    { key: 'unassigned', label: 'Unassigned' },
     { key: 'flagged', label: 'Flagged' },
   ];
 
   return (
     <div>
-      <Breadcrumb items={[{ label: 'Song Library' }]} />
-
-      <div className="flex gap-2 mb-4">
-        {filters.map((f) => (
+      {/* Header */}
+      <div className="flex items-end justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[rgba(255,255,255,0.93)]">Library</h1>
+          <p className="text-[rgba(255,255,255,0.4)] text-sm mt-1">Manage and curate your audio assets.</p>
+        </div>
+        <div className="flex gap-3">
           <button
-            key={f.key}
             type="button"
-            onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filter === f.key ? 'bg-[#4a90a4] text-white' : 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.1)]'
-            }`}
+            onClick={() => navigate('/config')}
+            className="bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.7)] px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-[rgba(255,255,255,0.1)] transition-colors"
           >
-            {f.label}
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+            Bulk Upload
           </button>
-        ))}
+          <button
+            type="button"
+            className="bg-gradient-to-br from-[#4a90a4] to-[#2d6a80] text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-[#4a90a4]/10"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add New Track
+          </button>
+        </div>
       </div>
 
-      <input
-        type="text"
-        placeholder="Search songs by title..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm mb-4 bg-[rgba(255,255,255,0.03)]"
-      />
+      {/* Filter Bar + Search */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex bg-[rgba(255,255,255,0.04)] p-1 rounded-xl">
+          {filters.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setFilter(f.key)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                filter === f.key
+                  ? 'bg-[#4a90a4] text-white shadow-sm'
+                  : 'text-[rgba(255,255,255,0.45)] hover:text-[rgba(255,255,255,0.8)]'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
+        <div className="h-6 w-px bg-[rgba(255,255,255,0.08)]" />
+
+        <div className="relative flex-1 max-w-sm">
+          <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.25)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input
+            type="text"
+            placeholder="Search track or artist..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-[rgba(255,255,255,0.04)] border-none rounded-xl pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-[#4a90a4]/30 transition-all"
+          />
+        </div>
+      </div>
+
+      {/* Table */}
       {isLoading ? (
-        <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>
-      ) : (
-        <table className="w-full bg-[#12121a] rounded-xl text-sm">
-          <thead>
-            <tr className="border-b border-[rgba(255,255,255,0.06)]">
-              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Title</th>
-              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Status</th>
-              <th className="text-center px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]" title="Loves">&#9829;</th>
-              <th className="text-center px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]" title="Reports">&#9888;</th>
-              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Stores</th>
-              <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {songs.map((s: any) => (
-              <tr key={s.id} onClick={() => navigate(`/songs/${s.id}`)} className="border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors">
-                <td className="px-4 py-3 font-medium text-[rgba(255,255,255,0.87)]">{s.title}</td>
-                <td className="px-4 py-3"><StatusBadge status={s.status || 'active'} /></td>
-                <td className="px-4 py-3 text-center">{s.loves > 0 ? <span className="text-[#5dcaa5]">{s.loves}</span> : <span className="text-[rgba(255,255,255,0.15)]">0</span>}</td>
-                <td className="px-4 py-3 text-center">{s.reports > 0 ? <span className="text-[#f0997b]">{s.reports}</span> : <span className="text-[rgba(255,255,255,0.15)]">0</span>}</td>
-                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{s._count?.store_playlists ?? 0}</td>
-                <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{s.created_at ? new Date(s.created_at).toLocaleDateString() : '-'}</td>
-              </tr>
+        <div className="bg-[#12121a] rounded-2xl p-8">
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-[rgba(255,255,255,0.03)] rounded-xl animate-pulse" />
             ))}
-            {songs.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)]">No songs found</td></tr>
-            )}
-          </tbody>
-        </table>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-[#12121a] rounded-2xl overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[rgba(255,255,255,0.02)]">
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Title</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Status</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Gen System</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] text-center">Loves</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] text-center">Reports</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] text-center">Stores</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] text-right">Created</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[rgba(255,255,255,0.04)]">
+              {songs.map((s: any) => (
+                <tr
+                  key={s.id}
+                  onClick={() => navigate(`/songs/${s.id}`)}
+                  className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors group"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[rgba(74,144,164,0.25)] to-[rgba(74,144,164,0.05)] flex items-center justify-center shrink-0">
+                        <svg className="w-4 h-4 text-[#4a90a4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-[rgba(255,255,255,0.9)] group-hover:text-[#4a90a4] transition-colors">{s.title || 'Untitled'}</p>
+                        {s.duration_seconds && (
+                          <p className="text-[10px] text-[rgba(255,255,255,0.3)] mt-0.5">{formatDuration(Math.round(s.duration_seconds))}</p>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4"><StatusBadge status={s.status || 'active'} /></td>
+                  <td className="px-6 py-4">
+                    {s.generation_system_id ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[rgba(74,144,164,0.12)] text-[#6bb8d0]">
+                        {gsNameMap[s.generation_system_id] || 'System'}
+                      </span>
+                    ) : (
+                      <span className="text-[rgba(255,255,255,0.15)] text-xs">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {s.loves > 0 ? (
+                      <span className="text-[#5dcaa5] font-semibold text-sm">{s.loves}</span>
+                    ) : (
+                      <span className="text-[rgba(255,255,255,0.1)] text-sm">0</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {s.reports > 0 ? (
+                      <span className="text-[#f0997b] font-semibold text-sm">{s.reports}</span>
+                    ) : (
+                      <span className="text-[rgba(255,255,255,0.1)] text-sm">0</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {(s._count?.store_playlists ?? 0) > 0 ? (
+                      <div className="flex justify-center">
+                        <span className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[10px] font-bold text-[rgba(255,255,255,0.5)]">
+                          {s._count?.store_playlists}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-[rgba(255,255,255,0.1)] text-sm">0</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-right text-[rgba(255,255,255,0.4)] text-sm">
+                    {s.created_at ? new Date(s.created_at).toLocaleDateString() : '-'}
+                  </td>
+                </tr>
+              ))}
+              {songs.length === 0 && (
+                <tr><td colSpan={7} className="px-6 py-12 text-center text-[rgba(255,255,255,0.25)] text-sm">No tracks found</td></tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Footer */}
+          {songs.length > 0 && (
+            <div className="px-6 py-3 border-t border-[rgba(255,255,255,0.04)] text-[rgba(255,255,255,0.3)] text-xs">
+              Showing {songs.length} of {allSongs.length} tracks
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
