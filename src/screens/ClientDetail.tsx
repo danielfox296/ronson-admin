@@ -151,8 +151,13 @@ export default function ClientDetail() {
           <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
             {client.corporate_icps.map((icp: any) => (
               <div key={icp.id} className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
-                <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name || icp.label}</span>
-                {icp.description && <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">{icp.description}</p>}
+                <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
+                {icp.psychographic_summary && <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">{icp.psychographic_summary}</p>}
+                <div className="flex gap-3 text-[rgba(255,255,255,0.3)] text-xs mt-1">
+                  {icp.gender && <span>Gender: {icp.gender}</span>}
+                  {(icp.age_range_low || icp.age_range_high) && <span>Age: {icp.age_range_low || '?'}–{icp.age_range_high || '?'}</span>}
+                  {icp.income_bracket && <span>Income: {icp.income_bracket}</span>}
+                </div>
               </div>
             ))}
           </div>

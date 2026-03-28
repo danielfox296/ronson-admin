@@ -1,16 +1,48 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api.js';
 
 export default function CustomerProfiles() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [clientFilter, setClientFilter] = useState('all');
+  const [showCreate, setShowCreate] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newSummary, setNewSummary] = useState('');
+  const [newStoreId, setNewStoreId] = useState('');
+  const [createError, setCreateError] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['all-icps'],
     queryFn: () => api<{ data: any[] }>('/api/store-icps'),
+  });
+
+  const { data: storesData } = useQuery({
+    queryKey: ['stores-for-create'],
+    queryFn: () => api<{ data: any[] }>('/api/stores'),
+    enabled: showCreate,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: () => api(`/api/stores/${newStoreId}/icps`, { method: 'POST', body: { name: newName, psychographic_summary: newSummary } }),
+    onSuccess: (result: any) => {
+      queryClient.invalidateQueries({ queryKey: ['all-icps'] });
+      setShowCreate(false);
+      setNewName('');
+      setNewSummary('');
+      setNewStoreId('');
+      setCreateError('');
+      // Navigate to the new audience
+      const icp = result?.data;
+      if (icp?.id) {
+        const store = (storesData?.data || []).find((s: any) => s.id === newStoreId);
+        const clientId = store?.client_id || '';
+        navigate(`/clients/${clientId}/stores/${newStoreId}/audiences/${icp.id}`);
+      }
+    },
+    onError: (err: any) => setCreateError(err.message || 'Failed to create audience'),
   });
 
   const allIcps = data?.data || [];
@@ -59,6 +91,7 @@ export default function CustomerProfiles() {
         </div>
         <button
           type="button"
+          onClick={() => setShowCreate(true)}
           className="bg-gradient-to-r from-[#4a90a4] to-[#2d6a80] text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2 hover:opacity-90 transition-opacity text-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -104,7 +137,7 @@ export default function CustomerProfiles() {
           ))}
 
           {/* Ghost Card: Create New */}
-          <div className="flex flex-col items-center justify-center bg-[rgba(255,255,255,0.01)] border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-2xl p-10 text-center group cursor-pointer hover:border-[#4a90a4]/40 hover:bg-[rgba(74,144,164,0.03)] transition-all min-h-[280px]">
+          <div onClick={() => setShowCreate(true)} className="flex flex-col items-center justify-center bg-[rgba(255,255,255,0.01)] border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-2xl p-10 text-center group cursor-pointer hover:border-[#4a90a4]/40 hover:bg-[rgba(74,144,164,0.03)] transition-all min-h-[280px]">
             <div className="w-14 h-14 rounded-full bg-[rgba(255,255,255,0.04)] flex items-center justify-center mb-4 group-hover:bg-[rgba(74,144,164,0.15)] transition-colors">
               <svg className="w-6 h-6 text-[#4a90a4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             </div>
@@ -112,6 +145,50 @@ export default function CustomerProfiles() {
             <p className="text-xs text-[rgba(255,255,255,0.3)] max-w-[200px]">
               Define custom sonic characteristics and client parameters.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-[rgba(255,255,255,0.87)] mb-4">New Audience Profile</h3>
+            {createError && <p className="text-[#e74c3c] text-sm mb-3">{createError}</p>}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Store</label>
+                <select
+                  value={newStoreId}
+                  onChange={(e) => setNewStoreId(e.target.value)}
+                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="">Select a store...</option>
+                  {(storesData?.data || []).map((s: any) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Audience Name</label>
+                <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Urban Millennials" className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Psychographic Summary</label>
+                <textarea value={newSummary} onChange={(e) => setNewSummary(e.target.value)} placeholder="Describe the audience's vibe, preferences, and sonic identity..." rows={3} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm" />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button type="button" onClick={() => setShowCreate(false)} className="flex-1 border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.5)] py-2 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
+              <button
+                type="button"
+                onClick={() => { if (!newStoreId || !newName || !newSummary) { setCreateError('All fields are required'); return; } createMutation.mutate(); }}
+                disabled={createMutation.isPending}
+                className="flex-1 bg-[#4a90a4] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#5ba3b8] transition-colors disabled:opacity-50"
+              >
+                {createMutation.isPending ? 'Creating...' : 'Create Audience'}
+              </button>
+            </div>
           </div>
         </div>
       )}

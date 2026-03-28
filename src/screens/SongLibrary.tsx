@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../lib/api.js';
+import { api, uploadFile } from '../lib/api.js';
 import { humanize, formatDuration } from '../lib/utils.js';
 
 function StatusBadge({ status }: { status: string }) {
@@ -21,9 +21,43 @@ type Filter = 'all' | 'unassigned' | 'active' | 'flagged';
 
 export default function SongLibrary() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleFileUpload = useCallback(async (files: FileList) => {
+    setUploading(true);
+    setUploadError('');
+    try {
+      for (const file of Array.from(files)) {
+        const result = await uploadFile(file);
+        // Get duration from audio element
+        const audio = new Audio(result.url);
+        const duration = await new Promise<number>((resolve) => {
+          audio.addEventListener('loadedmetadata', () => resolve(audio.duration));
+          audio.addEventListener('error', () => resolve(0));
+        });
+        await api('/api/songs', {
+          method: 'POST',
+          body: {
+            title: file.name.replace(/\.(mp3|wav|flac)$/i, ''),
+            audio_file_url: result.url,
+            duration_seconds: Math.round(duration),
+          },
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['songs'] });
+      setShowUpload(false);
+    } catch (err: any) {
+      setUploadError(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  }, [queryClient]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 300);
@@ -80,7 +114,7 @@ export default function SongLibrary() {
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => navigate('/config')}
+            onClick={() => setShowUpload(true)}
             className="bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.7)] px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-[rgba(255,255,255,0.1)] transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
@@ -88,6 +122,7 @@ export default function SongLibrary() {
           </button>
           <button
             type="button"
+            onClick={() => setShowUpload(true)}
             className="bg-gradient-to-br from-[#4a90a4] to-[#2d6a80] text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-[#4a90a4]/10"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -224,6 +259,32 @@ export default function SongLibrary() {
               Showing {songs.length} of {allSongs.length} tracks
             </div>
           )}
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {showUpload && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => !uploading && setShowUpload(false)}>
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-[rgba(255,255,255,0.87)] mb-4">Upload Tracks</h3>
+            {uploadError && <p className="text-[#e74c3c] text-sm mb-3">{uploadError}</p>}
+            <label className="flex flex-col items-center justify-center border-2 border-dashed border-[rgba(255,255,255,0.1)] rounded-xl p-8 cursor-pointer hover:border-[#4a90a4]/40 hover:bg-[rgba(74,144,164,0.03)] transition-all">
+              <svg className="w-8 h-8 text-[#4a90a4] mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+              <span className="text-sm text-[rgba(255,255,255,0.5)]">{uploading ? 'Uploading...' : 'Drop files or click to browse'}</span>
+              <span className="text-[10px] text-[rgba(255,255,255,0.25)] mt-1">MP3, WAV, FLAC</span>
+              <input
+                type="file"
+                accept=".mp3,.wav,.flac"
+                multiple
+                className="hidden"
+                disabled={uploading}
+                onChange={(e) => { if (e.target.files?.length) handleFileUpload(e.target.files); }}
+              />
+            </label>
+            <div className="flex gap-2 mt-4">
+              <button type="button" onClick={() => setShowUpload(false)} disabled={uploading} className="flex-1 border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.5)] py-2 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.05)] transition-colors disabled:opacity-50">Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
