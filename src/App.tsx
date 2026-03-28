@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import Login from './screens/Login.js';
+import Dashboard from './screens/Dashboard.js';
 import ClientList from './screens/ClientList.js';
 import ClientDetail from './screens/ClientDetail.js';
 import StoreDetail from './screens/StoreDetail.js';
@@ -17,9 +18,10 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 function Layout() {
   const navigate = useNavigate();
   const links = [
-    { to: '/clients', label: 'Clients' },
-    { to: '/songs', label: 'Song Library' },
-    { to: '/config', label: 'Settings' },
+    { to: '/dashboard', label: 'Dashboard', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> },
+    { to: '/clients', label: 'Clients', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+    { to: '/songs', label: 'Song Library', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
+    { to: '/config', label: 'Settings', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> },
   ];
 
   const logout = () => {
@@ -39,9 +41,10 @@ function Layout() {
               key={l.to}
               to={l.to}
               className={({ isActive }) =>
-                `block px-3 py-2 rounded-lg text-sm transition-colors ${isActive ? 'bg-[rgba(74,144,164,0.15)] text-white border-l-2 border-[#4a90a4] pl-[10px]' : 'text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[rgba(255,255,255,0.87)]'}`
+                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${isActive ? 'bg-[rgba(74,144,164,0.15)] text-white' : 'text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[rgba(255,255,255,0.87)]'}`
               }
             >
+              {l.icon}
               {l.label}
             </NavLink>
           ))}
@@ -68,7 +71,8 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route index element={<Navigate to="/clients" replace />} />
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="clients" element={<ClientList />} />
         <Route path="clients/:id" element={<ClientDetail />} />
         <Route path="clients/:clientId/stores/:storeId" element={<StoreDetail />} />
