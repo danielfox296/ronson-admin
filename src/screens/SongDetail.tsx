@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api.js';
+import { api, uploadFile } from '../lib/api.js';
 import { humanize, formatDuration } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
 
@@ -24,7 +24,7 @@ function FeedbackSection({ songId }: { songId: string }) {
 
   return (
     <div className="mb-6">
-      <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Player Feedback</h2>
+      <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Player Feedback</h2>
       <div className="grid grid-cols-2 gap-4 mb-3">
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-center">
           <div className="text-2xl font-light text-[#5dcaa5]">{loves.length}</div>
@@ -55,10 +55,11 @@ function FeedbackSection({ songId }: { songId: string }) {
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]', online: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
     generated: 'bg-[rgba(74,144,164,0.15)] text-[#4a90a4]',
-    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]', onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
-    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]', inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
+    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
     removed: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
     archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
@@ -75,6 +76,7 @@ export default function SongDetail() {
   const [editingStatus, setEditingStatus] = useState(false);
   const [statusVal, setStatusVal] = useState('');
   const [storeSearch, setStoreSearch] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const { data: songData, isLoading } = useQuery({
     queryKey: ['song', id],
@@ -118,20 +120,32 @@ export default function SongDetail() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['song', id] }),
   });
 
+  const handleUploadMp3 = useCallback(async (file: File) => {
+    setUploading(true);
+    try {
+      const result = await uploadFile(file);
+      const audio = new Audio(result.url);
+      const duration = await new Promise<number>((resolve) => {
+        audio.addEventListener('loadedmetadata', () => resolve(audio.duration));
+        audio.addEventListener('error', () => resolve(0));
+      });
+      await updateMutation.mutateAsync({ audio_file_url: result.url, duration_seconds: Math.round(duration) });
+    } catch { /* handled by mutation */ }
+    setUploading(false);
+  }, [updateMutation]);
+
   if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
   const song = songData?.data;
   if (!song) return <p className="text-[#e74c3c]">Song not found</p>;
 
   const lineage = song.lineage || {};
   const flowFactors = song.flow_factor_values || {};
+  const promptParams = song.prompt_parameters || {};
   const assignments = song.store_playlists || [];
   const stores = storesData?.data || [];
+  const hasMp3 = !!song.audio_file_url;
+  const isDraft = song.status === 'draft';
 
-  const lineageIcp = lineage.store_icp;
-  const lineageStore = lineage.store;
-  const lineageClient = lineage.client;
-
-  // Filter stores by search term
   const filteredStores = storeSearch
     ? stores.filter((s: any) => (s.name || '').toLowerCase().includes(storeSearch.toLowerCase()))
     : stores;
@@ -140,122 +154,135 @@ export default function SongDetail() {
     <div>
       <Breadcrumb items={[
         { label: 'Song Library', href: '/songs' },
-        { label: song.title },
+        { label: song.title || 'Untitled' },
       ]} />
 
+      {/* ── Row 1: Lineage (compact inline) ── */}
+      {(lineage.client || lineage.store || lineage.store_icp) && (
+        <div className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.35)] mb-3">
+          {lineage.client && <span>{lineage.client.name}</span>}
+          {lineage.store && <><span className="text-[rgba(255,255,255,0.15)]">/</span><span>{lineage.store.name}</span></>}
+          {lineage.store_icp && <><span className="text-[rgba(255,255,255,0.15)]">/</span><span className="text-[#4a90a4]">{lineage.store_icp.name}</span></>}
+        </div>
+      )}
+
+      {/* ── Row 2: Title + Status + Metadata (one compact row) ── */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           {editingTitle ? (
-            <>
-              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-2xl font-light border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)]" />
-              <button type="button" onClick={() => updateMutation.mutate({ title: titleVal })} className="bg-[#4a90a4] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
-              <button type="button" onClick={() => setEditingTitle(false)} className="border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
-            </>
+            <div className="flex items-center gap-2">
+              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-lg font-medium border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)]" autoFocus />
+              <button type="button" onClick={() => updateMutation.mutate({ title: titleVal })} className="bg-[#4a90a4] text-white px-3 py-1 rounded-lg text-xs hover:bg-[#5ba3b8]">Save</button>
+              <button type="button" onClick={() => setEditingTitle(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
+            </div>
           ) : (
-            <>
-              <button type="button" onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }} className="text-[#4a90a4] hover:text-[#5ba3b8] text-sm transition-colors">Edit Title</button>
-            </>
+            <button type="button" onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }} className="text-[rgba(255,255,255,0.5)] hover:text-[#4a90a4] text-xs transition-colors">Edit Title</button>
           )}
+
+          <span className="text-[rgba(255,255,255,0.1)]">|</span>
+
           {editingStatus ? (
             <div className="flex items-center gap-2">
-              <select value={statusVal} onChange={(e) => setStatusVal(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-sm bg-[rgba(255,255,255,0.03)]">
+              <select value={statusVal} onChange={(e) => setStatusVal(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-xs bg-[rgba(255,255,255,0.03)]">
+                <option value="draft">Draft</option>
                 <option value="generated">Generated</option>
                 <option value="active">Active</option>
                 <option value="flagged">Flagged</option>
                 <option value="removed">Removed</option>
               </select>
-              <button type="button" onClick={() => updateMutation.mutate({ status: statusVal })} className="bg-[#4a90a4] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
-              <button type="button" onClick={() => setEditingStatus(false)} className="border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
+              <button type="button" onClick={() => updateMutation.mutate({ status: statusVal })} className="bg-[#4a90a4] text-white px-3 py-1 rounded-lg text-xs">Save</button>
+              <button type="button" onClick={() => setEditingStatus(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <StatusBadge status={song.status || 'active'} />
-              <button type="button" onClick={() => { setStatusVal(song.status || 'active'); setEditingStatus(true); }} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">change</button>
+              <button type="button" onClick={() => { setStatusVal(song.status || 'active'); setEditingStatus(true); }} className="text-[#4a90a4] hover:text-[#5ba3b8] text-[10px]">change</button>
             </div>
           )}
         </div>
+
+        <div className="flex items-center gap-4 text-xs text-[rgba(255,255,255,0.4)]">
+          {song.duration_seconds > 0 && <span>{formatDuration(Math.round(song.duration_seconds))}</span>}
+          {song.generation_system_id && <span>{gsNameMap[song.generation_system_id] || 'System'}</span>}
+          <span>{song.created_at ? new Date(song.created_at).toLocaleDateString() : ''}</span>
+        </div>
       </div>
 
-      {/* Song Info */}
-      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 text-sm space-y-3">
-        <div className="grid grid-cols-2 gap-4">
-          <div><span className="text-[rgba(255,255,255,0.4)]">Duration:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.duration_seconds ? formatDuration(Math.round(song.duration_seconds)) : '-'}</span></div>
-          <div><span className="text-[rgba(255,255,255,0.4)]">Status:</span> <span className="text-[rgba(255,255,255,0.87)]">{humanize(song.status || 'active')}</span></div>
-          <div><span className="text-[rgba(255,255,255,0.4)]">Generation System:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.generation_system_id ? (gsNameMap[song.generation_system_id] || song.generation_system_id) : '-'}</span></div>
-          <div><span className="text-[rgba(255,255,255,0.4)]">Created:</span> <span className="text-[rgba(255,255,255,0.87)]">{song.created_at ? new Date(song.created_at).toLocaleDateString() : '-'}</span></div>
-        </div>
-        {song.audio_file_url && (
-          <div>
-            <span className="text-[rgba(255,255,255,0.4)] block mb-1">Audio Preview:</span>
-            <audio controls src={song.audio_file_url} className="w-full" />
-          </div>
+      {/* ── Audio Player / Upload Area ── */}
+      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6">
+        {hasMp3 ? (
+          <audio controls src={song.audio_file_url} className="w-full" />
+        ) : (
+          <label className="flex flex-col items-center justify-center border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl p-6 cursor-pointer hover:border-[#4a90a4]/40 hover:bg-[rgba(74,144,164,0.03)] transition-all">
+            <svg className="w-6 h-6 text-[#4a90a4] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+            <span className="text-sm text-[rgba(255,255,255,0.4)]">{uploading ? 'Uploading...' : 'No audio yet — drop or click to upload MP3'}</span>
+            <span className="text-[10px] text-[rgba(255,255,255,0.2)] mt-1">MP3, WAV, FLAC</span>
+            <input type="file" accept=".mp3,.wav,.flac" className="hidden" disabled={uploading} onChange={(e) => { if (e.target.files?.[0]) handleUploadMp3(e.target.files[0]); }} />
+          </label>
         )}
       </div>
 
-      {/* Lineage */}
-      {(lineageIcp || lineageStore || lineageClient) && (
+      {/* ── Suno Prompt Data ── */}
+      {(song.prompt_text || promptParams.style || promptParams.style_negations || promptParams.voice) && (
         <div className="mb-6">
-          <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Lineage</h2>
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm space-y-2">
-            {lineageClient && (
-              <div>
-                <span className="text-[rgba(255,255,255,0.4)]">Client:</span>{' '}
-                <span className="text-[rgba(255,255,255,0.87)]">{lineageClient.name}</span>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Suno Prompt</h2>
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)]">
+            {promptParams.style && (
+              <div className="px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[#4a90a4] mb-1">Style</div>
+                <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style}</p>
               </div>
             )}
-            {lineageStore && (
-              <div>
-                <span className="text-[rgba(255,255,255,0.4)]">Store:</span>{' '}
-                <span className="text-[rgba(255,255,255,0.87)]">{lineageStore.name}</span>
+            {promptParams.style_negations && (
+              <div className="px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[#f0997b] mb-1">Exclude</div>
+                <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style_negations}</p>
               </div>
             )}
-            {lineageIcp && (
-              <div>
-                <span className="text-[rgba(255,255,255,0.4)]">Audience:</span>{' '}
-                <span className="text-[rgba(255,255,255,0.87)]">{lineageIcp.name}</span>
+            {promptParams.voice && (
+              <div className="px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] mb-1">Voice</div>
+                <p className="text-sm text-[rgba(255,255,255,0.8)] capitalize">{promptParams.voice}</p>
+              </div>
+            )}
+            {song.prompt_text && (
+              <div className="px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] mb-1">Lyrics</div>
+                <pre className="text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)] font-sans leading-relaxed max-h-60 overflow-y-auto">{song.prompt_text}</pre>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Flow Factors (read-only) */}
+      {/* ── Flow Factors (Musicological Parameters) ── */}
       {Object.keys(flowFactors).length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Flow Factors</h2>
-          <table className="w-full bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl text-sm">
-            <tbody>
-              {Object.entries(flowFactors).map(([k, v]) => (
-                <tr key={k} className="border-b border-[rgba(255,255,255,0.04)] last:border-0">
-                  <td className="px-4 py-2 text-[rgba(255,255,255,0.4)] w-1/2">{k}</td>
-                  <td className="px-4 py-2 text-[rgba(255,255,255,0.87)]">{String(v)}</td>
-                </tr>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Musicological Parameters</h2>
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
+            <div className="grid grid-cols-2 divide-x divide-[rgba(255,255,255,0.04)]">
+              {Object.entries(flowFactors).map(([k, v], i) => (
+                <div key={k} className={`flex items-center justify-between px-4 py-2 text-xs ${i >= 2 ? 'border-t border-[rgba(255,255,255,0.04)]' : ''}`}>
+                  <span className="text-[rgba(255,255,255,0.4)]">{k}</span>
+                  <span className="text-[rgba(255,255,255,0.8)] font-medium">{String(v)}</span>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Prompt Text (read-only) */}
-      {song.prompt_text && (
-        <div className="mb-6">
-          <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Prompt Text</h2>
-          <pre className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)]">{song.prompt_text}</pre>
-        </div>
-      )}
-
-      {/* Feedback */}
+      {/* ── Feedback ── */}
       <FeedbackSection songId={id!} />
 
-      {/* Assignments */}
+      {/* ── Assignments ── */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-medium text-[rgba(255,255,255,0.87)]">Store Assignments</h2>
-        <button type="button" onClick={() => setShowAssign(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ Assign to Store</button>
+        <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Store Assignments</h2>
+        <button type="button" onClick={() => setShowAssign(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-xs hover:bg-[#5ba3b8] transition-colors">+ Assign to Store</button>
       </div>
 
       {showAssign && (
         <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3">
-          <h3 className="font-medium text-sm mb-2 text-[rgba(255,255,255,0.87)]">Pick a store</h3>
           <input
             type="text"
             placeholder="Search stores..."
@@ -263,16 +290,15 @@ export default function SongDetail() {
             onChange={(e) => setStoreSearch(e.target.value)}
             className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm mb-2 bg-[rgba(255,255,255,0.03)]"
           />
-          <div className="max-h-60 overflow-auto space-y-1">
+          <div className="max-h-48 overflow-auto space-y-1">
             {filteredStores.map((s: any) => (
               <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg text-sm transition-colors">
                 <span className="text-[rgba(255,255,255,0.87)]">{s.name}</span>
-                <button type="button" onClick={() => assignMutation.mutate(s.id)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">Assign</button>
+                <button type="button" onClick={() => assignMutation.mutate(s.id)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs">Assign</button>
               </div>
             ))}
-            {filteredStores.length === 0 && <p className="text-[rgba(255,255,255,0.3)] text-sm py-2">No stores found</p>}
           </div>
-          <button type="button" onClick={() => { setShowAssign(false); setStoreSearch(''); }} className="mt-2 border border-[rgba(255,255,255,0.1)] px-3 py-1 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Close</button>
+          <button type="button" onClick={() => { setShowAssign(false); setStoreSearch(''); }} className="mt-2 text-[rgba(255,255,255,0.4)] text-xs">Close</button>
         </div>
       )}
 
@@ -283,13 +309,13 @@ export default function SongDetail() {
               <span className="text-[rgba(255,255,255,0.87)]">{a.store?.name || 'Store'}</span>
               {a.added_by && <span className="text-[rgba(255,255,255,0.3)] ml-2">by {a.added_by}</span>}
             </div>
-            <button type="button" onClick={() => unassignMutation.mutate(a.store_id)} className="text-[#e74c3c] hover:text-[#c0392b] text-xs transition-colors">Remove</button>
+            <button type="button" onClick={() => unassignMutation.mutate(a.store_id)} className="text-[#e74c3c] hover:text-[#c0392b] text-xs">Remove</button>
           </div>
         ))}
         {assignments.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">Not assigned to any stores</p>}
       </div>
 
-      {/* Delete Song - moved to bottom */}
+      {/* ── Delete ── */}
       <div className="mt-8 border-t border-[rgba(255,255,255,0.06)] pt-6">
         <button
           type="button"
