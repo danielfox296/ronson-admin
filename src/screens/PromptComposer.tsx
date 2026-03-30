@@ -11,6 +11,7 @@ export default function PromptComposer() {
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   const [selectedGenSystem, setSelectedGenSystem] = useState('');
   const [promptTitle, setPromptTitle] = useState('');
+  const [generatingTrackId, setGeneratingTrackId] = useState<string | null>(null);
 
   // Generated output fields
   const [lyrics, setLyrics] = useState('');
@@ -68,6 +69,27 @@ export default function PromptComposer() {
       setStyleNegations(result.data.style_negations || '');
       setVoice(result.data.voice || '');
     },
+  });
+
+  // Generate from a specific reference track
+  const generateFromTrackMutation = useMutation({
+    mutationFn: (trackId: string) => api<{ data: any }>('/api/compose/generate', {
+      method: 'POST',
+      body: {
+        store_icp_id: selectedIcpId,
+        flow_factor_values: {},
+        additional_instructions: additionalInstructions || undefined,
+        reference_track_id: trackId,
+      },
+    }),
+    onSuccess: (result) => {
+      setLyrics(result.data.lyrics || '');
+      setStyle(result.data.style || '');
+      setStyleNegations(result.data.style_negations || '');
+      setVoice(result.data.voice || '');
+      setGeneratingTrackId(null);
+    },
+    onError: () => { setGeneratingTrackId(null); },
   });
 
   // Save
@@ -157,14 +179,27 @@ export default function PromptComposer() {
               {selectedIcpId ? (
                 refTracks.length > 0 ? (
                   refTracks.map((t: any) => (
-                    <div key={t.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-[rgba(255,255,255,0.04)] last:border-0">
+                    <div key={t.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-[rgba(255,255,255,0.04)] last:border-0 group">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[rgba(74,144,164,0.25)] to-[rgba(74,144,164,0.05)] flex items-center justify-center shrink-0">
                         <svg className="w-3.5 h-3.5 text-[#4a90a4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                       </div>
-                      <div className="min-w-0">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm text-[rgba(255,255,255,0.87)] truncate">{t.title}</p>
                         <p className="text-[10px] text-[rgba(255,255,255,0.35)]">{t.artist}{t.genre ? ` · ${t.genre}` : ''}</p>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => { setGeneratingTrackId(t.id); generateFromTrackMutation.mutate(t.id); }}
+                        disabled={generatingTrackId === t.id}
+                        className="shrink-0 bg-[rgba(74,144,164,0.12)] text-[#4a90a4] hover:bg-[rgba(74,144,164,0.25)] px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50"
+                      >
+                        {generatingTrackId === t.id ? (
+                          <span className="flex items-center gap-1.5">
+                            <span className="inline-block w-3 h-3 border-2 border-[#4a90a4]/30 border-t-[#4a90a4] rounded-full animate-spin" />
+                            Working...
+                          </span>
+                        ) : 'Use Style'}
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -211,9 +246,9 @@ export default function PromptComposer() {
 
         {/* Right: Output */}
         <div className="space-y-4">
-          {generateMutation.isError && (
+          {(generateMutation.isError || generateFromTrackMutation.isError) && (
             <div className="bg-[rgba(231,76,60,0.1)] border border-[rgba(231,76,60,0.2)] rounded-xl p-4 text-[#e74c3c] text-sm">
-              {(generateMutation.error as Error).message}
+              {((generateMutation.error || generateFromTrackMutation.error) as Error)?.message}
             </div>
           )}
 
