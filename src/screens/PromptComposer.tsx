@@ -8,20 +8,23 @@ export default function PromptComposer() {
   const [selectedClientId, setSelectedClientId] = useState('');
   const [selectedStoreId, setSelectedStoreId] = useState('');
   const [selectedIcpId, setSelectedIcpId] = useState('');
-  const [flowValues, setFlowValues] = useState<Record<string, string>>({});
   const [additionalInstructions, setAdditionalInstructions] = useState('');
-  const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [promptTitle, setPromptTitle] = useState('');
   const [selectedGenSystem, setSelectedGenSystem] = useState('');
+  const [promptTitle, setPromptTitle] = useState('');
 
-  // 1. Fetch clients
+  // Generated output fields
+  const [lyrics, setLyrics] = useState('');
+  const [style, setStyle] = useState('');
+  const [styleNegations, setStyleNegations] = useState('');
+  const [voice, setVoice] = useState('');
+
+  // Data fetching
   const { data: clientsData } = useQuery({
     queryKey: ['clients-for-compose'],
     queryFn: () => api<{ data: any[] }>('/api/clients'),
   });
   const clients = clientsData?.data || [];
 
-  // 2. Fetch stores for selected client
   const { data: storesData } = useQuery({
     queryKey: ['stores-for-compose', selectedClientId],
     queryFn: () => api<{ data: any[] }>(`/api/clients/${selectedClientId}/stores`),
@@ -29,7 +32,6 @@ export default function PromptComposer() {
   });
   const stores = storesData?.data || [];
 
-  // 3. Fetch ICPs for selected store
   const { data: icpsData } = useQuery({
     queryKey: ['icps-for-compose', selectedStoreId],
     queryFn: () => api<{ data: any[] }>(`/api/stores/${selectedStoreId}/icps`),
@@ -37,21 +39,6 @@ export default function PromptComposer() {
   });
   const icps = icpsData?.data || [];
 
-  // Flow factor configs
-  const { data: ffData } = useQuery({
-    queryKey: ['flow-factor-configs'],
-    queryFn: () => api<{ data: any[] }>('/api/flow-factor-configs'),
-  });
-  const flowConfigs = ffData?.data || [];
-
-  // Generation systems
-  const { data: gsData } = useQuery({
-    queryKey: ['generation-systems'],
-    queryFn: () => api<{ data: any[] }>('/api/generation-systems'),
-  });
-  const genSystems = gsData?.data || [];
-
-  // Reference tracks for selected ICP
   const { data: refTracksData } = useQuery({
     queryKey: ['ref-tracks-compose', selectedIcpId],
     queryFn: () => api<{ data: any[] }>(`/api/store-icps/${selectedIcpId}/reference-tracks`),
@@ -59,31 +46,39 @@ export default function PromptComposer() {
   });
   const refTracks = refTracksData?.data || [];
 
-  const selectedIcp = useMemo(() => icps.find((i: any) => i.id === selectedIcpId), [icps, selectedIcpId]);
+  const { data: gsData } = useQuery({
+    queryKey: ['generation-systems'],
+    queryFn: () => api<{ data: any[] }>('/api/generation-systems'),
+  });
+  const genSystems = gsData?.data || [];
 
-  // Generate prompt
+  // Generate
   const generateMutation = useMutation({
     mutationFn: () => api<{ data: any }>('/api/compose/generate', {
       method: 'POST',
       body: {
         store_icp_id: selectedIcpId,
-        flow_factor_values: flowValues,
+        flow_factor_values: {},
         additional_instructions: additionalInstructions || undefined,
       },
     }),
     onSuccess: (result) => {
-      setGeneratedPrompt(result.data.prompt_text);
+      setLyrics(result.data.lyrics || '');
+      setStyle(result.data.style || '');
+      setStyleNegations(result.data.style_negations || '');
+      setVoice(result.data.voice || '');
     },
   });
 
-  // Save prompt as draft song
+  // Save
   const saveMutation = useMutation({
     mutationFn: () => api<{ data: any }>('/api/compose/save', {
       method: 'POST',
       body: {
         store_icp_id: selectedIcpId,
-        prompt_text: generatedPrompt,
-        flow_factor_values: flowValues,
+        prompt_text: lyrics,
+        flow_factor_values: {},
+        prompt_parameters: { style, style_negations: styleNegations, voice },
         generation_system_id: selectedGenSystem || undefined,
         title: promptTitle || 'Composed Prompt',
       },
@@ -93,186 +88,107 @@ export default function PromptComposer() {
     },
   });
 
-  // Group flow factors by category
-  const groupedFlowFactors = useMemo(() => {
-    const groups: Record<string, any[]> = {};
-    flowConfigs.forEach((fc: any) => {
-      if (!groups[fc.category]) groups[fc.category] = [];
-      groups[fc.category].push(fc);
-    });
-    return groups;
-  }, [flowConfigs]);
-
-  const selectClass = "w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-2.5 text-sm";
+  const hasOutput = !!(lyrics || style || styleNegations || voice);
+  const selectClass = "bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-2.5 text-sm w-full";
 
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight text-[rgba(255,255,255,0.93)]">
           Prompt <span className="text-[#4a90a4] font-normal italic">Composer</span>
         </h1>
         <p className="text-[rgba(255,255,255,0.4)] text-sm mt-1">
-          Generate AI music prompts from audience profiles and flow factors.
+          Generate Suno prompts from audience profiles and reference tracks.
         </p>
       </div>
 
-      <div className="grid grid-cols-[1fr_1fr] gap-6">
-        {/* Left: Inputs */}
-        <div className="space-y-5">
-          {/* Cascading selectors: Client → Store → ICP */}
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-3">Target Audience</label>
-            <div className="space-y-3">
-              {/* Client */}
-              <div>
-                <label className="text-xs text-[rgba(255,255,255,0.4)] block mb-1">Client</label>
-                <select
-                  value={selectedClientId}
-                  onChange={(e) => {
-                    setSelectedClientId(e.target.value);
-                    setSelectedStoreId('');
-                    setSelectedIcpId('');
-                    setGeneratedPrompt('');
-                  }}
-                  className={selectClass}
-                >
-                  <option value="">Select a client...</option>
-                  {clients.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
+      {/* Row 1: Three dropdowns in one row */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-1.5">Client</label>
+          <select
+            value={selectedClientId}
+            onChange={(e) => { setSelectedClientId(e.target.value); setSelectedStoreId(''); setSelectedIcpId(''); setLyrics(''); setStyle(''); setStyleNegations(''); setVoice(''); }}
+            className={selectClass}
+          >
+            <option value="">Select client...</option>
+            {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-1.5">Store</label>
+          <select
+            value={selectedStoreId}
+            onChange={(e) => { setSelectedStoreId(e.target.value); setSelectedIcpId(''); setLyrics(''); setStyle(''); setStyleNegations(''); setVoice(''); }}
+            disabled={!selectedClientId}
+            className={`${selectClass} disabled:opacity-40`}
+          >
+            <option value="">{selectedClientId ? 'Select store...' : '—'}</option>
+            {stores.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-1.5">Audience</label>
+          <select
+            value={selectedIcpId}
+            onChange={(e) => { setSelectedIcpId(e.target.value); setLyrics(''); setStyle(''); setStyleNegations(''); setVoice(''); }}
+            disabled={!selectedStoreId}
+            className={`${selectClass} disabled:opacity-40`}
+          >
+            <option value="">{selectedStoreId ? 'Select audience...' : '—'}</option>
+            {icps.map((icp: any) => <option key={icp.id} value={icp.id}>{icp.name}</option>)}
+          </select>
+        </div>
+      </div>
 
-              {/* Store */}
-              <div>
-                <label className="text-xs text-[rgba(255,255,255,0.4)] block mb-1">Store</label>
-                <select
-                  value={selectedStoreId}
-                  onChange={(e) => {
-                    setSelectedStoreId(e.target.value);
-                    setSelectedIcpId('');
-                    setGeneratedPrompt('');
-                  }}
-                  disabled={!selectedClientId}
-                  className={`${selectClass} disabled:opacity-40`}
-                >
-                  <option value="">{selectedClientId ? 'Select a store...' : 'Select a client first'}</option>
-                  {stores.map((s: any) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* ICP */}
-              <div>
-                <label className="text-xs text-[rgba(255,255,255,0.4)] block mb-1">Audience Profile</label>
-                <select
-                  value={selectedIcpId}
-                  onChange={(e) => {
-                    setSelectedIcpId(e.target.value);
-                    setGeneratedPrompt('');
-                  }}
-                  disabled={!selectedStoreId}
-                  className={`${selectClass} disabled:opacity-40`}
-                >
-                  <option value="">{selectedStoreId ? 'Select an audience...' : 'Select a store first'}</option>
-                  {icps.map((icp: any) => (
-                    <option key={icp.id} value={icp.id}>{icp.name}</option>
-                  ))}
-                </select>
+      {/* Main content: two columns */}
+      <div className="grid grid-cols-[380px_1fr] gap-6">
+        {/* Left: Reference Tracks + Instructions + Generate */}
+        <div className="space-y-4">
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.06)]">
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Reference Tracks</h2>
+                {refTracks.length > 0 && <span className="text-xs text-[rgba(255,255,255,0.3)]">{refTracks.length}</span>}
               </div>
             </div>
-
-            {/* ICP summary */}
-            {selectedIcp && (
-              <div className="mt-4 space-y-2 text-xs text-[rgba(255,255,255,0.5)] border-t border-[rgba(255,255,255,0.06)] pt-3">
-                {selectedIcp.psychographic_summary && (
-                  <p><span className="text-[rgba(255,255,255,0.3)]">Psychographic:</span> {selectedIcp.psychographic_summary}</p>
-                )}
-                {selectedIcp.preferences && (
-                  <p><span className="text-[rgba(255,255,255,0.3)]">Preferences:</span> {selectedIcp.preferences}</p>
-                )}
-              </div>
-            )}
-
-            {/* Reference tracks */}
-            {refTracks.length > 0 && (
-              <div className="mt-4 border-t border-[rgba(255,255,255,0.06)] pt-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.25)] mb-2">Reference Tracks ({refTracks.length})</p>
-                <div className="space-y-1">
-                  {refTracks.map((t: any) => (
-                    <div key={t.id} className="text-xs text-[rgba(255,255,255,0.5)]">
-                      {t.title} — <span className="text-[rgba(255,255,255,0.3)]">{t.artist}</span>
+            <div className="max-h-[280px] overflow-y-auto">
+              {selectedIcpId ? (
+                refTracks.length > 0 ? (
+                  refTracks.map((t: any) => (
+                    <div key={t.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-[rgba(255,255,255,0.04)] last:border-0">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[rgba(74,144,164,0.25)] to-[rgba(74,144,164,0.05)] flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5 text-[#4a90a4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm text-[rgba(255,255,255,0.87)] truncate">{t.title}</p>
+                        <p className="text-[10px] text-[rgba(255,255,255,0.35)]">{t.artist}{t.genre ? ` · ${t.genre}` : ''}</p>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  ))
+                ) : (
+                  <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.2)] text-xs">No reference tracks for this audience</div>
+                )
+              ) : (
+                <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.2)] text-xs">Select an audience to see reference tracks</div>
+              )}
+            </div>
           </div>
 
-          {/* Flow Factors */}
-          {Object.keys(groupedFlowFactors).length > 0 && (
-            <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-5">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-3">Flow Factors</label>
-              <div className="space-y-4">
-                {Object.entries(groupedFlowFactors).map(([category, factors]) => (
-                  <div key={category}>
-                    <p className="text-[10px] text-[rgba(255,255,255,0.25)] uppercase tracking-wider mb-2">{category}</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {factors.map((fc: any) => (
-                        <div key={fc.id} className="flex items-center gap-2">
-                          <label className="text-xs text-[rgba(255,255,255,0.5)] min-w-0 truncate flex-1" title={fc.description || fc.display_name}>{fc.display_name}</label>
-                          {fc.value_type === 'enum' && fc.value_options ? (
-                            <select
-                              value={flowValues[fc.name] || ''}
-                              onChange={(e) => setFlowValues({ ...flowValues, [fc.name]: e.target.value })}
-                              className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-xs w-28"
-                            >
-                              <option value="">-</option>
-                              {(fc.value_options as string[]).map((opt: string) => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                          ) : fc.value_type === 'scale' ? (
-                            <input
-                              type="range"
-                              min={fc.value_range_low || 1}
-                              max={fc.value_range_high || 10}
-                              value={flowValues[fc.name] || Math.round(((fc.value_range_low || 1) + (fc.value_range_high || 10)) / 2)}
-                              onChange={(e) => setFlowValues({ ...flowValues, [fc.name]: e.target.value })}
-                              className="w-20 accent-[#4a90a4]"
-                            />
-                          ) : (
-                            <input
-                              type="text"
-                              value={flowValues[fc.name] || ''}
-                              onChange={(e) => setFlowValues({ ...flowValues, [fc.name]: e.target.value })}
-                              placeholder="value"
-                              className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-xs w-28"
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Additional Instructions */}
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-3">Additional Instructions</label>
+          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-2">Additional Instructions</label>
             <textarea
               value={additionalInstructions}
               onChange={(e) => setAdditionalInstructions(e.target.value)}
-              placeholder="e.g., 'Keep it under 120 BPM, avoid vocals, lean into ambient textures...'"
+              placeholder="e.g., 'Under 120 BPM, no vocals, ambient textures...'"
               rows={3}
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-2.5 text-sm resize-none placeholder:text-[rgba(255,255,255,0.15)]"
+              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm resize-none placeholder:text-[rgba(255,255,255,0.15)]"
             />
           </div>
 
+          {/* Generate button */}
           <button
             type="button"
             onClick={() => generateMutation.mutate()}
@@ -294,82 +210,118 @@ export default function PromptComposer() {
         </div>
 
         {/* Right: Output */}
-        <div className="space-y-5">
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-5 min-h-[300px]">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-3">Generated Prompt</label>
+        <div className="space-y-4">
+          {generateMutation.isError && (
+            <div className="bg-[rgba(231,76,60,0.1)] border border-[rgba(231,76,60,0.2)] rounded-xl p-4 text-[#e74c3c] text-sm">
+              {(generateMutation.error as Error).message}
+            </div>
+          )}
 
-            {generateMutation.isError && (
-              <p className="text-[#e74c3c] text-sm mb-3">{(generateMutation.error as Error).message}</p>
-            )}
-
-            {generatedPrompt ? (
-              <div className="space-y-4">
-                <textarea
-                  value={generatedPrompt}
-                  onChange={(e) => setGeneratedPrompt(e.target.value)}
-                  rows={8}
-                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-3 text-sm leading-relaxed resize-none"
-                />
-                <div className="flex gap-2">
+          {hasOutput ? (
+            <>
+              {/* Lyrics */}
+              <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)]">Lyrics</label>
                   <button
                     type="button"
-                    onClick={() => { navigator.clipboard.writeText(generatedPrompt); }}
-                    className="flex-1 bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.7)] py-2 rounded-lg text-sm font-medium hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                    onClick={() => navigator.clipboard.writeText(lyrics)}
+                    className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold"
                   >
-                    Copy to Clipboard
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => generateMutation.mutate()}
-                    disabled={generateMutation.isPending}
-                    className="bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)] py-2 px-4 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.1)] transition-colors"
-                  >
-                    Regenerate
+                    Copy
                   </button>
                 </div>
+                <textarea
+                  value={lyrics}
+                  onChange={(e) => setLyrics(e.target.value)}
+                  rows={12}
+                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-3 text-sm leading-relaxed resize-none font-mono"
+                />
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <svg className="w-10 h-10 text-[rgba(255,255,255,0.1)] mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                <p className="text-[rgba(255,255,255,0.2)] text-sm">Select an audience and click Generate</p>
-              </div>
-            )}
-          </div>
 
-          {/* Save as Draft */}
-          {generatedPrompt && (
-            <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-5 space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] block">Save as Draft Song</label>
-              <div className="grid grid-cols-2 gap-3">
+              {/* Style + Negations + Voice row */}
+              <div className="grid grid-cols-[1fr_1fr_auto] gap-4">
+                <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)]">Style</label>
+                    <button type="button" onClick={() => navigator.clipboard.writeText(style)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                  </div>
+                  <textarea
+                    value={style}
+                    onChange={(e) => setStyle(e.target.value)}
+                    rows={3}
+                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
+                  />
+                </div>
+                <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)]">Style Negations</label>
+                    <button type="button" onClick={() => navigator.clipboard.writeText(styleNegations)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                  </div>
+                  <textarea
+                    value={styleNegations}
+                    onChange={(e) => setStyleNegations(e.target.value)}
+                    rows={3}
+                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
+                  />
+                </div>
+                <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 flex flex-col items-center justify-center min-w-[100px]">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] mb-2">Voice</label>
+                  <select
+                    value={voice}
+                    onChange={(e) => setVoice(e.target.value)}
+                    className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm text-center"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Actions row */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => generateMutation.mutate()}
+                  disabled={generateMutation.isPending}
+                  className="bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)] py-2 px-5 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                >
+                  Regenerate
+                </button>
+                <div className="flex-1" />
                 <input
                   type="text"
                   value={promptTitle}
                   onChange={(e) => setPromptTitle(e.target.value)}
                   placeholder="Song title..."
-                  className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm"
+                  className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm w-48"
                 />
                 <select
                   value={selectedGenSystem}
                   onChange={(e) => setSelectedGenSystem(e.target.value)}
                   className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm"
                 >
-                  <option value="">Generation system...</option>
-                  {genSystems.map((gs: any) => (
-                    <option key={gs.id} value={gs.id}>{gs.name}</option>
-                  ))}
+                  <option value="">Gen system...</option>
+                  {genSystems.map((gs: any) => <option key={gs.id} value={gs.id}>{gs.name}</option>)}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => saveMutation.mutate()}
+                  disabled={saveMutation.isPending}
+                  className="bg-[#4a90a4] text-white py-2 px-5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
+                >
+                  {saveMutation.isPending ? 'Saving...' : 'Save Draft'}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending}
-                className="w-full bg-[#4a90a4] text-white py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
-              >
-                {saveMutation.isPending ? 'Saving...' : 'Save Draft & View'}
-              </button>
               {saveMutation.isError && (
                 <p className="text-[#e74c3c] text-xs">{(saveMutation.error as Error).message}</p>
               )}
+            </>
+          ) : (
+            <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl flex flex-col items-center justify-center py-20 text-center">
+              <svg className="w-12 h-12 text-[rgba(255,255,255,0.08)] mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <p className="text-[rgba(255,255,255,0.2)] text-sm">Select an audience and click Generate Prompt</p>
+              <p className="text-[rgba(255,255,255,0.12)] text-xs mt-1">Lyrics, style, negations, and voice will appear here</p>
             </div>
           )}
         </div>
