@@ -108,8 +108,7 @@ export default function SongLibrary() {
       {/* Header */}
       <div className="flex items-end justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[rgba(255,255,255,0.93)]">Library</h1>
-          <p className="text-[rgba(255,255,255,0.4)] text-sm mt-1">Manage and curate your audio assets.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight leading-none text-white">Library</h1>
         </div>
         <div className="flex gap-3">
           <button

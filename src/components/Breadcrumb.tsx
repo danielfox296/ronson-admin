@@ -28,7 +28,7 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
         </nav>
       )}
       {current && (
-        <h1 className="text-xl font-light text-[rgba(255,255,255,0.87)] uppercase tracking-widest">
+        <h1 className="text-4xl font-extrabold tracking-tight leading-none text-white">
           {current.label}
         </h1>
       )}

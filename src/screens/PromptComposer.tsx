@@ -117,12 +117,7 @@ export default function PromptComposer() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-[rgba(255,255,255,0.93)]">
-          Prompt <span className="text-[#4a90a4] font-normal italic">Composer</span>
-        </h1>
-        <p className="text-[rgba(255,255,255,0.4)] text-sm mt-1">
-          Generate Suno prompts from audience profiles and reference tracks.
-        </p>
+        <h1 className="text-4xl font-extrabold tracking-tight leading-none text-white">Prompt Composer</h1>
       </div>
 
       {/* Row 1: Three dropdowns in one row */}

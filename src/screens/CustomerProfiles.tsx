@@ -81,13 +81,7 @@ export default function CustomerProfiles() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight leading-none">
-            Customer<br />
-            <span className="text-[#4a90a4]">Profiles</span>
-          </h1>
-          <p className="text-[rgba(255,255,255,0.4)] max-w-md mt-2 text-sm">
-            Design and manage curated sonic environments for your clients.
-          </p>
+          <h1 className="text-4xl font-extrabold tracking-tight leading-none text-white">Customer Profiles</h1>
         </div>
         <button
           type="button"

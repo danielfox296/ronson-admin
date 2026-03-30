@@ -38,12 +38,7 @@ export default function Dashboard() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-light tracking-tight">
-          System <span className="text-[#4a90a4] font-normal italic">Pulse</span>
-        </h1>
-        <p className="text-[rgba(255,255,255,0.35)] text-sm mt-1">
-          Overview of your streaming infrastructure and content lifecycle
-        </p>
+        <h1 className="text-4xl font-extrabold tracking-tight leading-none text-white">System Pulse</h1>
       </div>
 
       {/* Stat Cards */}
