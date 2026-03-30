@@ -189,19 +189,31 @@ export default function AudiencePipeline() {
   const bulkAddRefMutation = useMutation({
     mutationFn: (tracks: { title: string; artist: string }[]) =>
       api(`/api/store-icps/${icpId}/reference-tracks/bulk`, { method: 'POST', body: { tracks } }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }); setShowBulkAdd(false); setBulkText(''); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }); setShowBulkAdd(false); setBulkText(''); setBulkError(''); },
+    onError: (err: Error) => { setBulkError(err.message || 'Failed to add tracks'); },
   });
 
+  const [bulkError, setBulkError] = useState('');
+
   const handleBulkSubmit = () => {
+    setBulkError('');
     const lines = bulkText.split('\n').map((l) => l.trim()).filter(Boolean);
     const tracks = lines.map((line) => {
-      // Support "Title - Artist" or "Title, Artist" or "Artist - Title" patterns
-      const sep = line.includes(' - ') ? ' - ' : line.includes(' — ') ? ' — ' : line.includes(', ') ? ', ' : null;
-      if (!sep) return { title: line, artist: '' };
-      const parts = line.split(sep);
-      return { title: parts[0].trim(), artist: parts.slice(1).join(sep).trim() };
-    }).filter((t) => t.title && t.artist);
-    if (tracks.length > 0) bulkAddRefMutation.mutate(tracks);
+      // Try multiple separators: " - ", " — ", " – ", ", "
+      for (const sep of [' - ', ' — ', ' – ', ', ']) {
+        if (line.includes(sep)) {
+          const idx = line.indexOf(sep);
+          return { title: line.slice(0, idx).trim(), artist: line.slice(idx + sep.length).trim() };
+        }
+      }
+      // No separator found — treat whole line as title with "Unknown" artist
+      return { title: line, artist: 'Unknown' };
+    }).filter((t) => t.title);
+    if (tracks.length === 0) {
+      setBulkError('No tracks detected. Use format: Title - Artist');
+      return;
+    }
+    bulkAddRefMutation.mutate(tracks);
   };
 
   const updateRefMutation = useMutation({
@@ -407,9 +419,10 @@ export default function AudiencePipeline() {
                   className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)] resize-none font-mono leading-relaxed placeholder:text-[rgba(255,255,255,0.15)]"
                   autoFocus
                 />
+                {bulkError && <p className="text-[#e74c3c] text-xs">{bulkError}</p>}
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-[rgba(255,255,255,0.25)]">
-                    {bulkText.split('\n').filter((l) => l.trim() && l.includes(' - ')).length} tracks detected
+                    {bulkText.split('\n').filter((l) => l.trim()).length} tracks detected
                   </span>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => { setShowBulkAdd(false); setBulkText(''); }} className="border border-[rgba(255,255,255,0.1)] px-3 py-1.5 rounded-lg text-xs text-[rgba(255,255,255,0.4)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
