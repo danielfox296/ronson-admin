@@ -153,11 +153,21 @@ export default function AudiencePipeline() {
 
   /* ---- Derived ---- */
 
-  const icp = icpData?.data;
-  const allRefTracks: any[] = refTracksData?.data || [];
-  const allSongs: any[] = songsData?.data || [];
-  const flowFactorConfigs: any[] = flowFactorConfigsData?.data || [];
-  const genSystems: any[] = genSystemsData?.data || [];
+  // api() returns { data: [...] }; React Query wraps as { data: { data: [...] } }
+  // Use helper to unwrap robustly regardless of nesting
+  const unwrap = (d: any): any => {
+    if (!d) return d;
+    if (Array.isArray(d)) return d;
+    if (d?.data !== undefined) return Array.isArray(d.data) ? d.data : d.data;
+    return d;
+  };
+  const unwrapArr = (d: any): any[] => { const v = unwrap(d); return Array.isArray(v) ? v : []; };
+
+  const icp = unwrap(icpData?.data);
+  const allRefTracks: any[] = unwrapArr(refTracksData?.data);
+  const allSongs: any[] = unwrapArr(songsData?.data);
+  const flowFactorConfigs: any[] = unwrapArr(flowFactorConfigsData?.data);
+  const genSystems: any[] = unwrapArr(genSystemsData?.data);
   const firstActiveSystemId = useMemo(() => genSystems.find((g) => g.is_active)?.id || '', [genSystems]);
   const storeName = icp?.store?.name || 'Store';
   const clientName = icp?.store?.client?.name || 'Client';
