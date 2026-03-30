@@ -30,7 +30,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
-      <form onSubmit={handleSubmit} className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] p-8 rounded-xl shadow-2xl w-full max-w-sm space-y-4">
+      <form onSubmit={handleSubmit} className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] p-8 rounded-xl shadow-2xl w-full max-w-sm space-y-4">
         <h1 className="text-2xl font-light text-center text-[rgba(255,255,255,0.87)]">Entune Admin</h1>
         {error && <div className="text-[#e74c3c] text-sm bg-[rgba(231,76,60,0.1)] border border-[rgba(231,76,60,0.2)] p-2 rounded-lg">{error}</div>}
         <div>

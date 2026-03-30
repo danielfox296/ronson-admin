@@ -121,7 +121,7 @@ export default function CustomerProfiles() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-2xl h-72 animate-pulse" />
+            <div key={i} className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-2xl h-72 animate-pulse" />
           ))}
         </div>
       ) : (
@@ -146,7 +146,7 @@ export default function CustomerProfiles() {
       {/* Create Modal */}
       {showCreate && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-[rgba(255,255,255,0.87)] mb-4">New Audience Profile</h3>
             {createError && <p className="text-[#e74c3c] text-sm mb-3">{createError}</p>}
             <div className="space-y-3">
@@ -189,7 +189,7 @@ export default function CustomerProfiles() {
 
       {/* Footer Stats */}
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <div className="col-span-3 bg-[#12121a] border border-[rgba(255,255,255,0.06)] p-5 rounded-xl flex items-center gap-8">
+        <div className="col-span-3 bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] p-5 rounded-xl flex items-center gap-8">
           <div>
             <p className="text-[10px] font-bold tracking-widest text-[rgba(255,255,255,0.3)] uppercase mb-1">TOTAL PROFILES</p>
             <p className="text-2xl font-bold text-[rgba(255,255,255,0.87)]">{allIcps.length}</p>
@@ -232,12 +232,12 @@ function IcpCard({ icp, navigate }: { icp: any; navigate: (path: string) => void
 
   return (
     <div
-      className="group relative flex flex-col bg-[#12121a] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.12)] transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer"
+      className="group relative flex flex-col bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] hover:border-[rgba(255,255,255,0.12)] transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer"
       onClick={() => navigate(`/clients/${clientId}/stores/${storeId}/audiences/${icp.id}`)}
     >
       {/* Gradient header band */}
       <div className="h-32 relative overflow-hidden bg-gradient-to-br from-[rgba(74,144,164,0.2)] to-[rgba(74,144,164,0.02)]">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#12121a] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a25] via-transparent to-transparent" />
         <div className="absolute top-4 left-4">
           <span className="bg-[rgba(74,144,164,0.2)] text-[#4a90a4] text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full backdrop-blur-md">
             {category}
@@ -245,7 +245,7 @@ function IcpCard({ icp, navigate }: { icp: any; navigate: (path: string) => void
         </div>
         {songCount > 0 && (
           <div className="absolute top-4 right-4">
-            <span className="bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)] text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full">
+            <span className="bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.5)] text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full">
               {songCount} SONGS
             </span>
           </div>
@@ -263,7 +263,7 @@ function IcpCard({ icp, navigate }: { icp: any; navigate: (path: string) => void
         </div>
 
         {/* Psychographic summary as italic quote */}
-        <p className="text-xs text-[rgba(255,255,255,0.35)] leading-relaxed mb-5 italic line-clamp-2">
+        <p className="text-xs text-[rgba(255,255,255,0.55)] leading-relaxed mb-5 italic line-clamp-2">
           "{icp.psychographic_summary}"
         </p>
 
@@ -292,7 +292,7 @@ function IcpCard({ icp, navigate }: { icp: any; navigate: (path: string) => void
               <span className="text-[10px] font-bold tracking-widest uppercase text-[rgba(255,255,255,0.3)]">Tags</span>
               <div className="flex gap-1.5">
                 {icp.preferences.split(',').slice(0, 3).map((tag: string, i: number) => (
-                  <span key={i} className="text-[10px] bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)] px-2 py-0.5 rounded-full font-bold uppercase">
+                  <span key={i} className="text-[10px] bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.5)] px-2 py-0.5 rounded-full font-bold uppercase">
                     {tag.trim()}
                   </span>
                 ))}
@@ -306,7 +306,7 @@ function IcpCard({ icp, navigate }: { icp: any; navigate: (path: string) => void
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); navigate(`/clients/${clientId}/stores/${storeId}/audiences/${icp.id}`); }}
-            className="bg-[rgba(255,255,255,0.04)] py-2.5 text-[10px] font-bold tracking-widest uppercase text-[#4a90a4] border border-[rgba(255,255,255,0.06)] hover:bg-[#4a90a4] hover:text-white transition-all rounded-lg flex items-center justify-center gap-1.5"
+            className="bg-[rgba(255,255,255,0.04)] py-2.5 text-[10px] font-bold tracking-widest uppercase text-[#4a90a4] border border-[rgba(255,255,255,0.09)] hover:bg-[#4a90a4] hover:text-white transition-all rounded-lg flex items-center justify-center gap-1.5"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             VIEW PROFILE
@@ -314,7 +314,7 @@ function IcpCard({ icp, navigate }: { icp: any; navigate: (path: string) => void
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); navigate(`/clients/${clientId}/stores/${storeId}`); }}
-            className="bg-[rgba(255,255,255,0.04)] py-2.5 text-[10px] font-bold tracking-widest uppercase text-[rgba(255,255,255,0.6)] border border-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.08)] transition-all rounded-lg flex items-center justify-center gap-1.5"
+            className="bg-[rgba(255,255,255,0.04)] py-2.5 text-[10px] font-bold tracking-widest uppercase text-[rgba(255,255,255,0.6)] border border-[rgba(255,255,255,0.09)] hover:bg-[rgba(255,255,255,0.08)] transition-all rounded-lg flex items-center justify-center gap-1.5"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             GO TO STORE

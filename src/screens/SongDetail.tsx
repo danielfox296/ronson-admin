@@ -26,18 +26,18 @@ function FeedbackSection({ songId }: { songId: string }) {
     <div className="mb-6">
       <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Player Feedback</h2>
       <div className="grid grid-cols-2 gap-4 mb-3">
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-center">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 text-center">
           <div className="text-2xl font-light text-[#5dcaa5]">{loves.length}</div>
           <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">Loves</div>
         </div>
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 text-center">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 text-center">
           <div className="text-2xl font-light text-[#f0997b]">{reports.length}</div>
           <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">Reports</div>
         </div>
       </div>
       {reports.length > 0 && (
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
-          <div className="px-4 py-2 border-b border-[rgba(255,255,255,0.06)] text-xs text-[rgba(255,255,255,0.4)] font-medium">Report Details</div>
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl">
+          <div className="px-4 py-2 border-b border-[rgba(255,255,255,0.09)] text-xs text-[rgba(255,255,255,0.4)] font-medium">Report Details</div>
           {reports.map((r: any) => (
             <div key={r.id} className="flex items-center justify-between px-4 py-2 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
               <div>
@@ -60,10 +60,10 @@ function StatusBadge({ status }: { status: string }) {
     draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
     flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
     inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
-    removed: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
-    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
+    removed: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
+    archived: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
 }
 
 export default function SongDetail() {
@@ -159,7 +159,7 @@ export default function SongDetail() {
 
       {/* ── Row 1: Lineage (compact inline) ── */}
       {(lineage.client || lineage.store || lineage.store_icp) && (
-        <div className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.35)] mb-3">
+        <div className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.55)] mb-3">
           {lineage.client && <span>{lineage.client.name}</span>}
           {lineage.store && <><span className="text-[rgba(255,255,255,0.15)]">/</span><span>{lineage.store.name}</span></>}
           {lineage.store_icp && <><span className="text-[rgba(255,255,255,0.15)]">/</span><span className="text-[#4a90a4]">{lineage.store_icp.name}</span></>}
@@ -209,7 +209,7 @@ export default function SongDetail() {
       </div>
 
       {/* ── Audio Player / Upload Area ── */}
-      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6">
+      <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-6">
         {hasMp3 ? (
           <audio controls src={song.audio_file_url} className="w-full" />
         ) : (
@@ -226,7 +226,7 @@ export default function SongDetail() {
       {(song.prompt_text || promptParams.style || promptParams.style_negations || promptParams.voice) && (
         <div className="mb-6">
           <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Suno Prompt</h2>
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)]">
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)]">
             {promptParams.style && (
               <div className="px-4 py-3">
                 <div className="text-[10px] font-bold uppercase tracking-widest text-[#4a90a4] mb-1">Style</div>
@@ -241,13 +241,13 @@ export default function SongDetail() {
             )}
             {promptParams.voice && (
               <div className="px-4 py-3">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] mb-1">Voice</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-1">Voice</div>
                 <p className="text-sm text-[rgba(255,255,255,0.8)] capitalize">{promptParams.voice}</p>
               </div>
             )}
             {song.prompt_text && (
               <div className="px-4 py-3">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] mb-1">Lyrics</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-1">Lyrics</div>
                 <pre className="text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)] font-sans leading-relaxed max-h-60 overflow-y-auto">{song.prompt_text}</pre>
               </div>
             )}
@@ -259,7 +259,7 @@ export default function SongDetail() {
       {Object.keys(flowFactors).length > 0 && (
         <div className="mb-6">
           <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Musicological Parameters</h2>
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl">
             <div className="grid grid-cols-2 divide-x divide-[rgba(255,255,255,0.04)]">
               {Object.entries(flowFactors).map(([k, v], i) => (
                 <div key={k} className={`flex items-center justify-between px-4 py-2 text-xs ${i >= 2 ? 'border-t border-[rgba(255,255,255,0.04)]' : ''}`}>
@@ -282,7 +282,7 @@ export default function SongDetail() {
       </div>
 
       {showAssign && (
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3">
           <input
             type="text"
             placeholder="Search stores..."
@@ -302,7 +302,7 @@ export default function SongDetail() {
         </div>
       )}
 
-      <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl mb-6">
+      <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl mb-6">
         {assignments.map((a: any) => (
           <div key={a.id} className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
             <div>
@@ -316,7 +316,7 @@ export default function SongDetail() {
       </div>
 
       {/* ── Delete ── */}
-      <div className="mt-8 border-t border-[rgba(255,255,255,0.06)] pt-6">
+      <div className="mt-8 border-t border-[rgba(255,255,255,0.09)] pt-6">
         <button
           type="button"
           onClick={() => { if (window.confirm('Delete this song?')) deleteMutation.mutate(); }}

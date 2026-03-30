@@ -91,12 +91,12 @@ export default function Config() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: 'Settings' }]} />
+      <Breadcrumb items={[{ label: 'Variables' }]} />
 
       {/* Account / Change Password - moved to top */}
       <section className="mb-8">
         <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Account</h2>
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 space-y-3 max-w-md">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 space-y-3 max-w-md">
           <h3 className="font-medium text-sm text-[rgba(255,255,255,0.87)]">Change Password</h3>
           <input
             type="password"
@@ -132,7 +132,7 @@ export default function Config() {
         </div>
 
         {showFfForm && (
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3 space-y-3">
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
             <div>
               <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Key (internal identifier)</label>
               <input placeholder="e.g. tempo_bpm" value={ffForm.name} onChange={(e) => setFfForm({ ...ffForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
@@ -175,9 +175,9 @@ export default function Config() {
         )}
 
         {ffLoading ? <p className="text-[rgba(255,255,255,0.3)] text-sm">Loading...</p> : (
-          <table className="w-full bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl text-sm">
+          <table className="w-full bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl text-sm">
             <thead>
-              <tr className="border-b border-[rgba(255,255,255,0.06)]">
+              <tr className="border-b border-[rgba(255,255,255,0.09)]">
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Key</th>
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Label</th>
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Category</th>
@@ -216,7 +216,7 @@ export default function Config() {
         </div>
 
         {showGsForm && (
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3 space-y-3">
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
             <input placeholder="Name" value={gsForm.name} onChange={(e) => setGsForm({ ...gsForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
             <input placeholder="Provider" value={gsForm.provider} onChange={(e) => setGsForm({ ...gsForm, provider: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
             <label className="flex items-center gap-2 text-sm text-[rgba(255,255,255,0.5)]">
@@ -238,9 +238,9 @@ export default function Config() {
         )}
 
         {gsLoading ? <p className="text-[rgba(255,255,255,0.3)] text-sm">Loading...</p> : (
-          <table className="w-full bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl text-sm">
+          <table className="w-full bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl text-sm">
             <thead>
-              <tr className="border-b border-[rgba(255,255,255,0.06)]">
+              <tr className="border-b border-[rgba(255,255,255,0.09)]">
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Name</th>
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Provider</th>
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Active</th>
@@ -253,7 +253,7 @@ export default function Config() {
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.87)]">{gs.name}</td>
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{gs.provider}</td>
                   <td className="px-4 py-3">
-                    <button type="button" onClick={() => toggleGsActive(gs)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${gs.is_active ? 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]' : 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>
+                    <button type="button" onClick={() => toggleGsActive(gs)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${gs.is_active ? 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]' : 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>
                       {gs.is_active ? 'Active' : 'Inactive'}
                     </button>
                   </td>

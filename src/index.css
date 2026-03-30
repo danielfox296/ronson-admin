@@ -1,29 +1,43 @@
 @import "tailwindcss";
 
+:root {
+  --bg:            #101018;
+  --surface:       #1a1a25;
+  --surface-2:     #14141e;
+  --border:        rgba(255,255,255,0.09);
+  --border-subtle: rgba(255,255,255,0.05);
+  --text:          rgba(255,255,255,0.87);
+  --text-muted:    rgba(255,255,255,0.55);
+  --text-faint:    rgba(255,255,255,0.3);
+  --accent:        #4a90a4;
+  --accent-2:      #5ba3b8;
+}
+
 @layer base {
   body {
-    background: #0a0a0f;
-    color: rgba(255,255,255,0.87);
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Inter', sans-serif;
   }
+  h1 { font-weight: 300; }
   input, select, textarea {
     background: rgba(255,255,255,0.03);
-    border-color: rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.87);
+    border-color: var(--border);
+    color: var(--text);
   }
   input:focus, select:focus, textarea:focus {
-    border-color: #4a90a4;
+    border-color: var(--accent);
     outline: none;
     box-shadow: 0 0 0 1px rgba(74,144,164,0.3);
   }
   input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
-  table { border-color: rgba(255,255,255,0.04); }
+  table { border-color: var(--border-subtle); }
   option {
-    background: #12121a;
-    color: rgba(255,255,255,0.87);
+    background: var(--surface);
+    color: var(--text);
   }
   audio::-webkit-media-controls-panel {
-    background: #12121a;
+    background: var(--surface);
   }
   /* Scrollbar styling */
   ::-webkit-scrollbar { width: 6px; height: 6px; }

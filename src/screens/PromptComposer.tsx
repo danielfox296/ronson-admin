@@ -117,7 +117,7 @@ export default function PromptComposer() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-4xl font-extrabold tracking-tight leading-none text-white">Prompt Composer</h1>
+        <h1 className="text-4xl tracking-tight leading-none text-white">Compose</h1>
       </div>
 
       {/* Row 1: Three dropdowns in one row */}
@@ -163,8 +163,8 @@ export default function PromptComposer() {
       <div className="grid grid-cols-[380px_1fr] gap-6">
         {/* Left: Reference Tracks + Instructions + Generate */}
         <div className="space-y-4">
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.06)]">
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)]">
               <div className="flex items-baseline gap-2">
                 <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Reference Tracks</h2>
                 {refTracks.length > 0 && <span className="text-xs text-[rgba(255,255,255,0.3)]">{refTracks.length}</span>}
@@ -180,7 +180,7 @@ export default function PromptComposer() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-[rgba(255,255,255,0.87)] truncate">{t.title}</p>
-                        <p className="text-[10px] text-[rgba(255,255,255,0.35)]">{t.artist}{t.genre ? ` · ${t.genre}` : ''}</p>
+                        <p className="text-[10px] text-[rgba(255,255,255,0.55)]">{t.artist}{t.genre ? ` · ${t.genre}` : ''}</p>
                       </div>
                       <button
                         type="button"
@@ -207,7 +207,7 @@ export default function PromptComposer() {
           </div>
 
           {/* Additional Instructions */}
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4">
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
             <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-2">Additional Instructions</label>
             <textarea
               value={additionalInstructions}
@@ -250,9 +250,9 @@ export default function PromptComposer() {
           {hasOutput ? (
             <>
               {/* Lyrics */}
-              <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-5">
+              <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)]">Lyrics</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Lyrics</label>
                   <button
                     type="button"
                     onClick={() => navigator.clipboard.writeText(lyrics)}
@@ -271,9 +271,9 @@ export default function PromptComposer() {
 
               {/* Style + Negations + Voice row */}
               <div className="grid grid-cols-[1fr_1fr_auto] gap-4">
-                <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4">
+                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)]">Style</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Style</label>
                     <button type="button" onClick={() => navigator.clipboard.writeText(style)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
                   </div>
                   <textarea
@@ -283,9 +283,9 @@ export default function PromptComposer() {
                     className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
                   />
                 </div>
-                <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4">
+                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)]">Style Negations</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Style Negations</label>
                     <button type="button" onClick={() => navigator.clipboard.writeText(styleNegations)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
                   </div>
                   <textarea
@@ -295,8 +295,8 @@ export default function PromptComposer() {
                     className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
                   />
                 </div>
-                <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 flex flex-col items-center justify-center min-w-[100px]">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] mb-2">Voice</label>
+                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 flex flex-col items-center justify-center min-w-[100px]">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-2">Voice</label>
                   <select
                     value={voice}
                     onChange={(e) => setVoice(e.target.value)}
@@ -314,7 +314,7 @@ export default function PromptComposer() {
                   type="button"
                   onClick={() => generateMutation.mutate()}
                   disabled={generateMutation.isPending}
-                  className="bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.5)] py-2 px-5 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                  className="bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.5)] py-2 px-5 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.1)] transition-colors"
                 >
                   Regenerate
                 </button>
@@ -348,7 +348,7 @@ export default function PromptComposer() {
               )}
             </>
           ) : (
-            <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl flex flex-col items-center justify-center py-20 text-center">
+            <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col items-center justify-center py-20 text-center">
               <svg className="w-12 h-12 text-[rgba(255,255,255,0.08)] mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
               <p className="text-[rgba(255,255,255,0.2)] text-sm">Select an audience and click Generate Prompt</p>
               <p className="text-[rgba(255,255,255,0.12)] text-xs mt-1">Lyrics, style, negations, and voice will appear here</p>

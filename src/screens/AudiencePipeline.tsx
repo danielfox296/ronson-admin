@@ -16,10 +16,10 @@ function StatusBadge({ status }: { status: string }) {
     generated: 'bg-[rgba(74,144,164,0.15)] text-[#4a90a4]',
     draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
     flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
-    removed: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
+    removed: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>
       {humanize(status)}
     </span>
   );
@@ -318,7 +318,7 @@ export default function AudiencePipeline() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 
         {/* ── Left: Audience Profile ── */}
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl overflow-hidden">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl overflow-hidden">
           <button type="button" onClick={() => setShowProfile((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors text-left">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-8 h-8 rounded-full bg-[rgba(74,144,164,0.15)] border border-[rgba(74,144,164,0.3)] flex items-center justify-center text-[#4a90a4] text-sm font-semibold shrink-0">
@@ -327,12 +327,12 @@ export default function AudiencePipeline() {
               <div className="min-w-0">
                 <span className="text-sm font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
                 {icp.psychographic_summary && (
-                  <p className="text-xs text-[rgba(255,255,255,0.35)] mt-0.5 truncate">{icp.psychographic_summary.slice(0, 80)}{icp.psychographic_summary.length > 80 ? '…' : ''}</p>
+                  <p className="text-xs text-[rgba(255,255,255,0.55)] mt-0.5 truncate">{icp.psychographic_summary.slice(0, 80)}{icp.psychographic_summary.length > 80 ? '…' : ''}</p>
                 )}
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <div className="hidden md:flex flex-wrap gap-1.5 text-[10px] text-[rgba(255,255,255,0.35)]">
+              <div className="hidden md:flex flex-wrap gap-1.5 text-[10px] text-[rgba(255,255,255,0.55)]">
                 {ageRange && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{ageRange}</span>}
                 {icp.gender && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{icp.gender}</span>}
                 {icp.income_bracket && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{icp.income_bracket}</span>}
@@ -343,7 +343,7 @@ export default function AudiencePipeline() {
           </button>
 
           {showProfile && (
-            <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-4 space-y-4 max-h-[50vh] overflow-y-auto">
+            <div className="border-t border-[rgba(255,255,255,0.09)] px-4 py-4 space-y-4 max-h-[50vh] overflow-y-auto">
               {/* Demographics */}
               <div>
                 <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Demographics</span>
@@ -400,14 +400,14 @@ export default function AudiencePipeline() {
         </div>
 
         {/* ── Right: Reference Tracks ── */}
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.06)] shrink-0">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)] shrink-0">
             <div className="flex items-baseline gap-2">
               <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Reference Tracks</h2>
               <span className="text-xs text-[rgba(255,255,255,0.3)]">{allRefTracks.length}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-lg px-2.5 py-1">
+              <div className="flex items-center gap-1.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.09)] rounded-lg px-2.5 py-1">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="4" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2"/><path d="M8.5 8.5L11 11" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeLinecap="round"/></svg>
                 <input value={refFilter} onChange={(e) => setRefFilter(e.target.value)} placeholder="Filter..." className="bg-transparent border-none outline-none text-xs text-[rgba(255,255,255,0.87)] w-16 placeholder:text-[rgba(255,255,255,0.2)]" />
               </div>
@@ -419,8 +419,8 @@ export default function AudiencePipeline() {
 
           <div className="flex-1 overflow-y-auto">
             {showBulkAdd && (
-              <div className="border-b border-[rgba(255,255,255,0.06)] px-4 py-3 space-y-2">
-                <p className="text-[10px] text-[rgba(255,255,255,0.35)] uppercase tracking-widest font-bold">One per line: Title - Artist</p>
+              <div className="border-b border-[rgba(255,255,255,0.09)] px-4 py-3 space-y-2">
+                <p className="text-[10px] text-[rgba(255,255,255,0.55)] uppercase tracking-widest font-bold">One per line: Title - Artist</p>
                 <textarea
                   value={bulkText}
                   onChange={(e) => setBulkText(e.target.value)}
@@ -460,7 +460,7 @@ export default function AudiencePipeline() {
                   {rt.duration_seconds && <span className="text-[rgba(255,255,255,0.25)] text-xs tabular-nums shrink-0">{formatDuration(rt.duration_seconds)}</span>}
                 </button>
                 {expandedTracks.has(rt.id) && (
-                  <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-3 space-y-2">
+                  <div className="border-t border-[rgba(255,255,255,0.09)] px-4 py-3 space-y-2">
                     <div className="grid grid-cols-3 gap-x-6 gap-y-1 text-xs">
                       {([['Title', rt.title, 'title'], ['Artist', rt.artist, 'artist'], ['Genre', rt.genre, 'genre'], ['Album', rt.album, 'album']] as [string, string, string][]).map(([label, val, field]) => (
                         <div key={field} className="flex items-baseline gap-1">
@@ -488,14 +488,14 @@ export default function AudiencePipeline() {
 
       {/* ── Row 2: Song Library (full width) ── */}
       <div className="flex-1 min-h-0">
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.06)] shrink-0">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)] shrink-0">
             <div className="flex items-baseline gap-2">
               <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Songs</h2>
               <span className="text-xs text-[rgba(255,255,255,0.3)]">{allSongs.length}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-lg px-2.5 py-1">
+              <div className="flex items-center gap-1.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.09)] rounded-lg px-2.5 py-1">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="4" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2"/><path d="M8.5 8.5L11 11" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeLinecap="round"/></svg>
                 <input value={songFilter} onChange={(e) => setSongFilter(e.target.value)} placeholder="Filter..." className="bg-transparent border-none outline-none text-xs text-[rgba(255,255,255,0.87)] w-16 placeholder:text-[rgba(255,255,255,0.2)]" />
               </div>
@@ -508,7 +508,7 @@ export default function AudiencePipeline() {
           <div className="flex-1 overflow-y-auto">
             {/* Drop zone */}
             <div
-              className={`mx-2 mt-2 mb-1 p-4 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${dragging ? 'border-[#4a90a4] bg-[rgba(74,144,164,0.08)]' : 'border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.15)]'}`}
+              className={`mx-2 mt-2 mb-1 p-4 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${dragging ? 'border-[#4a90a4] bg-[rgba(74,144,164,0.08)]' : 'border-[rgba(255,255,255,0.09)] hover:border-[rgba(255,255,255,0.15)]'}`}
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
@@ -519,7 +519,7 @@ export default function AudiencePipeline() {
                 <p className="text-[#4a90a4] text-xs">Uploading…</p>
               ) : (
                 <>
-                  <p className="text-[rgba(255,255,255,0.35)] text-xs">Drop audio files here</p>
+                  <p className="text-[rgba(255,255,255,0.55)] text-xs">Drop audio files here</p>
                   <p className="text-[rgba(255,255,255,0.15)] text-[10px] mt-0.5">MP3, WAV, FLAC</p>
                 </>
               )}
@@ -550,7 +550,7 @@ export default function AudiencePipeline() {
       {showSongModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-[#0e0e1a] border border-[rgba(255,255,255,0.08)] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[rgba(255,255,255,0.06)]">
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[rgba(255,255,255,0.09)]">
               <h2 className="text-base font-medium text-[rgba(255,255,255,0.87)]">Add Song</h2>
               <button type="button" onClick={closeSongModal} className="text-[rgba(255,255,255,0.3)] hover:text-[rgba(255,255,255,0.6)] transition-colors text-lg leading-none">✕</button>
             </div>

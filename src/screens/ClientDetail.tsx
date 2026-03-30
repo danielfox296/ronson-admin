@@ -10,9 +10,9 @@ function StatusBadge({ status }: { status: string }) {
     active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
     onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
     inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
-    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
+    archived: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
 }
 
 export default function ClientDetail() {
@@ -67,7 +67,7 @@ export default function ClientDetail() {
       </div>
 
       {editing ? (
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6 space-y-3">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-6 space-y-3">
           <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           <div className="flex gap-4 text-sm text-[rgba(255,255,255,0.5)]">
             {['independent', 'franchisee', 'corporate_parent'].map((t) => (
@@ -85,7 +85,7 @@ export default function ClientDetail() {
           </div>
         </div>
       ) : (
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-6">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-6">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div><span className="text-[rgba(255,255,255,0.4)]">Type:</span> <span className="text-[rgba(255,255,255,0.87)]">{humanize(client.type)}</span></div>
             <div><span className="text-[rgba(255,255,255,0.4)]">Status:</span> <span className="text-[rgba(255,255,255,0.87)]">{humanize(client.status)}</span></div>
@@ -104,7 +104,7 @@ export default function ClientDetail() {
         </div>
 
         {showStoreForm && (
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-3 space-y-3">
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
             <input placeholder="Store Name" value={storeForm.name} onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
             <input placeholder="Address" value={storeForm.address_line_1} onChange={(e) => setStoreForm({ ...storeForm, address_line_1: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
             <div className="grid grid-cols-3 gap-2">
@@ -124,7 +124,7 @@ export default function ClientDetail() {
           </div>
         )}
 
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl">
           {(client.stores || []).map((s: any) => (
             <div
               key={s.id}
@@ -148,7 +148,7 @@ export default function ClientDetail() {
       {client.corporate_icps && client.corporate_icps.length > 0 && (
         <div className="mb-6">
           <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Corporate Audience Profiles</h2>
-          <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl">
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl">
             {client.corporate_icps.map((icp: any) => (
               <div key={icp.id} className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
                 <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
@@ -165,7 +165,7 @@ export default function ClientDetail() {
       )}
 
       {/* Deactivate Client - moved to very bottom */}
-      <div className="mt-8 border-t border-[rgba(255,255,255,0.06)] pt-6">
+      <div className="mt-8 border-t border-[rgba(255,255,255,0.09)] pt-6">
         <button
           type="button"
           onClick={() => {

@@ -13,10 +13,10 @@ function StatusBadge({ status }: { status: string }) {
     draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
     inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
     flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
-    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
+    archived: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>
       {humanize(status)}
     </span>
   );
@@ -78,7 +78,7 @@ export default function ClientList() {
       </div>
 
       {showForm && (
-        <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 mb-4 space-y-3">
+        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-4 space-y-3">
           <h3 className="font-medium text-[rgba(255,255,255,0.87)]">New Client</h3>
           <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           <div className="flex gap-4 text-sm text-[rgba(255,255,255,0.5)]">
@@ -104,9 +104,9 @@ export default function ClientList() {
       {isLoading ? (
         <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>
       ) : (
-        <table className="w-full bg-[#12121a] rounded-xl text-sm">
+        <table className="w-full bg-[#1a1a25] rounded-xl text-sm">
           <thead>
-            <tr className="border-b border-[rgba(255,255,255,0.06)]">
+            <tr className="border-b border-[rgba(255,255,255,0.09)]">
               <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Name</th>
               <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Type</th>
               <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Stores</th>
