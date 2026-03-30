@@ -12,10 +12,10 @@ import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
-    generated: 'bg-[rgba(74,144,164,0.15)] text-[#4a90a4]',
-    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
-    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
+    generated: 'bg-[rgba(74,144,164,0.15)] text-[#5ea2b6]',
+    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]',
+    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
     removed: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
   };
   return (
@@ -301,7 +301,7 @@ export default function AudiencePipeline() {
   /* ---- Render ---- */
 
   if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
-  if (!icp) return <p className="text-[#e74c3c]">Audience not found</p>;
+  if (!icp) return <p className="text-[#ea6152]">Audience not found</p>;
 
   const ageRange = [icp.age_range_low, icp.age_range_high].filter(Boolean).join('–');
 
@@ -318,10 +318,10 @@ export default function AudiencePipeline() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 
         {/* ── Left: Audience Profile ── */}
-        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl overflow-hidden">
+        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl overflow-hidden">
           <button type="button" onClick={() => setShowProfile((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-[rgba(255,255,255,0.02)] transition-colors text-left">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-[rgba(74,144,164,0.15)] border border-[rgba(74,144,164,0.3)] flex items-center justify-center text-[#4a90a4] text-sm font-semibold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[rgba(74,144,164,0.15)] border border-[rgba(74,144,164,0.3)] flex items-center justify-center text-[#5ea2b6] text-sm font-semibold shrink-0">
                 {icp.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div className="min-w-0">
@@ -400,7 +400,7 @@ export default function AudiencePipeline() {
         </div>
 
         {/* ── Right: Reference Tracks ── */}
-        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
+        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)] shrink-0">
             <div className="flex items-baseline gap-2">
               <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Reference Tracks</h2>
@@ -429,7 +429,7 @@ export default function AudiencePipeline() {
                   className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)] resize-none font-mono leading-relaxed placeholder:text-[rgba(255,255,255,0.15)]"
                   autoFocus
                 />
-                {bulkError && <p className="text-[#e74c3c] text-xs">{bulkError}</p>}
+                {bulkError && <p className="text-[#ea6152] text-xs">{bulkError}</p>}
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-[rgba(255,255,255,0.25)]">
                     {bulkText.split('\n').filter((l) => l.trim()).length} tracks detected
@@ -440,7 +440,7 @@ export default function AudiencePipeline() {
                       type="button"
                       onClick={handleBulkSubmit}
                       disabled={bulkAddRefMutation.isPending || !bulkText.trim()}
-                      className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-xs disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
+                      className="bg-[#5ea2b6] text-white px-3 py-1.5 rounded-lg text-xs disabled:opacity-50 hover:bg-[#70b4c8] transition-colors"
                     >
                       {bulkAddRefMutation.isPending ? 'Adding...' : 'Add All'}
                     </button>
@@ -469,7 +469,7 @@ export default function AudiencePipeline() {
                         </div>
                       ))}
                     </div>
-                    <button type="button" onClick={() => { if (window.confirm(`Delete "${rt.title}"?`)) deleteRefMutation.mutate(rt.id); }} className="text-[#e74c3c] hover:text-[#c0392b] text-xs transition-colors">Delete</button>
+                    <button type="button" onClick={() => { if (window.confirm(`Delete "${rt.title}"?`)) deleteRefMutation.mutate(rt.id); }} className="text-[#ea6152] hover:text-[#c0392b] text-xs transition-colors">Delete</button>
                   </div>
                 )}
               </div>
@@ -478,7 +478,7 @@ export default function AudiencePipeline() {
             {refTracks.length === 0 && !showBulkAdd && (
               <div className="px-4 py-8 text-center">
                 <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">No reference tracks</p>
-                <button type="button" onClick={() => setShowBulkAdd(true)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">+ Add tracks</button>
+                <button type="button" onClick={() => setShowBulkAdd(true)} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors">+ Add tracks</button>
               </div>
             )}
           </div>
@@ -488,7 +488,7 @@ export default function AudiencePipeline() {
 
       {/* ── Row 2: Song Library (full width) ── */}
       <div className="flex-1 min-h-0">
-        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
+        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col overflow-hidden min-h-[360px]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)] shrink-0">
             <div className="flex items-baseline gap-2">
               <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Songs</h2>
@@ -499,7 +499,7 @@ export default function AudiencePipeline() {
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="4" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2"/><path d="M8.5 8.5L11 11" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeLinecap="round"/></svg>
                 <input value={songFilter} onChange={(e) => setSongFilter(e.target.value)} placeholder="Filter..." className="bg-transparent border-none outline-none text-xs text-[rgba(255,255,255,0.87)] w-16 placeholder:text-[rgba(255,255,255,0.2)]" />
               </div>
-              <button type="button" onClick={() => setShowSongModal(true)} className="bg-[#4a90a4] text-white rounded-lg px-2.5 py-1 text-xs font-medium hover:bg-[#5ba3b8] transition-colors flex items-center gap-1">
+              <button type="button" onClick={() => setShowSongModal(true)} className="bg-[#5ea2b6] text-white rounded-lg px-2.5 py-1 text-xs font-medium hover:bg-[#70b4c8] transition-colors flex items-center gap-1">
                 <span>+</span> Upload
               </button>
             </div>
@@ -508,7 +508,7 @@ export default function AudiencePipeline() {
           <div className="flex-1 overflow-y-auto">
             {/* Drop zone */}
             <div
-              className={`mx-2 mt-2 mb-1 p-4 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${dragging ? 'border-[#4a90a4] bg-[rgba(74,144,164,0.08)]' : 'border-[rgba(255,255,255,0.09)] hover:border-[rgba(255,255,255,0.15)]'}`}
+              className={`mx-2 mt-2 mb-1 p-4 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${dragging ? 'border-[#5ea2b6] bg-[rgba(74,144,164,0.08)]' : 'border-[rgba(255,255,255,0.09)] hover:border-[rgba(255,255,255,0.15)]'}`}
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
@@ -516,7 +516,7 @@ export default function AudiencePipeline() {
             >
               <input ref={fileInputRef} type="file" accept=".mp3,.wav,.flac" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
               {uploading ? (
-                <p className="text-[#4a90a4] text-xs">Uploading…</p>
+                <p className="text-[#5ea2b6] text-xs">Uploading…</p>
               ) : (
                 <>
                   <p className="text-[rgba(255,255,255,0.55)] text-xs">Drop audio files here</p>
@@ -524,7 +524,7 @@ export default function AudiencePipeline() {
                 </>
               )}
             </div>
-            {uploadError && !showSongModal && <p className="text-[#e74c3c] text-xs px-4 py-1">{uploadError}</p>}
+            {uploadError && !showSongModal && <p className="text-[#ea6152] text-xs px-4 py-1">{uploadError}</p>}
 
             {songsLoading && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-xs">Loading...</p>}
             {!songsLoading && songs.map((song) => (
@@ -532,14 +532,14 @@ export default function AudiencePipeline() {
                 <StatusBadge status={song.status || 'generated'} />
                 <span className="flex-1 text-sm text-[rgba(255,255,255,0.87)] truncate">{song.title || 'Untitled'}</span>
                 {song.duration_seconds && <span className="text-[rgba(255,255,255,0.25)] text-xs tabular-nums shrink-0">{formatDuration(song.duration_seconds)}</span>}
-                <button type="button" onClick={() => navigate(`/songs/${song.id}`)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors shrink-0">View</button>
-                <button type="button" onClick={() => { if (window.confirm(`Delete "${song.title || 'this song'}"?`)) deleteSongMutation.mutate(song.id); }} className="text-[rgba(255,255,255,0.15)] hover:text-[#e74c3c] text-xs transition-colors shrink-0">Delete</button>
+                <button type="button" onClick={() => navigate(`/songs/${song.id}`)} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors shrink-0">View</button>
+                <button type="button" onClick={() => { if (window.confirm(`Delete "${song.title || 'this song'}"?`)) deleteSongMutation.mutate(song.id); }} className="text-[rgba(255,255,255,0.15)] hover:text-[#ea6152] text-xs transition-colors shrink-0">Delete</button>
               </div>
             ))}
             {!songsLoading && songs.length === 0 && (
               <div className="px-4 py-8 text-center">
                 <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">No songs yet</p>
-                <button type="button" onClick={() => setShowSongModal(true)} className="text-[#4a90a4] hover:text-[#5ba3b8] text-xs transition-colors">+ Add first song</button>
+                <button type="button" onClick={() => setShowSongModal(true)} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors">+ Add first song</button>
               </div>
             )}
           </div>
@@ -564,14 +564,14 @@ export default function AudiencePipeline() {
                 </div>
               ) : (
                 <div
-                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${dragging ? 'border-[#4a90a4] bg-[rgba(74,144,164,0.08)]' : 'border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.2)]'}`}
+                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${dragging ? 'border-[#5ea2b6] bg-[rgba(74,144,164,0.08)]' : 'border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.2)]'}`}
                   onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                   onDragLeave={() => setDragging(false)}
                   onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {uploading ? (
-                    <p className="text-[#4a90a4] text-sm">Uploading…</p>
+                    <p className="text-[#5ea2b6] text-sm">Uploading…</p>
                   ) : (
                     <>
                       <p className="text-[rgba(255,255,255,0.4)] text-sm">Drop audio file here or click to browse</p>
@@ -580,12 +580,12 @@ export default function AudiencePipeline() {
                   )}
                 </div>
               )}
-              {uploadError && <p className="text-[#e74c3c] text-xs">{uploadError}</p>}
+              {uploadError && <p className="text-[#ea6152] text-xs">{uploadError}</p>}
 
               {/* Detected metadata */}
               {fileMeta && (fileMeta.artist || fileMeta.album || fileMeta.genre || fileMeta.bpm || fileMeta.key || fileMeta.year) && (
                 <div className="bg-[rgba(74,144,164,0.06)] border border-[rgba(74,144,164,0.15)] rounded-lg px-3 py-2.5">
-                  <span className="text-[#4a90a4] text-[10px] uppercase tracking-widest font-medium block mb-1.5">Detected from file</span>
+                  <span className="text-[#5ea2b6] text-[10px] uppercase tracking-widest font-medium block mb-1.5">Detected from file</span>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                     {fileMeta.artist && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Artist:</span> {fileMeta.artist}</span>}
                     {fileMeta.album && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Album:</span> {fileMeta.album}</span>}
@@ -645,7 +645,7 @@ export default function AudiencePipeline() {
             </div>
 
             <div className="flex gap-2 px-6 pb-5">
-              <button type="button" onClick={handleSongSubmit} disabled={createSongMutation.isPending || !songForm.audio_file_url || uploading} className="flex-1 bg-[#4a90a4] text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">
+              <button type="button" onClick={handleSongSubmit} disabled={createSongMutation.isPending || !songForm.audio_file_url || uploading} className="flex-1 bg-[#5ea2b6] text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-[#70b4c8] transition-colors">
                 {createSongMutation.isPending ? 'Saving…' : 'Add Song'}
               </button>
               <button type="button" onClick={closeSongModal} className="flex-1 border border-[rgba(255,255,255,0.1)] py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">

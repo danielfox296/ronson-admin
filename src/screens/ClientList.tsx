@@ -7,12 +7,12 @@ import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
-    online: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
-    onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
-    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
-    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
-    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
+    online: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
+    onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]',
+    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]',
+    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
+    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
     archived: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
   };
   return (
@@ -58,7 +58,7 @@ export default function ClientList() {
       <Breadcrumb items={[{ label: 'Clients' }]} />
       <div className="flex items-center justify-between mb-4">
         <div />
-        <button type="button" onClick={() => setShowForm(true)} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">
+        <button type="button" onClick={() => setShowForm(true)} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#70b4c8] transition-colors">
           + New Client
         </button>
       </div>
@@ -72,13 +72,13 @@ export default function ClientList() {
           className="flex-1 border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]"
         />
         <label className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.4)] cursor-pointer shrink-0 select-none">
-          <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} className="accent-[#4a90a4]" />
+          <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} className="accent-[#5ea2b6]" />
           Show inactive
         </label>
       </div>
 
       {showForm && (
-        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-4 space-y-3">
+        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-4 space-y-3">
           <h3 className="font-medium text-[rgba(255,255,255,0.87)]">New Client</h3>
           <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           <div className="flex gap-4 text-sm text-[rgba(255,255,255,0.5)]">
@@ -92,19 +92,19 @@ export default function ClientList() {
           <input placeholder="Contact Name" value={form.primary_contact_name} onChange={(e) => setForm({ ...form, primary_contact_name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           <input placeholder="Contact Email" type="email" value={form.primary_contact_email} onChange={(e) => setForm({ ...form, primary_contact_email: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
           <div className="flex gap-2">
-            <button type="button" onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.name} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] disabled:opacity-50 transition-colors">
+            <button type="button" onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.name} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#70b4c8] disabled:opacity-50 transition-colors">
               {createMutation.isPending ? 'Creating...' : 'Create'}
             </button>
             <button type="button" onClick={() => setShowForm(false)} className="border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.5)] transition-colors">Cancel</button>
           </div>
-          {createMutation.isError && <p className="text-[#e74c3c] text-sm">{(createMutation.error as Error).message}</p>}
+          {createMutation.isError && <p className="text-[#ea6152] text-sm">{(createMutation.error as Error).message}</p>}
         </div>
       )}
 
       {isLoading ? (
         <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>
       ) : (
-        <table className="w-full bg-[#1a1a25] rounded-xl text-sm">
+        <table className="w-full bg-[#1b1b24] rounded-xl text-sm">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.09)]">
               <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Name</th>

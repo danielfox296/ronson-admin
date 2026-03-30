@@ -7,9 +7,9 @@ import Breadcrumb from '../components/Breadcrumb.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]', online: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
-    onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]', draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
-    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]', flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]', online: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
+    onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]', draft: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]',
+    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]', flagged: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
     archived: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
   };
   return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
@@ -81,7 +81,7 @@ export default function StoreDetail() {
   });
 
   if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
-  if (!store) return <p className="text-[#e74c3c]">Store not found</p>;
+  if (!store) return <p className="text-[#ea6152]">Store not found</p>;
 
   const icps = icpsData?.data || [];
   const playEvents = playEventsData?.data || [];
@@ -111,7 +111,7 @@ export default function StoreDetail() {
       </div>
 
       {editing ? (
-        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-6 space-y-3">
+        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-6 space-y-3">
           <div>
             <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-1">Store Name</label>
             <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
@@ -145,12 +145,12 @@ export default function StoreDetail() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={() => updateMutation.mutate(editForm)} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">Save</button>
+            <button type="button" onClick={() => updateMutation.mutate(editForm)} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#70b4c8] transition-colors">Save</button>
             <button type="button" onClick={() => setEditing(false)} className="border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
           </div>
         </div>
       ) : (
-        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-6 cursor-pointer hover:bg-[rgba(255,255,255,0.01)] transition-colors" onClick={startEdit}>
+        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-6 cursor-pointer hover:bg-[rgba(255,255,255,0.01)] transition-colors" onClick={startEdit}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
             <div>
               <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">Address</label>
@@ -169,7 +169,7 @@ export default function StoreDetail() {
               <span className="text-[rgba(255,255,255,0.87)]">{store.timezone || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
             </div>
           </div>
-          <p className="mt-3 text-xs text-[#4a90a4]">Click to edit</p>
+          <p className="mt-3 text-xs text-[#5ea2b6]">Click to edit</p>
         </div>
       )}
 
@@ -180,7 +180,7 @@ export default function StoreDetail() {
             key={t.key}
             type="button"
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === t.key ? 'border-[#4a90a4] text-white' : 'border-transparent text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)]'}`}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === t.key ? 'border-[#5ea2b6] text-white' : 'border-transparent text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)]'}`}
           >
             {t.label}
           </button>
@@ -192,19 +192,19 @@ export default function StoreDetail() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-medium text-[rgba(255,255,255,0.87)]">Audiences</h2>
-            <button type="button" onClick={() => setShowIcpForm(true)} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ New Audience</button>
+            <button type="button" onClick={() => setShowIcpForm(true)} className="bg-[#5ea2b6] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#70b4c8] transition-colors">+ New Audience</button>
           </div>
           {showIcpForm && (
-            <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
+            <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
               <input placeholder="Audience Name" value={icpForm.name} onChange={(e) => setIcpForm({ ...icpForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
               <textarea placeholder="Psychographic Summary" value={icpForm.psychographic_summary} onChange={(e) => setIcpForm({ ...icpForm, psychographic_summary: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" rows={2} />
               <div className="flex gap-2">
-                <button type="button" onClick={() => createIcpMutation.mutate(icpForm)} disabled={!icpForm.name} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">Create</button>
+                <button type="button" onClick={() => createIcpMutation.mutate(icpForm)} disabled={!icpForm.name} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#70b4c8] transition-colors">Create</button>
                 <button type="button" onClick={() => setShowIcpForm(false)} className="border border-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg text-sm text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] transition-colors">Cancel</button>
               </div>
             </div>
           )}
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl">
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl">
             {icps.map((icp: any) => (
               <div
                 key={icp.id}
@@ -223,7 +223,7 @@ export default function StoreDetail() {
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setDeleteIcpTarget({ id: icp.id, name: icp.name, songCount: icp._count?.songs || 0 }); }}
-                  className="opacity-0 group-hover:opacity-100 text-[rgba(255,255,255,0.2)] hover:text-[#e74c3c] text-xs transition-all ml-4 shrink-0"
+                  className="opacity-0 group-hover:opacity-100 text-[rgba(255,255,255,0.2)] hover:text-[#ea6152] text-xs transition-all ml-4 shrink-0"
                 >
                   Delete
                 </button>
@@ -238,7 +238,7 @@ export default function StoreDetail() {
       {tab === 'playlog' && (
         <div>
           <h2 className="font-medium mb-3 text-[rgba(255,255,255,0.87)]">Play Log</h2>
-          <table className="w-full bg-[#1a1a25] rounded-xl text-sm">
+          <table className="w-full bg-[#1b1b24] rounded-xl text-sm">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.09)]">
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Song Title</th>
@@ -272,7 +272,7 @@ export default function StoreDetail() {
             </p>
             {deleteIcpTarget.songCount > 0 && (
               <div className="bg-[rgba(231,76,60,0.08)] border border-[rgba(231,76,60,0.2)] rounded-lg px-4 py-3 my-4">
-                <p className="text-[#e74c3c] text-sm font-medium">
+                <p className="text-[#ea6152] text-sm font-medium">
                   {deleteIcpTarget.songCount} song{deleteIcpTarget.songCount !== 1 ? 's' : ''} will also be deleted.
                 </p>
                 <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">This cannot be fully undone — you'll have a 5-second window to cancel.</p>
@@ -290,7 +290,7 @@ export default function StoreDetail() {
                   }, 5000);
                   setUndoIcpTarget({ id: target.id, name: target.name, timerId });
                 }}
-                className="flex-1 bg-[#e74c3c] text-white py-2 rounded-lg text-sm font-medium hover:bg-[#c0392b] transition-colors"
+                className="flex-1 bg-[#ea6152] text-white py-2 rounded-lg text-sm font-medium hover:bg-[#c0392b] transition-colors"
               >
                 Yes, Delete
               </button>
@@ -316,7 +316,7 @@ export default function StoreDetail() {
               clearTimeout(undoIcpTarget.timerId);
               setUndoIcpTarget(null);
             }}
-            className="bg-[#4a90a4] text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-[#5ba3b8] transition-colors"
+            className="bg-[#5ea2b6] text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-[#70b4c8] transition-colors"
           >
             Undo
           </button>
@@ -327,12 +327,12 @@ export default function StoreDetail() {
       {tab === 'player' && (
         <div>
           <h2 className="font-medium mb-3 text-[rgba(255,255,255,0.87)]">Player Setup</h2>
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 text-sm space-y-4">
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 text-sm space-y-4">
             <div>
               <label className="text-[rgba(255,255,255,0.4)] block mb-1">Player Login Email</label>
               <div className="flex gap-2">
                 <input type="email" placeholder="store@example.com" value={playerEmail} onChange={(e) => setPlayerEmail(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm flex-1 bg-[rgba(255,255,255,0.03)]" />
-                <button type="button" onClick={() => saveWonderCredsMutation.mutate({ player_email: playerEmail })} disabled={!playerEmail.trim()} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">Save</button>
+                <button type="button" onClick={() => saveWonderCredsMutation.mutate({ player_email: playerEmail })} disabled={!playerEmail.trim()} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#70b4c8] transition-colors">Save</button>
               </div>
               {store.player_email && <p className="text-[rgba(255,255,255,0.2)] text-xs mt-1">Current: {store.player_email}</p>}
             </div>
@@ -340,9 +340,9 @@ export default function StoreDetail() {
               <label className="text-[rgba(255,255,255,0.4)] block mb-1">{store.has_player_password ? 'Reset Player Password' : 'Set Player Password'}</label>
               <div className="flex gap-2">
                 <input type="text" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm flex-1 bg-[rgba(255,255,255,0.03)]" />
-                <button type="button" onClick={() => { saveWonderCredsMutation.mutate({ player_password: newPassword }); setNewPassword(''); }} disabled={!newPassword.trim()} className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors">{store.has_player_password ? 'Reset' : 'Set'}</button>
+                <button type="button" onClick={() => { saveWonderCredsMutation.mutate({ player_password: newPassword }); setNewPassword(''); }} disabled={!newPassword.trim()} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#70b4c8] transition-colors">{store.has_player_password ? 'Reset' : 'Set'}</button>
               </div>
-              {passwordSaved && <p className="text-[#27ae60] text-xs mt-1">Saved successfully.</p>}
+              {passwordSaved && <p className="text-[#33be6a] text-xs mt-1">Saved successfully.</p>}
             </div>
             <div className="border-t border-[rgba(255,255,255,0.09)] pt-3 text-[rgba(255,255,255,0.4)] text-xs">
               <p>To set up the player at this store:</p>

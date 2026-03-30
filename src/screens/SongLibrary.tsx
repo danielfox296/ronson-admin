@@ -6,11 +6,11 @@ import { humanize, formatDuration } from '../lib/utils.js';
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]',
-    generated: 'bg-[rgba(74,144,164,0.15)] text-[#4a90a4]',
-    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e67e22]',
-    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
-    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#e74c3c]',
+    active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
+    generated: 'bg-[rgba(94,162,182,0.15)] text-[#5ea2b6]',
+    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]',
+    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
+    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
     removed: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
     archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
   };
@@ -66,7 +66,6 @@ export default function SongLibrary() {
     return () => clearTimeout(t);
   }, [search]);
 
-  // Stop audio when component unmounts
   useEffect(() => {
     return () => { audioRef.current?.pause(); };
   }, []);
@@ -135,7 +134,7 @@ export default function SongLibrary() {
           <button
             type="button"
             onClick={() => setShowUpload(true)}
-            className="bg-gradient-to-br from-[#4a90a4] to-[#2d6a80] text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-[#4a90a4]/10"
+            className="bg-gradient-to-br from-[#5ea2b6] to-[#3e7a91] text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-[#5ea2b6]/10"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             Add New Track
@@ -153,7 +152,7 @@ export default function SongLibrary() {
               onClick={() => setFilter(f.key)}
               className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 filter === f.key
-                  ? 'bg-[#4a90a4] text-white shadow-sm'
+                  ? 'bg-[#5ea2b6] text-white shadow-sm'
                   : 'text-[rgba(255,255,255,0.45)] hover:text-[rgba(255,255,255,0.8)]'
               }`}
             >
@@ -171,7 +170,7 @@ export default function SongLibrary() {
             placeholder="Search track or artist..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className={`w-full bg-[rgba(255,255,255,0.04)] border-none rounded-xl pl-9 py-2 text-sm focus:ring-2 focus:ring-[#4a90a4]/30 transition-all ${search ? 'pr-9' : 'pr-4'}`}
+            className={`w-full bg-[rgba(255,255,255,0.04)] border-none rounded-xl pl-9 py-2 text-sm focus:ring-2 focus:ring-[#5ea2b6]/30 transition-all ${search ? 'pr-9' : 'pr-4'}`}
           />
           {search && (
             <button
@@ -187,7 +186,7 @@ export default function SongLibrary() {
 
       {/* Table */}
       {isLoading ? (
-        <div className="bg-[#1a1a25] rounded-2xl p-8">
+        <div className="bg-[#1b1b24] rounded-2xl p-8">
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-16 bg-[rgba(255,255,255,0.03)] rounded-xl animate-pulse" />
@@ -195,7 +194,7 @@ export default function SongLibrary() {
           </div>
         </div>
       ) : (
-        <div className="bg-[#1a1a25] rounded-2xl overflow-hidden">
+        <div className="bg-[#1b1b24] rounded-2xl overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[rgba(255,255,255,0.02)]">
@@ -203,38 +202,35 @@ export default function SongLibrary() {
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Status</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] text-center">Loves</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] text-center">Reports</th>
-                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] text-center">Stores</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Stores</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] text-right">Created</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(255,255,255,0.04)]">
-              {songs.map((s: any) => (
+            <tbody>
+              {songs.map((s: any, idx: number) => (
                 <tr
                   key={s.id}
                   onClick={() => navigate(`/songs/${s.id}`)}
-                  className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors group"
+                  className={`cursor-pointer transition-colors group hover:bg-[rgba(255,255,255,0.04)] ${idx % 2 === 1 ? 'bg-[rgba(255,255,255,0.018)]' : ''}`}
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-10 h-10 rounded-lg bg-gradient-to-br from-[rgba(74,144,164,0.25)] to-[rgba(74,144,164,0.05)] flex items-center justify-center shrink-0 cursor-pointer hover:from-[rgba(74,144,164,0.4)] hover:to-[rgba(74,144,164,0.1)] transition-all"
+                        className="w-10 h-10 rounded-lg bg-gradient-to-br from-[rgba(94,162,182,0.25)] to-[rgba(94,162,182,0.05)] flex items-center justify-center shrink-0 cursor-pointer hover:from-[rgba(94,162,182,0.4)] hover:to-[rgba(94,162,182,0.1)] transition-all"
                         onMouseEnter={() => setHoveredIconId(s.id)}
                         onMouseLeave={() => setHoveredIconId(null)}
                         onClick={(e) => handleIconClick(e, s)}
                       >
                         {playingId === s.id ? (
-                          /* Pause icon */
-                          <svg className="w-4 h-4 text-[#4a90a4]" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                          <svg className="w-4 h-4 text-[#5ea2b6]" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                         ) : hoveredIconId === s.id ? (
-                          /* Play icon */
-                          <svg className="w-4 h-4 text-[#4a90a4]" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                          <svg className="w-4 h-4 text-[#5ea2b6]" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                         ) : (
-                          /* Note icon */
-                          <svg className="w-4 h-4 text-[#4a90a4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                          <svg className="w-4 h-4 text-[#5ea2b6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                         )}
                       </div>
                       <div>
-                        <p className="font-normal text-[rgba(255,255,255,0.9)] group-hover:text-[#4a90a4] transition-colors">{s.title || 'Untitled'}</p>
+                        <p className="font-normal text-[rgba(255,255,255,0.9)] group-hover:text-[#5ea2b6] transition-colors">{s.title || 'Untitled'}</p>
                         {s.duration_seconds && (
                           <p className="text-[10px] text-[rgba(255,255,255,0.55)] mt-0.5">{formatDuration(Math.round(s.duration_seconds))}</p>
                         )}
@@ -244,27 +240,34 @@ export default function SongLibrary() {
                   <td className="px-6 py-4"><StatusBadge status={s.status || 'active'} /></td>
                   <td className="px-6 py-4 text-center">
                     {s.loves > 0 ? (
-                      <span className="text-[#5dcaa5] font-semibold text-sm">{s.loves}</span>
+                      <span className="text-[#70d4b3] font-semibold text-sm">{s.loves}</span>
                     ) : (
                       <span className="text-[rgba(255,255,255,0.1)] text-sm">0</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     {s.reports > 0 ? (
-                      <span className="text-[#f0997b] font-semibold text-sm">{s.reports}</span>
+                      <span className="text-[#f3aa8c] font-semibold text-sm">{s.reports}</span>
                     ) : (
                       <span className="text-[rgba(255,255,255,0.1)] text-sm">0</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    {(s._count?.store_playlists ?? 0) > 0 ? (
-                      <div className="flex justify-center">
-                        <span className="w-7 h-7 rounded-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[10px] font-bold text-[rgba(255,255,255,0.5)]">
-                          {s._count?.store_playlists}
-                        </span>
+                  <td className="px-6 py-4">
+                    {s.store_playlists?.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {s.store_playlists.slice(0, 2).map((sp: any) => (
+                          <span key={sp.id || sp.store_id} className="px-2 py-0.5 rounded-full text-[10px] bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.55)]">
+                            {sp.store?.name || 'Store'}
+                          </span>
+                        ))}
+                        {s.store_playlists.length > 2 && (
+                          <span className="text-[10px] text-[rgba(255,255,255,0.3)] self-center">+{s.store_playlists.length - 2}</span>
+                        )}
                       </div>
+                    ) : (s._count?.store_playlists ?? 0) > 0 ? (
+                      <span className="text-xs text-[rgba(255,255,255,0.45)]">{s._count.store_playlists} store{s._count.store_playlists !== 1 ? 's' : ''}</span>
                     ) : (
-                      <span className="text-[rgba(255,255,255,0.1)] text-sm">0</span>
+                      <span className="text-[rgba(255,255,255,0.15)] text-sm">—</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-right text-[rgba(255,255,255,0.4)] text-sm">
@@ -278,7 +281,6 @@ export default function SongLibrary() {
             </tbody>
           </table>
 
-          {/* Footer */}
           {songs.length > 0 && (
             <div className="px-6 py-3 border-t border-[rgba(255,255,255,0.04)] text-[rgba(255,255,255,0.3)] text-xs">
               Showing {songs.length} of {allSongs.length} tracks
@@ -290,11 +292,11 @@ export default function SongLibrary() {
       {/* Upload Modal */}
       {showUpload && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => !uploading && setShowUpload(false)}>
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-[rgba(255,255,255,0.87)] mb-4">Upload Tracks</h3>
-            {uploadError && <p className="text-[#e74c3c] text-sm mb-3">{uploadError}</p>}
-            <label className="flex flex-col items-center justify-center border-2 border-dashed border-[rgba(255,255,255,0.1)] rounded-xl p-8 cursor-pointer hover:border-[#4a90a4]/40 hover:bg-[rgba(74,144,164,0.03)] transition-all">
-              <svg className="w-8 h-8 text-[#4a90a4] mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+            {uploadError && <p className="text-[#ea6152] text-sm mb-3">{uploadError}</p>}
+            <label className="flex flex-col items-center justify-center border-2 border-dashed border-[rgba(255,255,255,0.1)] rounded-xl p-8 cursor-pointer hover:border-[#5ea2b6]/40 hover:bg-[rgba(94,162,182,0.03)] transition-all">
+              <svg className="w-8 h-8 text-[#5ea2b6] mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
               <span className="text-sm text-[rgba(255,255,255,0.5)]">{uploading ? 'Uploading...' : 'Drop files or click to browse'}</span>
               <span className="text-[10px] text-[rgba(255,255,255,0.25)] mt-1">MP3, WAV, FLAC</span>
               <input

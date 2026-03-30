@@ -198,10 +198,10 @@ export default function PromptComposer() {
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.2)] text-xs">No reference tracks for this audience</div>
+                  <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.38)] text-xs">No reference tracks for this audience</div>
                 )
               ) : (
-                <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.2)] text-xs">Select an audience to see reference tracks</div>
+                <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.38)] text-xs">Select an audience to see reference tracks</div>
               )}
             </div>
           </div>
@@ -214,7 +214,7 @@ export default function PromptComposer() {
               onChange={(e) => setAdditionalInstructions(e.target.value)}
               placeholder="e.g., 'Under 120 BPM, no vocals, ambient textures...'"
               rows={3}
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm resize-none placeholder:text-[rgba(255,255,255,0.15)]"
+              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm resize-none placeholder:text-[rgba(255,255,255,0.28)]"
             />
           </div>
 
@@ -350,8 +350,8 @@ export default function PromptComposer() {
           ) : (
             <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col items-center justify-center py-20 text-center">
               <svg className="w-12 h-12 text-[rgba(255,255,255,0.08)] mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              <p className="text-[rgba(255,255,255,0.2)] text-sm">Select an audience and click Generate Prompt</p>
-              <p className="text-[rgba(255,255,255,0.12)] text-xs mt-1">Lyrics, style, negations, and voice will appear here</p>
+              <p className="text-[rgba(255,255,255,0.38)] text-sm">Select an audience and click Generate Prompt</p>
+              <p className="text-[rgba(255,255,255,0.22)] text-xs mt-1">Lyrics, style, negations, and voice will appear here</p>
             </div>
           )}
         </div>

@@ -7,15 +7,6 @@ import Breadcrumb from '../components/Breadcrumb.js';
 export default function Config() {
   const queryClient = useQueryClient();
 
-  // --- Change Password ---
-  const [pwForm, setPwForm] = useState({ current_password: '', new_password: '' });
-  const [pwMsg, setPwMsg] = useState('');
-  const changePwMutation = useMutation({
-    mutationFn: (body: typeof pwForm) => api('/api/auth/change-password', { method: 'POST', body }),
-    onSuccess: () => { setPwForm({ current_password: '', new_password: '' }); setPwMsg('Password changed successfully'); },
-    onError: (e: any) => setPwMsg(e.message || 'Failed to change password'),
-  });
-
   // --- Flow Factors ---
   const { data: ffData, isLoading: ffLoading } = useQuery({
     queryKey: ['flow-factors'],
@@ -93,62 +84,31 @@ export default function Config() {
     <div>
       <Breadcrumb items={[{ label: 'Variables' }]} />
 
-      {/* Account / Change Password - moved to top */}
-      <section className="mb-8">
-        <h2 className="text-lg font-medium mb-3 text-[rgba(255,255,255,0.87)]">Account</h2>
-        <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 space-y-3 max-w-md">
-          <h3 className="font-medium text-sm text-[rgba(255,255,255,0.87)]">Change Password</h3>
-          <input
-            type="password"
-            placeholder="Current Password"
-            value={pwForm.current_password}
-            onChange={(e) => setPwForm({ ...pwForm, current_password: e.target.value })}
-            className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]"
-          />
-          <input
-            type="password"
-            placeholder="New Password"
-            value={pwForm.new_password}
-            onChange={(e) => setPwForm({ ...pwForm, new_password: e.target.value })}
-            className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]"
-          />
-          <button
-            type="button"
-            onClick={() => { setPwMsg(''); changePwMutation.mutate(pwForm); }}
-            disabled={!pwForm.current_password || !pwForm.new_password || changePwMutation.isPending}
-            className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
-          >
-            {changePwMutation.isPending ? 'Changing...' : 'Change Password'}
-          </button>
-          {pwMsg && <p className={`text-sm ${changePwMutation.isError ? 'text-[#e74c3c]' : 'text-[#27ae60]'}`}>{pwMsg}</p>}
-        </div>
-      </section>
-
       {/* Flow Factors */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-medium text-[rgba(255,255,255,0.87)]">Flow Factors</h2>
-          <button type="button" onClick={() => { resetFfForm(); setShowFfForm(true); }} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ Add</button>
+          <button type="button" onClick={() => { resetFfForm(); setShowFfForm(true); }} className="bg-[#5ea2b6] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#70b4c8] transition-colors">+ Add</button>
         </div>
 
         {showFfForm && (
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
             <div>
               <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Key (internal identifier)</label>
-              <input placeholder="e.g. tempo_bpm" value={ffForm.name} onChange={(e) => setFfForm({ ...ffForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+              <input placeholder="e.g. tempo_bpm" value={ffForm.name} onChange={(e) => setFfForm({ ...ffForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Label (shown in admin)</label>
-              <input placeholder="e.g. Tempo (BPM)" value={ffForm.display_name} onChange={(e) => setFfForm({ ...ffForm, display_name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+              <input placeholder="e.g. Tempo (BPM)" value={ffForm.display_name} onChange={(e) => setFfForm({ ...ffForm, display_name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm" />
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Category</label>
-                <input placeholder="Category" value={ffForm.category} onChange={(e) => setFfForm({ ...ffForm, category: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)] w-full" />
+                <input placeholder="Category" value={ffForm.category} onChange={(e) => setFfForm({ ...ffForm, category: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm w-full" />
               </div>
               <div>
                 <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Value Type</label>
-                <select value={ffForm.value_type} onChange={(e) => setFfForm({ ...ffForm, value_type: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)] w-full">
+                <select value={ffForm.value_type} onChange={(e) => setFfForm({ ...ffForm, value_type: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm w-full">
                   <option value="number">Number</option>
                   <option value="string">String</option>
                   <option value="boolean">Boolean</option>
@@ -157,7 +117,7 @@ export default function Config() {
               </div>
               <div>
                 <label className="block text-xs text-[rgba(255,255,255,0.4)] mb-1">Importance Weight (0-1)</label>
-                <input placeholder="0.5" type="number" step="0.01" min="0" max="1" value={ffForm.importance_weight} onChange={(e) => setFfForm({ ...ffForm, importance_weight: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)] w-full" />
+                <input placeholder="0.5" type="number" step="0.01" min="0" max="1" value={ffForm.importance_weight} onChange={(e) => setFfForm({ ...ffForm, importance_weight: e.target.value })} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm w-full" />
               </div>
             </div>
             <div className="flex gap-2">
@@ -165,7 +125,7 @@ export default function Config() {
                 type="button"
                 onClick={() => editingFfId ? updateFfMutation.mutate({ id: editingFfId, body: ffForm }) : createFfMutation.mutate(ffForm)}
                 disabled={!ffForm.name}
-                className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
+                className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#70b4c8] transition-colors"
               >
                 {editingFfId ? 'Update' : 'Create'}
               </button>
@@ -175,7 +135,7 @@ export default function Config() {
         )}
 
         {ffLoading ? <p className="text-[rgba(255,255,255,0.3)] text-sm">Loading...</p> : (
-          <table className="w-full bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl text-sm">
+          <table className="w-full bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl text-sm">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.09)]">
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Key</th>
@@ -195,8 +155,8 @@ export default function Config() {
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{humanize(ff.value_type || '')}</td>
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{ff.importance_weight}</td>
                   <td className="px-4 py-3 text-right space-x-2">
-                    <button type="button" onClick={() => startEditFf(ff)} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">Edit</button>
-                    <button type="button" onClick={() => { if (confirm('Delete this flow factor?')) deleteFfMutation.mutate(ff.id); }} className="text-[#e74c3c] hover:text-[#c0392b] transition-colors">Delete</button>
+                    <button type="button" onClick={() => startEditFf(ff)} className="text-[#5ea2b6] hover:text-[#70b4c8] transition-colors">Edit</button>
+                    <button type="button" onClick={() => { if (confirm('Delete this flow factor?')) deleteFfMutation.mutate(ff.id); }} className="text-[#ea6152] hover:text-[#f07060] transition-colors">Delete</button>
                   </td>
                 </tr>
               ))}
@@ -212,13 +172,13 @@ export default function Config() {
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-medium text-[rgba(255,255,255,0.87)]">Generation Systems</h2>
-          <button type="button" onClick={() => { resetGsForm(); setShowGsForm(true); }} className="bg-[#4a90a4] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#5ba3b8] transition-colors">+ Add</button>
+          <button type="button" onClick={() => { resetGsForm(); setShowGsForm(true); }} className="bg-[#5ea2b6] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#70b4c8] transition-colors">+ Add</button>
         </div>
 
         {showGsForm && (
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
-            <input placeholder="Name" value={gsForm.name} onChange={(e) => setGsForm({ ...gsForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
-            <input placeholder="Provider" value={gsForm.provider} onChange={(e) => setGsForm({ ...gsForm, provider: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm bg-[rgba(255,255,255,0.03)]" />
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3 space-y-3">
+            <input placeholder="Name" value={gsForm.name} onChange={(e) => setGsForm({ ...gsForm, name: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm" />
+            <input placeholder="Provider" value={gsForm.provider} onChange={(e) => setGsForm({ ...gsForm, provider: e.target.value })} className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm" />
             <label className="flex items-center gap-2 text-sm text-[rgba(255,255,255,0.5)]">
               <input type="checkbox" checked={gsForm.is_active} onChange={(e) => setGsForm({ ...gsForm, is_active: e.target.checked })} />
               Active
@@ -228,7 +188,7 @@ export default function Config() {
                 type="button"
                 onClick={() => editingGsId ? updateGsMutation.mutate({ id: editingGsId, body: gsForm }) : createGsMutation.mutate(gsForm)}
                 disabled={!gsForm.name}
-                className="bg-[#4a90a4] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
+                className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#70b4c8] transition-colors"
               >
                 {editingGsId ? 'Update' : 'Create'}
               </button>
@@ -238,7 +198,7 @@ export default function Config() {
         )}
 
         {gsLoading ? <p className="text-[rgba(255,255,255,0.3)] text-sm">Loading...</p> : (
-          <table className="w-full bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl text-sm">
+          <table className="w-full bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl text-sm">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.09)]">
                 <th className="text-left px-4 py-3 font-medium text-[rgba(255,255,255,0.5)]">Name</th>
@@ -253,13 +213,13 @@ export default function Config() {
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.87)]">{gs.name}</td>
                   <td className="px-4 py-3 text-[rgba(255,255,255,0.5)]">{gs.provider}</td>
                   <td className="px-4 py-3">
-                    <button type="button" onClick={() => toggleGsActive(gs)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${gs.is_active ? 'bg-[rgba(39,174,96,0.15)] text-[#27ae60]' : 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>
+                    <button type="button" onClick={() => toggleGsActive(gs)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${gs.is_active ? 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]' : 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>
                       {gs.is_active ? 'Active' : 'Inactive'}
                     </button>
                   </td>
                   <td className="px-4 py-3 text-right space-x-3">
-                    <button type="button" onClick={() => startEditGs(gs)} className="text-[#4a90a4] hover:text-[#5ba3b8] transition-colors">Edit</button>
-                    <button type="button" onClick={() => { if (window.confirm(`Delete "${gs.name}"?`)) deleteGsMutation.mutate(gs.id); }} className="text-[#e74c3c] hover:text-[#ff6b6b] transition-colors">Delete</button>
+                    <button type="button" onClick={() => startEditGs(gs)} className="text-[#5ea2b6] hover:text-[#70b4c8] transition-colors">Edit</button>
+                    <button type="button" onClick={() => { if (window.confirm(`Delete "${gs.name}"?`)) deleteGsMutation.mutate(gs.id); }} className="text-[#ea6152] hover:text-[#f07060] transition-colors">Delete</button>
                   </td>
                 </tr>
               ))}

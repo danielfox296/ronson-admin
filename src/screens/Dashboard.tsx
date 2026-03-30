@@ -26,7 +26,7 @@ export default function Dashboard() {
       {isLoading ? (
         <div className="grid grid-cols-4 gap-4 mb-8">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-5 h-24 animate-pulse" />
+            <div key={i} className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-5 h-24 animate-pulse" />
           ))}
         </div>
       ) : (
@@ -64,14 +64,14 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={() => navigate('/clients')}
-            className="text-[#4a90a4] hover:text-[#5ba3b8] text-sm transition-colors"
+            className="text-[#5ea2b6] hover:text-[#70b4c8] text-sm transition-colors"
           >
             View All Stores
           </button>
         </div>
 
         {liveNow.length === 0 ? (
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-8 text-center">
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-8 text-center">
             <div className="text-[rgba(255,255,255,0.2)] text-sm">No stores playing right now</div>
           </div>
         ) : (
@@ -79,16 +79,16 @@ export default function Dashboard() {
             {liveNow.map((item: any) => (
               <div
                 key={item.id}
-                className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 flex items-center gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors"
+                className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 flex items-center gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors"
               >
                 {/* Album art placeholder */}
                 <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-[rgba(74,144,164,0.3)] to-[rgba(74,144,164,0.05)] flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-[#4a90a4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <svg className="w-5 h-5 text-[#5ea2b6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-[rgba(255,255,255,0.87)] truncate">{item.song?.title || 'Unknown'}</div>
                   <div className="text-xs text-[rgba(255,255,255,0.35)] mt-0.5 uppercase tracking-wider flex items-center gap-1">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#27ae60] animate-pulse" />
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#33be6a] animate-pulse" />
                     {item.store?.name || 'Unknown Store'}
                   </div>
                 </div>
@@ -109,14 +109,14 @@ export default function Dashboard() {
 
 function StatCard({ label, value, sub, icon }: { label: string; value: string; sub?: string; icon?: React.ReactNode }) {
   return (
-    <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-5">
+    <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="text-[10px] text-[rgba(255,255,255,0.45)] uppercase tracking-widest">{label}</div>
         {icon && <div className="text-[rgba(255,255,255,0.2)]">{icon}</div>}
       </div>
       <div className="flex items-baseline gap-2">
         <span className="text-2xl font-light text-[rgba(255,255,255,0.87)]">{value}</span>
-        {sub && <span className="text-xs text-[#4a90a4]">{sub}</span>}
+        {sub && <span className="text-xs text-[#5ea2b6]">{sub}</span>}
       </div>
     </div>
   );
