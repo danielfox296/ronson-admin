@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api.js';
@@ -26,6 +26,13 @@ export default function PromptComposer() {
   });
   const clients = clientsData?.data || [];
 
+  // Auto-select client if only one
+  useEffect(() => {
+    if (clients.length === 1 && !selectedClientId) {
+      setSelectedClientId(clients[0].id);
+    }
+  }, [clients, selectedClientId]);
+
   const { data: storesData } = useQuery({
     queryKey: ['stores-for-compose', selectedClientId],
     queryFn: () => api<{ data: any[] }>(`/api/clients/${selectedClientId}/stores`),
@@ -33,12 +40,26 @@ export default function PromptComposer() {
   });
   const stores = storesData?.data || [];
 
+  // Auto-select store if only one
+  useEffect(() => {
+    if (stores.length === 1 && !selectedStoreId) {
+      setSelectedStoreId(stores[0].id);
+    }
+  }, [stores, selectedStoreId]);
+
   const { data: icpsData } = useQuery({
     queryKey: ['icps-for-compose', selectedStoreId],
     queryFn: () => api<{ data: any[] }>(`/api/stores/${selectedStoreId}/icps`),
     enabled: !!selectedStoreId,
   });
   const icps = icpsData?.data || [];
+
+  // Auto-select ICP if only one
+  useEffect(() => {
+    if (icps.length === 1 && !selectedIcpId) {
+      setSelectedIcpId(icps[0].id);
+    }
+  }, [icps, selectedIcpId]);
 
   const { data: refTracksData } = useQuery({
     queryKey: ['ref-tracks-compose', selectedIcpId],
