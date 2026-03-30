@@ -5,6 +5,8 @@ import { api } from '../lib/api.js';
 
 export default function PromptComposer() {
   const navigate = useNavigate();
+  const [selectedClientId, setSelectedClientId] = useState('');
+  const [selectedStoreId, setSelectedStoreId] = useState('');
   const [selectedIcpId, setSelectedIcpId] = useState('');
   const [flowValues, setFlowValues] = useState<Record<string, string>>({});
   const [additionalInstructions, setAdditionalInstructions] = useState('');
@@ -12,68 +14,51 @@ export default function PromptComposer() {
   const [promptTitle, setPromptTitle] = useState('');
   const [selectedGenSystem, setSelectedGenSystem] = useState('');
 
-  // Fetch all ICPs across all stores
+  // 1. Fetch clients
   const { data: clientsData } = useQuery({
     queryKey: ['clients-for-compose'],
     queryFn: () => api<{ data: any[] }>('/api/clients'),
   });
+  const clients = clientsData?.data || [];
 
-  // Fetch stores for each client to get ICPs
-  const { data: allStoresData } = useQuery({
-    queryKey: ['all-stores-for-compose'],
-    queryFn: async () => {
-      const clients = (clientsData?.data || []);
-      const storesPromises = clients.map((c: any) =>
-        api<{ data: any[] }>(`/api/clients/${c.id}/stores`)
-      );
-      const results = await Promise.all(storesPromises);
-      return results.flatMap((r: any) => r.data || []);
-    },
-    enabled: !!clientsData?.data?.length,
+  // 2. Fetch stores for selected client
+  const { data: storesData } = useQuery({
+    queryKey: ['stores-for-compose', selectedClientId],
+    queryFn: () => api<{ data: any[] }>(`/api/clients/${selectedClientId}/stores`),
+    enabled: !!selectedClientId,
   });
+  const stores = storesData?.data || [];
 
-  // Fetch ICPs for each store
-  const { data: allIcpsData } = useQuery({
-    queryKey: ['all-icps-for-compose', allStoresData?.length],
-    queryFn: async () => {
-      const stores = allStoresData || [];
-      const icpPromises = stores.map((s: any) =>
-        api<{ data: any[] }>(`/api/stores/${s.id}/icps`).then((r: any) =>
-          (r.data || []).map((icp: any) => ({ ...icp, store_name: s.name, client_name: s.client?.name }))
-        )
-      );
-      const results = await Promise.all(icpPromises);
-      return results.flat();
-    },
-    enabled: !!allStoresData?.length,
+  // 3. Fetch ICPs for selected store
+  const { data: icpsData } = useQuery({
+    queryKey: ['icps-for-compose', selectedStoreId],
+    queryFn: () => api<{ data: any[] }>(`/api/stores/${selectedStoreId}/icps`),
+    enabled: !!selectedStoreId,
   });
+  const icps = icpsData?.data || [];
 
-  const icps = allIcpsData || [];
-
-  // Fetch flow factor configs
+  // Flow factor configs
   const { data: ffData } = useQuery({
     queryKey: ['flow-factor-configs'],
     queryFn: () => api<{ data: any[] }>('/api/flow-factor-configs'),
   });
-
   const flowConfigs = ffData?.data || [];
 
-  // Fetch generation systems
+  // Generation systems
   const { data: gsData } = useQuery({
     queryKey: ['generation-systems'],
     queryFn: () => api<{ data: any[] }>('/api/generation-systems'),
   });
-
   const genSystems = gsData?.data || [];
 
-  // Fetch reference tracks for selected ICP
+  // Reference tracks for selected ICP
   const { data: refTracksData } = useQuery({
     queryKey: ['ref-tracks-compose', selectedIcpId],
     queryFn: () => api<{ data: any[] }>(`/api/store-icps/${selectedIcpId}/reference-tracks`),
     enabled: !!selectedIcpId,
   });
-
   const refTracks = refTracksData?.data || [];
+
   const selectedIcp = useMemo(() => icps.find((i: any) => i.id === selectedIcpId), [icps, selectedIcpId]);
 
   // Generate prompt
@@ -118,6 +103,8 @@ export default function PromptComposer() {
     return groups;
   }, [flowConfigs]);
 
+  const selectClass = "w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-2.5 text-sm";
+
   return (
     <div>
       {/* Header */}
@@ -133,24 +120,73 @@ export default function PromptComposer() {
       <div className="grid grid-cols-[1fr_1fr] gap-6">
         {/* Left: Inputs */}
         <div className="space-y-5">
-          {/* ICP Selection */}
+          {/* Cascading selectors: Client → Store → ICP */}
           <div className="bg-[#12121a] border border-[rgba(255,255,255,0.06)] rounded-xl p-5">
             <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-3">Target Audience</label>
-            <select
-              value={selectedIcpId}
-              onChange={(e) => { setSelectedIcpId(e.target.value); setGeneratedPrompt(''); }}
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-2.5 text-sm"
-            >
-              <option value="">Select an audience profile...</option>
-              {icps.map((icp: any) => (
-                <option key={icp.id} value={icp.id}>
-                  {icp.name} — {icp.store_name} ({icp.client_name})
-                </option>
-              ))}
-            </select>
+            <div className="space-y-3">
+              {/* Client */}
+              <div>
+                <label className="text-xs text-[rgba(255,255,255,0.4)] block mb-1">Client</label>
+                <select
+                  value={selectedClientId}
+                  onChange={(e) => {
+                    setSelectedClientId(e.target.value);
+                    setSelectedStoreId('');
+                    setSelectedIcpId('');
+                    setGeneratedPrompt('');
+                  }}
+                  className={selectClass}
+                >
+                  <option value="">Select a client...</option>
+                  {clients.map((c: any) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
 
+              {/* Store */}
+              <div>
+                <label className="text-xs text-[rgba(255,255,255,0.4)] block mb-1">Store</label>
+                <select
+                  value={selectedStoreId}
+                  onChange={(e) => {
+                    setSelectedStoreId(e.target.value);
+                    setSelectedIcpId('');
+                    setGeneratedPrompt('');
+                  }}
+                  disabled={!selectedClientId}
+                  className={`${selectClass} disabled:opacity-40`}
+                >
+                  <option value="">{selectedClientId ? 'Select a store...' : 'Select a client first'}</option>
+                  {stores.map((s: any) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* ICP */}
+              <div>
+                <label className="text-xs text-[rgba(255,255,255,0.4)] block mb-1">Audience Profile</label>
+                <select
+                  value={selectedIcpId}
+                  onChange={(e) => {
+                    setSelectedIcpId(e.target.value);
+                    setGeneratedPrompt('');
+                  }}
+                  disabled={!selectedStoreId}
+                  className={`${selectClass} disabled:opacity-40`}
+                >
+                  <option value="">{selectedStoreId ? 'Select an audience...' : 'Select a store first'}</option>
+                  {icps.map((icp: any) => (
+                    <option key={icp.id} value={icp.id}>{icp.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* ICP summary */}
             {selectedIcp && (
-              <div className="mt-4 space-y-2 text-xs text-[rgba(255,255,255,0.5)]">
+              <div className="mt-4 space-y-2 text-xs text-[rgba(255,255,255,0.5)] border-t border-[rgba(255,255,255,0.06)] pt-3">
                 {selectedIcp.psychographic_summary && (
                   <p><span className="text-[rgba(255,255,255,0.3)]">Psychographic:</span> {selectedIcp.psychographic_summary}</p>
                 )}
@@ -160,8 +196,9 @@ export default function PromptComposer() {
               </div>
             )}
 
+            {/* Reference tracks */}
             {refTracks.length > 0 && (
-              <div className="mt-4">
+              <div className="mt-4 border-t border-[rgba(255,255,255,0.06)] pt-3">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.25)] mb-2">Reference Tracks ({refTracks.length})</p>
                 <div className="space-y-1">
                   {refTracks.map((t: any) => (
