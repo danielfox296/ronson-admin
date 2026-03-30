@@ -24,7 +24,6 @@ function FeedbackSection({ songId }: { songId: string }) {
 
   return (
     <div className="mb-6">
-      <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Feedback</h2>
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 text-center">
           <div className="text-2xl font-light text-[#70d4b3]">{loves.length}</div>
@@ -237,19 +236,19 @@ export default function SongDetail() {
               <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)]">
                 {promptParams.style && (
                   <div className="px-4 py-3">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#5ea2b6] mb-1">Style</div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#5ea2b6] mb-1">Creative</div>
                     <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style}</p>
                   </div>
                 )}
                 {promptParams.style_negations && (
                   <div className="px-4 py-3">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#f3aa8c] mb-1">Exclude</div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#f3aa8c] mb-1">Negative</div>
                     <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style_negations}</p>
                   </div>
                 )}
                 {promptParams.voice && (
                   <div className="px-4 py-3">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-1">Voice</div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-1">Vocal Gender</div>
                     <p className="text-sm text-[rgba(255,255,255,0.8)] capitalize">{promptParams.voice}</p>
                   </div>
                 )}

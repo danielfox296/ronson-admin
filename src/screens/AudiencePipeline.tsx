@@ -191,15 +191,41 @@ export default function AudiencePipeline() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['icp', icpId] }),
   });
 
+  const analyzeRefMutation = useMutation({
+    mutationFn: (id: string) => api(`/api/reference-tracks/${id}/analyze`, { method: 'POST' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }),
+    onError: () => {}, // Silently fail if endpoint not yet available
+  });
+
+  const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set());
+
+  const triggerAnalysis = (id: string) => {
+    setAnalyzingIds((prev) => new Set(prev).add(id));
+    analyzeRefMutation.mutate(id, {
+      onSettled: () => setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; }),
+    });
+  };
+
   const createRefMutation = useMutation({
     mutationFn: (body: any) => api(`/api/store-icps/${icpId}/reference-tracks`, { method: 'POST', body: { ...body, duration_seconds: body.duration_seconds ? Number(body.duration_seconds) : undefined, release_year: body.release_year ? Number(body.release_year) : undefined } }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }); setShowRefForm(false); setRefForm({ title: '', artist: '', genre: '', album: '', duration_seconds: '', release_year: '' }); },
+    onSuccess: (result: any) => {
+      queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] });
+      setShowRefForm(false);
+      setRefForm({ title: '', artist: '', genre: '', album: '', duration_seconds: '', release_year: '' });
+      const newId = result?.data?.id;
+      if (newId) triggerAnalysis(newId);
+    },
   });
 
   const bulkAddRefMutation = useMutation({
     mutationFn: (tracks: { title: string; artist: string }[]) =>
       api(`/api/store-icps/${icpId}/reference-tracks/bulk`, { method: 'POST', body: { tracks } }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }); setShowBulkAdd(false); setBulkText(''); setBulkError(''); },
+    onSuccess: (result: any) => {
+      queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] });
+      setShowBulkAdd(false); setBulkText(''); setBulkError('');
+      const newTracks: any[] = Array.isArray(result?.data) ? result.data : [];
+      newTracks.forEach((t) => { if (t?.id) triggerAnalysis(t.id); });
+    },
     onError: (err: Error) => { setBulkError(err.message || 'Failed to add tracks'); },
   });
 
@@ -449,31 +475,58 @@ export default function AudiencePipeline() {
               </div>
             )}
 
-            {refTracks.map((rt) => (
-              <div key={rt.id} className="border-b border-[rgba(255,255,255,0.04)] last:border-0">
-                <button type="button" onClick={() => setExpandedTracks((prev) => { const n = new Set(prev); n.has(rt.id) ? n.delete(rt.id) : n.add(rt.id); return n; })} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-[rgba(255,255,255,0.03)] text-left transition-colors">
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[rgba(255,255,255,0.87)]">{rt.title}</span>
-                    {rt.artist && <span className="text-[rgba(255,255,255,0.4)] ml-2">— {rt.artist}</span>}
-                  </div>
-                  {rt.genre && <span className="text-[rgba(255,255,255,0.25)] text-xs shrink-0">{rt.genre}</span>}
-                  {rt.duration_seconds && <span className="text-[rgba(255,255,255,0.25)] text-xs tabular-nums shrink-0">{formatDuration(rt.duration_seconds)}</span>}
-                </button>
-                {expandedTracks.has(rt.id) && (
-                  <div className="border-t border-[rgba(255,255,255,0.09)] px-4 py-3 space-y-2">
-                    <div className="grid grid-cols-3 gap-x-6 gap-y-1 text-xs">
-                      {([['Title', rt.title, 'title'], ['Artist', rt.artist, 'artist'], ['Genre', rt.genre, 'genre'], ['Album', rt.album, 'album']] as [string, string, string][]).map(([label, val, field]) => (
-                        <div key={field} className="flex items-baseline gap-1">
-                          <span className="text-[rgba(255,255,255,0.3)] shrink-0">{label}:</span>
-                          <InlineEdit value={val || ''} onSave={(v) => updateRefMutation.mutate({ id: rt.id, body: { [field]: v } })} className="text-[rgba(255,255,255,0.7)]" />
-                        </div>
-                      ))}
+            {refTracks.map((rt) => {
+              const isAnalyzing = analyzingIds.has(rt.id);
+              const analysis = rt.analysis || rt.metadata || null;
+              return (
+                <div key={rt.id} className="border-b border-[rgba(255,255,255,0.04)] last:border-0">
+                  <button type="button" onClick={() => setExpandedTracks((prev) => { const n = new Set(prev); n.has(rt.id) ? n.delete(rt.id) : n.add(rt.id); return n; })} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-[rgba(255,255,255,0.03)] text-left transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[rgba(255,255,255,0.87)]">{rt.title}</span>
+                      {rt.artist && <span className="text-[rgba(255,255,255,0.4)] ml-2">— {rt.artist}</span>}
                     </div>
-                    <button type="button" onClick={() => { if (window.confirm(`Delete "${rt.title}"?`)) deleteRefMutation.mutate(rt.id); }} className="text-[#ea6152] hover:text-[#c0392b] text-xs transition-colors">Delete</button>
-                  </div>
-                )}
-              </div>
-            ))}
+                    {isAnalyzing && (
+                      <span className="flex items-center gap-1 text-[10px] text-[#5ea2b6] shrink-0">
+                        <span className="inline-block w-2.5 h-2.5 border border-[#5ea2b6]/40 border-t-[#5ea2b6] rounded-full animate-spin" />
+                        Analyzing
+                      </span>
+                    )}
+                    {!isAnalyzing && rt.genre && <span className="text-[rgba(255,255,255,0.25)] text-xs shrink-0">{rt.genre}</span>}
+                    {rt.duration_seconds && <span className="text-[rgba(255,255,255,0.25)] text-xs tabular-nums shrink-0">{formatDuration(rt.duration_seconds)}</span>}
+                  </button>
+                  {expandedTracks.has(rt.id) && (
+                    <div className="border-t border-[rgba(255,255,255,0.09)] px-4 py-3 space-y-3">
+                      <div className="grid grid-cols-3 gap-x-6 gap-y-1 text-xs">
+                        {([['Title', rt.title, 'title'], ['Artist', rt.artist, 'artist'], ['Genre', rt.genre, 'genre'], ['Album', rt.album, 'album']] as [string, string, string][]).map(([label, val, field]) => (
+                          <div key={field} className="flex items-baseline gap-1">
+                            <span className="text-[rgba(255,255,255,0.3)] shrink-0">{label}:</span>
+                            <InlineEdit value={val || ''} onSave={(v) => updateRefMutation.mutate({ id: rt.id, body: { [field]: v } })} className="text-[rgba(255,255,255,0.7)]" />
+                          </div>
+                        ))}
+                      </div>
+                      {analysis && Object.keys(analysis).length > 0 && (
+                        <div className="border-t border-[rgba(255,255,255,0.04)] pt-2">
+                          <p className="text-[9px] uppercase tracking-widest text-[rgba(255,255,255,0.25)] mb-1.5">Analysis</p>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                            {Object.entries(analysis).map(([k, v]) => v != null && (
+                              <span key={k} className="text-[rgba(255,255,255,0.5)]">
+                                <span className="text-[rgba(255,255,255,0.3)]">{k}:</span> {String(v)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between pt-1">
+                        <button type="button" onClick={() => triggerAnalysis(rt.id)} disabled={isAnalyzing} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors disabled:opacity-40">
+                          {isAnalyzing ? 'Analyzing…' : 'Re-analyze'}
+                        </button>
+                        <button type="button" onClick={() => { if (window.confirm(`Delete "${rt.title}"?`)) deleteRefMutation.mutate(rt.id); }} className="text-[#ea6152] hover:text-[#c0392b] text-xs transition-colors">Delete</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             {refTracks.length === 0 && !showBulkAdd && (
               <div className="px-4 py-8 text-center">
