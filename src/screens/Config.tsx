@@ -88,14 +88,7 @@ export default function Config() {
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-medium text-[rgba(255,255,255,0.87)]">Flow Factors</h2>
-          <div className="flex gap-2">
-            {flowFactors.length === 0 && (
-              <button type="button" onClick={() => api('/api/flow-factors/seed', { method: 'POST' }).then((r: any) => { queryClient.invalidateQueries({ queryKey: ['flow-factors'] }); alert(`Seeded ${r?.data?.count || '?'} factors`); }).catch((e: any) => alert('Seed failed: ' + e.message))} className="px-3 py-1.5 rounded-lg text-sm bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] transition-colors">
-                Seed 31 Factors
-              </button>
-            )}
-            <button type="button" onClick={() => { resetFfForm(); setShowFfForm(true); }} className="bg-[#5ea2b6] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#70b4c8] transition-colors">+ Add</button>
-          </div>
+          <button type="button" onClick={() => { resetFfForm(); setShowFfForm(true); }} className="bg-[#5ea2b6] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#70b4c8] transition-colors">+ Add</button>
         </div>
 
         {showFfForm && (
