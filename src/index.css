@@ -37,8 +37,9 @@
     background: var(--surface);
     color: var(--text);
   }
-  audio::-webkit-media-controls-panel {
-    background: var(--surface);
+  audio {
+    filter: invert(1) hue-rotate(180deg);
+    border-radius: 8px;
   }
   /* Scrollbar styling */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
