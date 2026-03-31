@@ -18,6 +18,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: 'Inter', sans-serif;
+    font-size: 17px;
   }
   h1 { font-weight: 300 !important; }
   input, select, textarea {

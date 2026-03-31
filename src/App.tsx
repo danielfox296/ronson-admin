@@ -66,7 +66,7 @@ function Layout() {
   ];
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium uppercase tracking-widest transition-colors ${
+    `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-widest transition-colors ${
       isActive
         ? 'bg-[rgba(94,162,182,0.15)] text-white'
         : 'text-[rgba(255,255,255,0.5)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[rgba(255,255,255,0.87)]'
@@ -75,12 +75,12 @@ function Layout() {
   return (
     <div className="flex h-screen bg-[#111117]">
       {/* Sidebar */}
-      <aside className="w-[220px] bg-[#15151d] text-white flex flex-col shrink-0 border-r border-[rgba(255,255,255,0.09)]">
-        <div className="px-5 py-5 border-b border-[rgba(255,255,255,0.09)]">
-          <img src="/logo.png" alt="Entuned" className="h-5" />
+      <aside className="w-[172px] bg-[#15151d] text-white flex flex-col shrink-0 border-r border-[rgba(255,255,255,0.09)]">
+        <div className="px-4 py-4 border-b border-[rgba(255,255,255,0.09)]">
+          <img src="/logo.png" alt="Entuned" className="h-4" />
         </div>
 
-        <nav className="flex-1 p-3 space-y-0.5">
+        <nav className="flex-1 p-2 space-y-0.5">
           {mainLinks.map((l) => (
             <div key={l.to}>
               <NavLink to={l.to} className={navLinkClass}>
@@ -95,7 +95,7 @@ function Layout() {
         </nav>
 
         {/* Account pinned to bottom */}
-        <div className="p-3 border-t border-[rgba(255,255,255,0.07)]">
+        <div className="p-2 border-t border-[rgba(255,255,255,0.07)]">
           <NavLink to="/account" className={navLinkClass}>
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
