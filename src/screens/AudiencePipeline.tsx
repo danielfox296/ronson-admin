@@ -194,8 +194,8 @@ export default function AudiencePipeline() {
 
   // Clear analyzingIds for any tracks that have finished (analyzed flipped to true)
   useEffect(() => {
-    if (analyzingIds.size === 0) return;
     setAnalyzingIds((prev) => {
+      if (prev.size === 0) return prev;
       const next = new Set(prev);
       for (const id of prev) {
         const track = allRefTracks.find((t) => t.id === id);
