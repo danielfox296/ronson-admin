@@ -216,7 +216,9 @@ export default function AudiencePipeline() {
     },
     onError: (err: any, id: string) => {
       setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
-      setAnalyzeErrors((prev) => ({ ...prev, [id]: err?.message || 'Analysis failed' }));
+      const raw = err?.message || 'Analysis failed';
+      const msg = raw.toLowerCase().includes('fetch') ? 'ENTUNED-NET-ERR (no response from server)' : raw;
+      setAnalyzeErrors((prev) => ({ ...prev, [id]: msg }));
     },
   });
 
