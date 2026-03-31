@@ -13,14 +13,14 @@ import Breadcrumb from '../components/Breadcrumb.js';
 const LAYER_CATEGORIES = [
   { key: 'physiological', label: 'L1 · Physiological', color: 'rgba(245,196,179,0.9)', fields: ['bpm', 'volume', 'dynamic_range', 'groove_feel', 'phrase_length', 'arousal'] },
   { key: 'affective',     label: 'L2 · Affective',     color: 'rgba(250,199,117,0.9)', fields: ['energy', 'valence', 'danceability', 'mode', 'harmony', 'melody', 'vocal_tone', 'repetition', 'tension', 'trance_fluency', 'intimacy', 'emotional_arc'] },
-  { key: 'associative',   label: 'L3 · Associative',   color: 'rgba(159,225,203,0.9)', fields: ['musical_key', 'familiarity', 'production_era', 'instrumentation', 'scale_type', 'sophistication', 'nostalgia', 'identity_signal'] },
+  { key: 'associative',   label: 'L3 · Associative',   color: 'rgba(159,225,203,0.9)', fields: ['musical_key', 'familiarity', 'production_era', 'instrumentation', 'scale_type', 'sophistication', 'nostalgia', 'identity_signal', 'suno_genre', 'harmonic_sophistication', 'sonic_accessibility'] },
   { key: 'semantic',      label: 'L4 · Semantic',      color: 'rgba(206,203,246,0.9)', fields: ['lyrical_content', 'lyrical_density', 'vocal_language', 'vocal_diction', 'register_accent', 'cultural_signal', 'cognitive_load', 'lyrical_theme'] },
 ];
 
 const FLOAT_FIELDS = new Set([
   'volume', 'dynamic_range', 'arousal',
   'energy', 'valence', 'danceability', 'repetition', 'tension', 'trance_fluency', 'intimacy',
-  'familiarity', 'sophistication', 'nostalgia',
+  'familiarity', 'sophistication', 'nostalgia', 'harmonic_sophistication', 'sonic_accessibility',
   'lyrical_density', 'cognitive_load',
 ]);
 
