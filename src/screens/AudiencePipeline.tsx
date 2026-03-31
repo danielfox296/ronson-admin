@@ -192,6 +192,19 @@ export default function AudiencePipeline() {
     return allRefTracks.filter((t) => t.title?.toLowerCase().includes(q) || t.artist?.toLowerCase().includes(q));
   }, [allRefTracks, refFilter]);
 
+  // Clear analyzingIds for any tracks that have finished (analyzed flipped to true)
+  useEffect(() => {
+    if (analyzingIds.size === 0) return;
+    setAnalyzingIds((prev) => {
+      const next = new Set(prev);
+      for (const id of prev) {
+        const track = allRefTracks.find((t) => t.id === id);
+        if (track?.analyzed) next.delete(id);
+      }
+      return next.size === prev.size ? prev : next;
+    });
+  }, [allRefTracks]);
+
   const songs = useMemo(() => {
     if (!songFilter) return allSongs;
     const q = songFilter.toLowerCase();
@@ -211,13 +224,20 @@ export default function AudiencePipeline() {
   const analyzeRefMutation = useMutation({
     mutationFn: (id: string) => api(`/api/reference-tracks/${id}/analyze`, { method: 'POST' }),
     onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] });
-      setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      // Server responds 202 immediately; poll every 3s until analyzed or 60s timeout
+      let polls = 0;
+      const poll = () => {
+        queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] });
+        polls++;
+        if (polls < 20) setTimeout(poll, 3000);
+        else setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      };
+      setTimeout(poll, 3000);
     },
     onError: (err: any, id: string) => {
       setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
       const raw = err?.message || 'Analysis failed';
-      const msg = raw.toLowerCase().includes('fetch') ? 'ENTUNED-NET-ERR (no response from server)' : raw;
+      const msg = raw.toLowerCase().includes('fetch') ? 'network error — server unreachable' : raw;
       setAnalyzeErrors((prev) => ({ ...prev, [id]: msg }));
     },
   });
