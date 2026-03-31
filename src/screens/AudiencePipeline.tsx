@@ -210,16 +210,14 @@ export default function AudiencePipeline() {
   const [analyzeErrors, setAnalyzeErrors] = useState<Record<string, string>>({});
 
   const analyzeRefMutation = useMutation({
-    mutationFn: (id: string) => api(`/api/reference-tracks/${id}/run-analysis`, { method: 'POST' }),
+    mutationFn: (id: string) => api(`/api/reference-tracks/${id}/analyze`, { method: 'POST' }),
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] });
       setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
     },
     onError: (err: any, id: string) => {
       setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
-      const raw = err?.message || 'Analysis failed';
-      const msg = raw.toLowerCase().includes('fetch') ? 'network error — server unreachable' : raw;
-      setAnalyzeErrors((prev) => ({ ...prev, [id]: msg }));
+      setAnalyzeErrors((prev) => ({ ...prev, [id]: err?.message || 'Analysis failed' }));
     },
   });
 
@@ -574,17 +572,9 @@ export default function AudiencePipeline() {
                       )}
                       <div className="flex items-center justify-between pt-1">
                         <div className="flex items-center gap-2 min-w-0">
-                          <button type="button" onClick={() => {
-                            setAnalyzingIds(prev => new Set(prev).add(rt.id));
-                            api(`/api/reference-tracks/${rt.id}/run-analysis`, { method: 'POST' })
-                              .then((d: any) => { alert('OK: ' + JSON.stringify(d?.data?.ms) + 'ms, ' + d?.data?.fieldCount + ' fields'); queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }); })
-                              .catch((e: any) => alert('FAIL: ' + e.message))
-                              .finally(() => setAnalyzingIds(prev => { const n = new Set(prev); n.delete(rt.id); return n; }));
-                          }} disabled={isAnalyzing} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors disabled:opacity-40 shrink-0">
+                          <button type="button" onClick={() => triggerAnalysis(rt.id)} disabled={isAnalyzing} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors disabled:opacity-40 shrink-0">
                             {isAnalyzing ? 'Analyzing…' : 'Re-analyze'}
                           </button>
-                          <button type="button" onClick={() => api(`/api/reference-tracks/${rt.id}/analyze-ping`, { method: 'POST' }).then((d: any) => alert(JSON.stringify(d))).catch((e: any) => alert('ping failed: ' + e.message))} className="text-[rgba(255,255,255,0.3)] hover:text-[rgba(255,255,255,0.6)] text-[10px] transition-colors shrink-0">ping</button>
-                          {[3,5,8,10].map(s => <button key={s} type="button" onClick={() => api(`/api/reference-tracks/${rt.id}/run-analysis?delay=${s*1000}`, { method: 'POST' }).then((d: any) => alert(JSON.stringify(d))).catch((e: any) => alert(`${s}s: ${e.message}`))} className="text-[rgba(255,255,255,0.2)] hover:text-[rgba(255,255,255,0.5)] text-[9px] transition-colors">{s}s</button>)}
                           {analyzeErrors[rt.id] && <span className="text-[#ea6152] text-[10px] truncate">{analyzeErrors[rt.id]}</span>}
                         </div>
                         <button type="button" onClick={() => { if (window.confirm(`Delete "${rt.title}"?`)) deleteRefMutation.mutate(rt.id); }} className="text-[#ea6152] hover:text-[#c0392b] text-xs transition-colors shrink-0">Delete</button>
