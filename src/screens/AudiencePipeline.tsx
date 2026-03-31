@@ -575,6 +575,9 @@ export default function AudiencePipeline() {
                           <button type="button" onClick={() => triggerAnalysis(rt.id)} disabled={isAnalyzing} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors disabled:opacity-40 shrink-0">
                             {isAnalyzing ? 'Analyzing…' : 'Re-analyze'}
                           </button>
+                          {rt.analyzed && (
+                            <button type="button" onClick={() => navigate(`/clients/${clientId}/stores/${storeId}/audiences/${icpId}/compose/${rt.id}`)} className="text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] text-xs transition-colors shrink-0">Compose</button>
+                          )}
                           {analyzeErrors[rt.id] && <span className="text-[#ea6152] text-[10px] truncate">{analyzeErrors[rt.id]}</span>}
                         </div>
                         <button type="button" onClick={() => { if (window.confirm(`Delete "${rt.title}"?`)) deleteRefMutation.mutate(rt.id); }} className="text-[#ea6152] hover:text-[#c0392b] text-xs transition-colors shrink-0">Delete</button>

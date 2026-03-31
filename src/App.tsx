@@ -10,6 +10,7 @@ import SongDetail from './screens/SongDetail.js';
 import Config from './screens/Config.js';
 import CustomerProfiles from './screens/CustomerProfiles.js';
 import PromptComposer from './screens/PromptComposer.js';
+import SunoCompose from './screens/SunoCompose.js';
 import Account from './screens/Account.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -131,6 +132,7 @@ export default function App() {
         <Route path="clients/:id" element={<ClientDetail />} />
         <Route path="clients/:clientId/stores/:storeId" element={<StoreDetail />} />
         <Route path="clients/:clientId/stores/:storeId/audiences/:icpId" element={<AudiencePipeline />} />
+        <Route path="clients/:clientId/stores/:storeId/audiences/:icpId/compose/:refTrackId" element={<SunoCompose />} />
         <Route path="songs" element={<SongLibrary />} />
         <Route path="songs/:id" element={<SongDetail />} />
         <Route path="compose" element={<PromptComposer />} />
