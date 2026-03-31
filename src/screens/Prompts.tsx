@@ -62,9 +62,6 @@ export default function Prompts() {
       <div className="flex items-center justify-between mt-4 mb-6">
         <h1 className="text-3xl font-light tracking-tight text-white">Prompts</h1>
         <div className="flex gap-2">
-          <button type="button" onClick={() => api('/api/prompts/seed', { method: 'POST' }).then((r: any) => { queryClient.invalidateQueries({ queryKey: ['prompt-templates'] }); alert(`Synced ${r?.data?.seeded || '?'} templates`); }).catch((e: any) => alert('Sync failed: ' + e.message))} className="px-4 py-2 rounded-lg text-xs font-medium bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] transition-colors">
-            Sync from Repo
-          </button>
           <button type="button" onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 rounded-lg text-xs font-medium bg-[#5ea2b6] hover:bg-[#70b4c8] text-white transition-colors">
             + New Prompt
           </button>
