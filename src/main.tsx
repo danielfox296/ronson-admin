@@ -23,7 +23,9 @@ function showErrorToast(message: string) {
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } },
   mutationCache: new MutationCache({
-    onError: (error: any) => {
+    onError: (error: any, _variables, _context, mutation) => {
+      // Skip global toast if the mutation handles its own error
+      if (mutation.options.onError) return;
       showErrorToast(error.message || 'Something went wrong');
     },
   }),
