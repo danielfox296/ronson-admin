@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 import Breadcrumb from '../components/Breadcrumb.js';
@@ -19,6 +19,7 @@ export default function Prompts() {
   const [filterType, setFilterType] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  const formRef = useRef<HTMLFormElement>(null);
   const resetForm = () => { setForm({ type: 'genre', name: '', slug: '', era: '', content: '', is_active: true }); setEditing(null); setShowForm(false); };
 
   const createMutation = useMutation({
@@ -38,6 +39,7 @@ export default function Prompts() {
     setForm({ type: t.type, name: t.name, slug: t.slug, era: t.era || '', content: t.content, is_active: t.is_active });
     setEditing(t);
     setShowForm(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,7 +85,7 @@ export default function Prompts() {
 
       {/* Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-5 mb-6 space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="bg-[#1b1b24] border border-[rgba(94,162,182,0.3)] rounded-xl p-5 mb-6 space-y-4">
           <div className="grid grid-cols-4 gap-3">
             <div>
               <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-1">Type</label>
