@@ -205,21 +205,25 @@ export default function AudiencePipeline() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['icp', icpId] }),
   });
 
-  const analyzeRefMutation = useMutation({
-    mutationFn: (id: string) => api(`/api/reference-tracks/${id}/analyze`, { method: 'POST' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] }),
-  });
-
   const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set());
   const [analyzeErrors, setAnalyzeErrors] = useState<Record<string, string>>({});
+
+  const analyzeRefMutation = useMutation({
+    mutationFn: (id: string) => api(`/api/reference-tracks/${id}/analyze`, { method: 'POST' }),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] });
+      setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    },
+    onError: (err: any, id: string) => {
+      setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      setAnalyzeErrors((prev) => ({ ...prev, [id]: err?.message || 'Analysis failed' }));
+    },
+  });
 
   const triggerAnalysis = (id: string) => {
     setAnalyzingIds((prev) => new Set(prev).add(id));
     setAnalyzeErrors((prev) => { const n = { ...prev }; delete n[id]; return n; });
-    analyzeRefMutation.mutate(id, {
-      onSettled: () => setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; }),
-      onError: (err: any) => setAnalyzeErrors((prev) => ({ ...prev, [id]: err?.message || 'Analysis failed' })),
-    });
+    analyzeRefMutation.mutate(id);
   };
 
   const createRefMutation = useMutation({
