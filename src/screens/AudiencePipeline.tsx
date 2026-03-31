@@ -10,19 +10,18 @@ import Breadcrumb from '../components/Breadcrumb.js';
 /*  Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-const LAYER_CATEGORIES = [
-  { key: 'physiological', label: 'L1 · Physiological', color: 'rgba(245,196,179,0.9)', fields: ['bpm', 'volume', 'dynamic_range', 'groove_feel', 'phrase_length', 'arousal'] },
-  { key: 'affective',     label: 'L2 · Affective',     color: 'rgba(250,199,117,0.9)', fields: ['energy', 'valence', 'danceability', 'mode', 'harmony', 'melody', 'vocal_tone', 'repetition', 'tension', 'trance_fluency', 'intimacy', 'emotional_arc'] },
-  { key: 'associative',   label: 'L3 · Associative',   color: 'rgba(159,225,203,0.9)', fields: ['musical_key', 'familiarity', 'production_era', 'instrumentation', 'scale_type', 'sophistication', 'nostalgia', 'identity_signal', 'suno_genre', 'harmonic_sophistication', 'sonic_accessibility'] },
-  { key: 'semantic',      label: 'L4 · Semantic',      color: 'rgba(206,203,246,0.9)', fields: ['lyrical_content', 'lyrical_density', 'vocal_language', 'vocal_diction', 'register_accent', 'cultural_signal', 'cognitive_load', 'lyrical_theme'] },
-];
-
-const FLOAT_FIELDS = new Set([
-  'volume', 'dynamic_range', 'arousal',
-  'energy', 'valence', 'danceability', 'repetition', 'tension', 'trance_fluency', 'intimacy',
-  'familiarity', 'sophistication', 'nostalgia', 'harmonic_sophistication', 'sonic_accessibility',
-  'lyrical_density', 'cognitive_load',
-]);
+// Analysis fields displayed on reference tracks (Layer 3 + supporting fields)
+const ANALYSIS_FIELDS = [
+  { key: 'suno_genre', label: 'Suno Genre', type: 'text' },
+  { key: 'production_era', label: 'Era', type: 'text' },
+  { key: 'instrumentation', label: 'Instrumentation', type: 'text' },
+  { key: 'harmonic_sophistication', label: 'Harmonic Sophistication', type: 'bar' },
+  { key: 'sonic_accessibility', label: 'Sonic Accessibility', type: 'bar' },
+  { key: 'bpm', label: 'BPM', type: 'number' },
+  { key: 'musical_key', label: 'Key', type: 'text' },
+  { key: 'mode', label: 'Mode', type: 'text' },
+  { key: 'vocal_tone', label: 'Vocal Tone', type: 'text' },
+] as const;
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -525,43 +524,39 @@ export default function AudiencePipeline() {
                         ))}
                       </div>
                       {rt.analyzed && (
-                        <div className="border-t border-[rgba(255,255,255,0.04)] pt-2 space-y-2.5">
-                          {LAYER_CATEGORIES.map(({ key, label, color, fields }) => {
-                            const populated = fields.filter((f) => rt[f] != null);
-                            if (populated.length === 0) return null;
-                            return (
-                              <div key={key}>
-                                <p className="text-[9px] uppercase tracking-widest mb-1.5 font-medium" style={{ color }}>{label}</p>
-                                <div className="grid grid-cols-2 gap-x-5 gap-y-1">
-                                  {populated.map((f) => {
-                                    const val = rt[f];
-                                    const lbl = f.replace(/_/g, ' ');
-                                    if (f === 'bpm') return (
-                                      <div key={f} className="flex items-center gap-1.5">
-                                        <span className="text-[rgba(255,255,255,0.3)] text-[10px] shrink-0">{lbl}</span>
-                                        <span className="text-[rgba(255,255,255,0.75)] text-[10px] font-medium tabular-nums">{Math.round(val)}</span>
-                                      </div>
-                                    );
-                                    if (FLOAT_FIELDS.has(f)) return (
-                                      <div key={f} className="flex items-center gap-1.5">
-                                        <span className="text-[rgba(255,255,255,0.3)] text-[10px] shrink-0 w-[72px] truncate">{lbl}</span>
-                                        <div className="flex-1 h-[3px] bg-[rgba(255,255,255,0.07)] rounded-full">
-                                          <div className="h-full rounded-full" style={{ width: `${Math.round(val * 100)}%`, backgroundColor: color }} />
-                                        </div>
-                                        <span className="text-[rgba(255,255,255,0.35)] text-[10px] tabular-nums shrink-0 w-5 text-right">{Math.round(val * 100)}</span>
-                                      </div>
-                                    );
-                                    return (
-                                      <div key={f} className="flex items-baseline gap-1.5 min-w-0">
-                                        <span className="text-[rgba(255,255,255,0.3)] text-[10px] shrink-0">{lbl}</span>
-                                        <span className="text-[rgba(255,255,255,0.65)] text-[10px] truncate">{String(val)}</span>
-                                      </div>
-                                    );
-                                  })}
+                        <div className="border-t border-[rgba(255,255,255,0.04)] pt-2 space-y-1.5">
+                          {ANALYSIS_FIELDS.map(({ key, label, type }) => {
+                            const val = rt[key];
+                            if (val == null) return null;
+                            if (type === 'bar') return (
+                              <div key={key} className="flex items-center gap-1.5">
+                                <span className="text-[rgba(255,255,255,0.35)] text-[10px] shrink-0 w-[110px]">{label}</span>
+                                <div className="flex-1 h-[3px] bg-[rgba(255,255,255,0.07)] rounded-full">
+                                  <div className="h-full rounded-full bg-[rgba(159,225,203,0.7)]" style={{ width: `${Math.round(val * 100)}%` }} />
                                 </div>
+                                <span className="text-[rgba(255,255,255,0.4)] text-[10px] tabular-nums shrink-0 w-5 text-right">{Math.round(val * 100)}</span>
+                              </div>
+                            );
+                            if (type === 'number') return (
+                              <div key={key} className="flex items-center gap-1.5">
+                                <span className="text-[rgba(255,255,255,0.35)] text-[10px] shrink-0 w-[110px]">{label}</span>
+                                <span className="text-[rgba(255,255,255,0.75)] text-[10px] font-medium tabular-nums">{Math.round(val)}</span>
+                              </div>
+                            );
+                            return (
+                              <div key={key} className="flex items-baseline gap-1.5 min-w-0">
+                                <span className="text-[rgba(255,255,255,0.35)] text-[10px] shrink-0 w-[110px]">{label}</span>
+                                <span className="text-[rgba(255,255,255,0.7)] text-[10px]">{String(val)}</span>
                               </div>
                             );
                           })}
+                          {Array.isArray(rt.tags) && rt.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {rt.tags.map((t: string, i: number) => (
+                                <span key={i} className="text-[9px] px-1.5 py-0.5 rounded bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.4)]">{t}</span>
+                              ))}
+                            </div>
+                          )}
                           {rt.analysis_data?.notes && (
                             <p className="text-[rgba(255,255,255,0.38)] text-[10px] italic border-t border-[rgba(255,255,255,0.04)] pt-2">{rt.analysis_data.notes}</p>
                           )}
