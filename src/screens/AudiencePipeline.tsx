@@ -10,6 +10,20 @@ import Breadcrumb from '../components/Breadcrumb.js';
 /*  Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
+const LAYER_CATEGORIES = [
+  { key: 'physiological', label: 'L1 · Physiological', color: 'rgba(245,196,179,0.9)', fields: ['bpm', 'volume', 'dynamic_range', 'groove_feel', 'phrase_length', 'arousal'] },
+  { key: 'affective',     label: 'L2 · Affective',     color: 'rgba(250,199,117,0.9)', fields: ['energy', 'valence', 'danceability', 'mode', 'harmony', 'melody', 'vocal_tone', 'repetition', 'tension', 'trance_fluency', 'intimacy', 'emotional_arc'] },
+  { key: 'associative',   label: 'L3 · Associative',   color: 'rgba(159,225,203,0.9)', fields: ['musical_key', 'familiarity', 'production_era', 'instrumentation', 'scale_type', 'sophistication', 'nostalgia', 'identity_signal'] },
+  { key: 'semantic',      label: 'L4 · Semantic',      color: 'rgba(206,203,246,0.9)', fields: ['lyrical_content', 'lyrical_density', 'vocal_language', 'vocal_diction', 'register_accent', 'cultural_signal', 'cognitive_load', 'lyrical_theme'] },
+];
+
+const FLOAT_FIELDS = new Set([
+  'volume', 'dynamic_range', 'arousal',
+  'energy', 'valence', 'danceability', 'repetition', 'tension', 'trance_fluency', 'intimacy',
+  'familiarity', 'sophistication', 'nostalgia',
+  'lyrical_density', 'cognitive_load',
+]);
+
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
@@ -477,7 +491,6 @@ export default function AudiencePipeline() {
 
             {refTracks.map((rt) => {
               const isAnalyzing = analyzingIds.has(rt.id);
-              const analysis = rt.analysis || rt.metadata || null;
               return (
                 <div key={rt.id} className="border-b border-[rgba(255,255,255,0.04)] last:border-0">
                   <button type="button" onClick={() => setExpandedTracks((prev) => { const n = new Set(prev); n.has(rt.id) ? n.delete(rt.id) : n.add(rt.id); return n; })} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-[rgba(255,255,255,0.03)] text-left transition-colors">
@@ -504,17 +517,51 @@ export default function AudiencePipeline() {
                           </div>
                         ))}
                       </div>
-                      {analysis && Object.keys(analysis).length > 0 && (
-                        <div className="border-t border-[rgba(255,255,255,0.04)] pt-2">
-                          <p className="text-[9px] uppercase tracking-widest text-[rgba(255,255,255,0.25)] mb-1.5">Analysis</p>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                            {Object.entries(analysis).map(([k, v]) => v != null && (
-                              <span key={k} className="text-[rgba(255,255,255,0.5)]">
-                                <span className="text-[rgba(255,255,255,0.3)]">{k}:</span> {String(v)}
-                              </span>
-                            ))}
-                          </div>
+                      {rt.analyzed && (
+                        <div className="border-t border-[rgba(255,255,255,0.04)] pt-2 space-y-2.5">
+                          {LAYER_CATEGORIES.map(({ key, label, color, fields }) => {
+                            const populated = fields.filter((f) => rt[f] != null);
+                            if (populated.length === 0) return null;
+                            return (
+                              <div key={key}>
+                                <p className="text-[9px] uppercase tracking-widest mb-1.5 font-medium" style={{ color }}>{label}</p>
+                                <div className="grid grid-cols-2 gap-x-5 gap-y-1">
+                                  {populated.map((f) => {
+                                    const val = rt[f];
+                                    const lbl = f.replace(/_/g, ' ');
+                                    if (f === 'bpm') return (
+                                      <div key={f} className="flex items-center gap-1.5">
+                                        <span className="text-[rgba(255,255,255,0.3)] text-[10px] shrink-0">{lbl}</span>
+                                        <span className="text-[rgba(255,255,255,0.75)] text-[10px] font-medium tabular-nums">{Math.round(val)}</span>
+                                      </div>
+                                    );
+                                    if (FLOAT_FIELDS.has(f)) return (
+                                      <div key={f} className="flex items-center gap-1.5">
+                                        <span className="text-[rgba(255,255,255,0.3)] text-[10px] shrink-0 w-[72px] truncate">{lbl}</span>
+                                        <div className="flex-1 h-[3px] bg-[rgba(255,255,255,0.07)] rounded-full">
+                                          <div className="h-full rounded-full" style={{ width: `${Math.round(val * 100)}%`, backgroundColor: color }} />
+                                        </div>
+                                        <span className="text-[rgba(255,255,255,0.35)] text-[10px] tabular-nums shrink-0 w-5 text-right">{Math.round(val * 100)}</span>
+                                      </div>
+                                    );
+                                    return (
+                                      <div key={f} className="flex items-baseline gap-1.5 min-w-0">
+                                        <span className="text-[rgba(255,255,255,0.3)] text-[10px] shrink-0">{lbl}</span>
+                                        <span className="text-[rgba(255,255,255,0.65)] text-[10px] truncate">{String(val)}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {rt.analysis_data?.notes && (
+                            <p className="text-[rgba(255,255,255,0.38)] text-[10px] italic border-t border-[rgba(255,255,255,0.04)] pt-2">{rt.analysis_data.notes}</p>
+                          )}
                         </div>
+                      )}
+                      {!rt.analyzed && !isAnalyzing && (
+                        <p className="text-[rgba(255,255,255,0.2)] text-xs italic">Not yet analyzed</p>
                       )}
                       <div className="flex items-center justify-between pt-1">
                         <button type="button" onClick={() => triggerAnalysis(rt.id)} disabled={isAnalyzing} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors disabled:opacity-40">
