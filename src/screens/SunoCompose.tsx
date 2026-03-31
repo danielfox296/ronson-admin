@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api, uploadFile } from '../lib/api.js';
@@ -24,24 +24,20 @@ function CopyBtn({ text }: { text: string }) {
 }
 
 /* ── Field card ── */
-function FieldCard({ label, value, copyValue, editable, onChange }: { label: string; value: string; copyValue?: string; editable?: boolean; onChange?: (v: string) => void }) {
+function FieldCard({ label, value, onChange, rows }: { label: string; value: string; onChange?: (v: string) => void; rows?: number }) {
   return (
     <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-[rgba(255,255,255,0.06)]">
         <span className="text-[9px] uppercase tracking-[0.15em] text-[rgba(255,255,255,0.35)] font-medium">{label}</span>
-        <CopyBtn text={copyValue ?? value} />
+        <CopyBtn text={value} />
       </div>
-      {editable ? (
-        <textarea
-          value={value}
-          onChange={e => onChange?.(e.target.value)}
-          rows={14}
-          className="w-full bg-transparent text-[rgba(255,255,255,0.85)] text-sm px-4 py-3 resize-none focus:outline-none leading-relaxed font-mono"
-          spellCheck={false}
-        />
-      ) : (
-        <div className="px-4 py-3 text-[rgba(255,255,255,0.85)] text-sm whitespace-pre-wrap leading-relaxed">{value || <span className="text-[rgba(255,255,255,0.2)] italic">Generating...</span>}</div>
-      )}
+      <textarea
+        value={value}
+        onChange={e => onChange?.(e.target.value)}
+        rows={rows ?? 3}
+        className="w-full bg-transparent text-[rgba(255,255,255,0.85)] text-sm px-4 py-3 resize-none focus:outline-none leading-relaxed"
+        spellCheck={false}
+      />
     </div>
   );
 }
@@ -61,6 +57,7 @@ export default function SunoCompose() {
   const [genError, setGenError] = useState('');
   const [instructions, setInstructions] = useState('');
   const [showInstructions, setShowInstructions] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   // Upload state
   const [uploadedUrl, setUploadedUrl] = useState('');
@@ -87,6 +84,29 @@ export default function SunoCompose() {
   });
   const icp = (icpData as any)?.data;
 
+  // Save suno prompt to reference track's analysis_data
+  const saveSunoPrompt = useCallback(async (s: string, e: string, v: string, l: string) => {
+    if (!refTrackId) return;
+    const existing = track?.analysis_data || {};
+    await api(`/api/reference-tracks/${refTrackId}`, {
+      method: 'PUT',
+      body: { analysis_data: { ...existing, suno: { style: s, exclude: e, voice: v, lyrics: l } } },
+    }).catch(() => {}); // silent save
+  }, [refTrackId, track?.analysis_data]);
+
+  // Debounced auto-save on field edits
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSave = useCallback((s: string, e: string, v: string, l: string) => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => saveSunoPrompt(s, e, v, l), 1500);
+  }, [saveSunoPrompt]);
+
+  // Field setters that trigger auto-save
+  const updateStyle = (v: string) => { setStyle(v); autoSave(v, exclude, voice, lyrics); };
+  const updateExclude = (v: string) => { setExclude(v); autoSave(style, v, voice, lyrics); };
+  const updateVoice = (v: string) => { setVoice(v); autoSave(style, exclude, v, lyrics); };
+  const updateLyrics = (v: string) => { setLyrics(v); autoSave(style, exclude, voice, v); };
+
   // Generate prompt from Claude
   const generate = useCallback(async () => {
     setGenerating(true);
@@ -97,23 +117,30 @@ export default function SunoCompose() {
         body: { store_icp_id: icpId, reference_track_id: refTrackId, additional_instructions: instructions || undefined },
       });
       const d = (result as any)?.data;
-      setStyle(d?.style || '');
-      setExclude(d?.style_negations || '');
-      setVoice(d?.voice || '');
-      setLyrics(d?.lyrics || '');
-    } catch (e: any) {
-      setGenError(e?.message || 'Generation failed');
+      const s = d?.style || '', e = d?.style_negations || '', v = d?.voice || '', l = d?.lyrics || '';
+      setStyle(s); setExclude(e); setVoice(v); setLyrics(l);
+      // Save generated prompt to DB
+      saveSunoPrompt(s, e, v, l);
+    } catch (err: any) {
+      setGenError(err?.message || 'Generation failed');
     } finally {
       setGenerating(false);
     }
-  }, [icpId, refTrackId, instructions]);
+  }, [icpId, refTrackId, instructions, saveSunoPrompt]);
 
-  // Auto-generate on mount
-  const hasGenerated = useRef(false);
-  if (!hasGenerated.current && refTrackId && icpId) {
-    hasGenerated.current = true;
-    generate();
-  }
+  // On track load: populate from saved data or generate once
+  const initDone = useRef(false);
+  useEffect(() => {
+    if (initDone.current || !track || !icpId) return;
+    initDone.current = true;
+    const suno = (track.analysis_data as any)?.suno;
+    if (suno?.style || suno?.lyrics) {
+      setStyle(suno.style || ''); setExclude(suno.exclude || ''); setVoice(suno.voice || ''); setLyrics(suno.lyrics || '');
+      setLoaded(true);
+    } else {
+      generate();
+    }
+  }, [track, icpId, generate]);
 
   // File upload
   const handleFile = async (file: File) => {
@@ -266,16 +293,16 @@ export default function SunoCompose() {
         )}
 
         {/* Two-column layout: Lyrics left, controls right */}
-        {!generating && (style || exclude || voice || lyrics) && (
+        {!generating && (style || exclude || voice || lyrics || loaded) && (
           <div className="grid grid-cols-[1fr_340px] gap-5">
-            {/* Left: Lyrics (tall) */}
-            <FieldCard label="Lyrics" value={lyrics} editable onChange={setLyrics} />
+            {/* Left: Lyrics (tall, editable) */}
+            <FieldCard label="Lyrics" value={lyrics} onChange={updateLyrics} rows={20} />
 
-            {/* Right: Style + Exclude + Voice stacked */}
+            {/* Right: Style + Exclude + Voice stacked (all editable) */}
             <div className="space-y-3">
-              <FieldCard label="Style" value={style} />
-              <FieldCard label="Exclude" value={exclude} />
-              <FieldCard label="Voice" value={voice} />
+              <FieldCard label="Style" value={style} onChange={updateStyle} rows={4} />
+              <FieldCard label="Exclude" value={exclude} onChange={updateExclude} rows={2} />
+              <FieldCard label="Voice" value={voice} onChange={updateVoice} rows={1} />
 
               {/* Regenerate */}
               <div className="flex items-center gap-3 pt-1">
