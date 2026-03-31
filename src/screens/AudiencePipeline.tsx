@@ -210,7 +210,7 @@ export default function AudiencePipeline() {
   const [analyzeErrors, setAnalyzeErrors] = useState<Record<string, string>>({});
 
   const analyzeRefMutation = useMutation({
-    mutationFn: (id: string) => api(`/api/reference-tracks/${id}/analyze`, { method: 'POST' }),
+    mutationFn: (id: string) => api(`/api/reference-tracks/${id}/run-analysis`, { method: 'POST' }),
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['icp-ref-tracks', icpId] });
       setAnalyzingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
