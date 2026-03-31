@@ -138,9 +138,11 @@ export default function SunoCompose() {
       setStyle(suno.style || ''); setExclude(suno.exclude || ''); setVoice(suno.voice || ''); setLyrics(suno.lyrics || '');
       setLoaded(true);
     } else {
+      // Only generate if no saved prompt exists
       generate();
     }
-  }, [track, icpId, generate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [track]);
 
   // File upload
   const handleFile = async (file: File) => {
