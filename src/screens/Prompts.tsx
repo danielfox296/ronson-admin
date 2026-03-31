@@ -59,9 +59,16 @@ export default function Prompts() {
       <Breadcrumb items={[{ label: 'Prompts' }]} />
       <div className="flex items-center justify-between mt-4 mb-6">
         <h1 className="text-3xl font-light tracking-tight text-white">Prompts</h1>
-        <button type="button" onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 rounded-lg text-xs font-medium bg-[#5ea2b6] hover:bg-[#70b4c8] text-white transition-colors">
-          + New Prompt
-        </button>
+        <div className="flex gap-2">
+          {templates.length === 0 && (
+            <button type="button" onClick={() => api('/api/prompts/seed', { method: 'POST' }).then(() => queryClient.invalidateQueries({ queryKey: ['prompt-templates'] })).catch((e: any) => alert('Seed failed: ' + e.message))} className="px-4 py-2 rounded-lg text-xs font-medium bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] transition-colors">
+              Seed from Skill
+            </button>
+          )}
+          <button type="button" onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 rounded-lg text-xs font-medium bg-[#5ea2b6] hover:bg-[#70b4c8] text-white transition-colors">
+            + New Prompt
+          </button>
+        </div>
       </div>
 
       {/* Type filter tabs */}
