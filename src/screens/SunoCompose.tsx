@@ -58,6 +58,7 @@ export default function SunoCompose() {
   const [instructions, setInstructions] = useState('');
   const [showInstructions, setShowInstructions] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [templatesUsed, setTemplatesUsed] = useState<string[]>([]);
 
   // Upload state
   const [uploadedUrl, setUploadedUrl] = useState('');
@@ -85,14 +86,14 @@ export default function SunoCompose() {
   const icp = (icpData as any)?.data;
 
   // Save suno prompt to reference track's analysis_data
-  const saveSunoPrompt = useCallback(async (s: string, e: string, v: string, l: string) => {
+  const saveSunoPrompt = useCallback(async (s: string, e: string, v: string, l: string, tpl?: string[]) => {
     if (!refTrackId) return;
     const existing = track?.analysis_data || {};
     await api(`/api/reference-tracks/${refTrackId}`, {
       method: 'PUT',
-      body: { analysis_data: { ...existing, suno: { style: s, exclude: e, voice: v, lyrics: l } } },
-    }).catch(() => {}); // silent save
-  }, [refTrackId, track?.analysis_data]);
+      body: { analysis_data: { ...existing, suno: { style: s, exclude: e, voice: v, lyrics: l, templates: tpl || templatesUsed } } },
+    }).catch(() => {});
+  }, [refTrackId, track?.analysis_data, templatesUsed]);
 
   // Debounced auto-save on field edits
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -118,9 +119,10 @@ export default function SunoCompose() {
       });
       const d = (result as any)?.data;
       const s = d?.style || '', e = d?.style_negations || '', v = d?.voice || '', l = d?.lyrics || '';
-      setStyle(s); setExclude(e); setVoice(v); setLyrics(l);
-      // Save generated prompt to DB
-      saveSunoPrompt(s, e, v, l);
+      const tpl = d?.templates_used || [];
+      setStyle(s); setExclude(e); setVoice(v); setLyrics(l); setTemplatesUsed(tpl);
+      // Save generated prompt + template info to DB
+      saveSunoPrompt(s, e, v, l, tpl);
     } catch (err: any) {
       setGenError(err?.message || 'Generation failed');
     } finally {
@@ -136,6 +138,7 @@ export default function SunoCompose() {
     const suno = (track.analysis_data as any)?.suno;
     if (suno?.style || suno?.lyrics) {
       setStyle(suno.style || ''); setExclude(suno.exclude || ''); setVoice(suno.voice || ''); setLyrics(suno.lyrics || '');
+      if (Array.isArray(suno.templates)) setTemplatesUsed(suno.templates);
       setLoaded(true);
     } else {
       // Only generate if no saved prompt exists
@@ -226,6 +229,11 @@ export default function SunoCompose() {
                   <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.45)] border border-[rgba(255,255,255,0.06)]">{c}</span>
                 ))}
               </div>
+            )}
+            {templatesUsed.length > 0 && (
+              <p className="text-[10px] text-[rgba(255,255,255,0.25)] mt-1.5">
+                Using: {templatesUsed.join(' + ')}
+              </p>
             )}
           </div>
 
