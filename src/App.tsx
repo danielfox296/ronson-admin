@@ -13,6 +13,7 @@ import PromptComposer from './screens/PromptComposer.js';
 import SunoCompose from './screens/SunoCompose.js';
 import Prompts from './screens/Prompts.js';
 import Account from './screens/Account.js';
+import Analytics from './screens/Analytics.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -39,6 +40,11 @@ function Layout() {
       to: '/dashboard',
       label: 'Dashboard',
       icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
+    },
+    {
+      to: '/analytics',
+      label: 'Analytics',
+      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-6"/></svg>,
     },
     {
       to: '/clients',
@@ -133,6 +139,7 @@ export default function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="analytics" element={<Analytics />} />
         <Route path="profiles" element={<CustomerProfiles />} />
         <Route path="clients" element={<ClientList />} />
         <Route path="clients/:id" element={<ClientDetail />} />
