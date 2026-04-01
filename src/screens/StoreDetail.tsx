@@ -24,7 +24,7 @@ export default function StoreDetail() {
   const [editForm, setEditForm] = useState<any>({});
   const [showIcpForm, setShowIcpForm] = useState(false);
   const [icpForm, setIcpForm] = useState({ name: '', psychographic_summary: '' });
-  const [tab, setTab] = useState<'audiences' | 'playlog' | 'player'>('audiences');
+  const [tab, setTab] = useState<'audiences' | 'playlog' | 'ambient' | 'player'>('audiences');
   const [deleteIcpTarget, setDeleteIcpTarget] = useState<{ id: string; name: string; songCount: number } | null>(null);
   const [undoIcpTarget, setUndoIcpTarget] = useState<{ id: string; name: string; timerId: ReturnType<typeof setTimeout> } | null>(null);
   const [playerEmail, setPlayerEmail] = useState('');
@@ -46,6 +46,12 @@ export default function StoreDetail() {
     queryKey: ['store-play-events', storeId],
     queryFn: () => api<{ data: any[] }>(`/api/stores/${storeId}/play-events`),
     enabled: tab === 'playlog',
+  });
+
+  const { data: ambientData } = useQuery({
+    queryKey: ['store-ambient', storeId],
+    queryFn: () => api<{ data: any[] }>(`/api/stores/${storeId}/ambient-readings`),
+    enabled: tab === 'ambient',
   });
 
   const store = storeData?.data;
@@ -94,6 +100,7 @@ export default function StoreDetail() {
   const tabs = [
     { key: 'audiences', label: 'Audiences' },
     { key: 'playlog', label: 'Play Log' },
+    { key: 'ambient', label: 'Ambient' },
     { key: 'player', label: 'Player Setup' },
   ] as const;
 
@@ -330,6 +337,34 @@ export default function StoreDetail() {
           >
             Undo
           </button>
+        </div>
+      )}
+
+      {/* Ambient Tab */}
+      {tab === 'ambient' && (
+        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl">
+          {(ambientData?.data || []).length === 0 ? (
+            <p className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)] text-sm">No ambient readings recorded yet</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[rgba(255,255,255,0.09)]">
+                  <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Time</th>
+                  <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Avg dB</th>
+                  <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Peak dB</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(ambientData?.data || []).map((r: any) => (
+                  <tr key={r.id} className="border-b border-[rgba(255,255,255,0.04)] last:border-0">
+                    <td className="px-4 py-2 text-[rgba(255,255,255,0.6)]">{new Date(r.created_at).toLocaleString()}</td>
+                    <td className="px-4 py-2 text-right text-[rgba(255,255,255,0.87)] font-mono">{r.avg_db?.toFixed(1)}</td>
+                    <td className="px-4 py-2 text-right text-[rgba(255,255,255,0.6)] font-mono">{r.peak_db?.toFixed(1) || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 

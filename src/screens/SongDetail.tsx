@@ -76,6 +76,10 @@ export default function SongDetail() {
   const [statusVal, setStatusVal] = useState('');
   const [storeSearch, setStoreSearch] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [editingPrompt, setEditingPrompt] = useState(false);
+  const [promptForm, setPromptForm] = useState({ style: '', style_negations: '', voice: '', lyrics: '' });
+  const [editingFlow, setEditingFlow] = useState(false);
+  const [flowForm, setFlowForm] = useState<Record<string, string>>({});
 
   const { data: songData, isLoading } = useQuery({
     queryKey: ['song', id],
@@ -230,48 +234,84 @@ export default function SongDetail() {
           <FeedbackSection songId={id!} />
 
           {/* Suno Prompt */}
-          {(song.prompt_text || promptParams.style || promptParams.style_negations || promptParams.voice) && (
+          {(song.prompt_text || promptParams.style || promptParams.style_negations || promptParams.voice || editingPrompt) && (
             <div className="mb-6">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Suno Prompt</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Suno Prompt</h2>
+                {!editingPrompt ? (
+                  <button type="button" onClick={() => { setEditingPrompt(true); setPromptForm({ style: promptParams.style || '', style_negations: promptParams.style_negations || '', voice: promptParams.voice || '', lyrics: song.prompt_text || '' }); }} className="text-[#5ea2b6] text-[10px] font-bold uppercase tracking-widest hover:text-[#70b4c8]">Edit</button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => { updateMutation.mutate({ prompt_text: promptForm.lyrics, prompt_parameters: { style: promptForm.style, style_negations: promptForm.style_negations, voice: promptForm.voice } }); setEditingPrompt(false); }} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs">Save</button>
+                    <button type="button" onClick={() => setEditingPrompt(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
+                  </div>
+                )}
+              </div>
               <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)]">
-                {promptParams.style && (
-                  <div className="px-4 py-3">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#5ea2b6] mb-1">Creative</div>
-                    <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style}</p>
-                  </div>
-                )}
-                {promptParams.style_negations && (
-                  <div className="px-4 py-3">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[#f3aa8c] mb-1">Negative</div>
-                    <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style_negations}</p>
-                  </div>
-                )}
-                {promptParams.voice && (
-                  <div className="px-4 py-3">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-1">Vocal Gender</div>
-                    <p className="text-sm text-[rgba(255,255,255,0.8)] capitalize">{promptParams.voice}</p>
-                  </div>
-                )}
-                {song.prompt_text && (
-                  <div className="px-4 py-3">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-1">Lyrics</div>
-                    <pre className="text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)] font-sans leading-relaxed max-h-60 overflow-y-auto">{song.prompt_text}</pre>
-                  </div>
-                )}
+                <div className="px-4 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#5ea2b6] mb-1">Creative</div>
+                  {editingPrompt ? (
+                    <textarea value={promptForm.style} onChange={(e) => setPromptForm({ ...promptForm, style: e.target.value })} rows={3} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm resize-none" />
+                  ) : (
+                    <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</p>
+                  )}
+                </div>
+                <div className="px-4 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[#f3aa8c] mb-1">Negative</div>
+                  {editingPrompt ? (
+                    <textarea value={promptForm.style_negations} onChange={(e) => setPromptForm({ ...promptForm, style_negations: e.target.value })} rows={2} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm resize-none" />
+                  ) : (
+                    <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style_negations || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</p>
+                  )}
+                </div>
+                <div className="px-4 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-1">Vocal Gender</div>
+                  {editingPrompt ? (
+                    <select value={promptForm.voice} onChange={(e) => setPromptForm({ ...promptForm, voice: e.target.value })} className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm">
+                      <option value="">Not set</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
+                  ) : (
+                    <p className="text-sm text-[rgba(255,255,255,0.8)] capitalize">{promptParams.voice || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</p>
+                  )}
+                </div>
+                <div className="px-4 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-1">Lyrics</div>
+                  {editingPrompt ? (
+                    <textarea value={promptForm.lyrics} onChange={(e) => setPromptForm({ ...promptForm, lyrics: e.target.value })} rows={10} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm resize-none font-mono leading-relaxed" />
+                  ) : (
+                    <pre className="text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)] font-sans leading-relaxed max-h-60 overflow-y-auto">{song.prompt_text || <span className="text-[rgba(255,255,255,0.2)] italic">No lyrics</span>}</pre>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {/* Flow Factors */}
-          {Object.keys(flowFactors).length > 0 && (
+          {(Object.keys(flowFactors).length > 0 || editingFlow) && (
             <div className="mb-6">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Musicological Parameters</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Musicological Parameters</h2>
+                {!editingFlow ? (
+                  <button type="button" onClick={() => { setEditingFlow(true); setFlowForm(Object.fromEntries(Object.entries(flowFactors).map(([k, v]) => [k, String(v)]))); }} className="text-[#5ea2b6] text-[10px] font-bold uppercase tracking-widest hover:text-[#70b4c8]">Edit</button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => { updateMutation.mutate({ flow_factor_values: flowForm }); setEditingFlow(false); }} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs">Save</button>
+                    <button type="button" onClick={() => setEditingFlow(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
+                  </div>
+                )}
+              </div>
               <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl">
                 <div className="grid grid-cols-2 divide-x divide-[rgba(255,255,255,0.04)]">
-                  {Object.entries(flowFactors).map(([k, v], i) => (
+                  {Object.entries(editingFlow ? flowForm : flowFactors).map(([k, v], i) => (
                     <div key={k} className={`flex items-center justify-between px-4 py-2 text-xs ${i >= 2 ? 'border-t border-[rgba(255,255,255,0.04)]' : ''}`}>
                       <span className="text-[rgba(255,255,255,0.4)]">{k}</span>
-                      <span className="text-[rgba(255,255,255,0.8)] font-medium">{String(v)}</span>
+                      {editingFlow ? (
+                        <input value={flowForm[k] || ''} onChange={(e) => setFlowForm({ ...flowForm, [k]: e.target.value })} className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-1 text-xs w-32 text-right" />
+                      ) : (
+                        <span className="text-[rgba(255,255,255,0.8)] font-medium">{String(v)}</span>
+                      )}
                     </div>
                   ))}
                 </div>

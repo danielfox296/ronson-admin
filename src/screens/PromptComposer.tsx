@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../lib/api.js';
+import { api, uploadFile } from '../lib/api.js';
 
 export default function PromptComposer() {
   const navigate = useNavigate();
@@ -9,15 +9,48 @@ export default function PromptComposer() {
   const [selectedStoreId, setSelectedStoreId] = useState('');
   const [selectedIcpId, setSelectedIcpId] = useState('');
   const [additionalInstructions, setAdditionalInstructions] = useState('');
+  const [creativeDirection, setCreativeDirection] = useState('');
   const [selectedGenSystem, setSelectedGenSystem] = useState('');
   const [promptTitle, setPromptTitle] = useState('');
   const [generatingTrackId, setGeneratingTrackId] = useState<string | null>(null);
+  const [droppedFile, setDroppedFile] = useState<{ file: File; name: string; duration: number } | null>(null);
 
   // Generated output fields
   const [lyrics, setLyrics] = useState('');
   const [style, setStyle] = useState('');
   const [styleNegations, setStyleNegations] = useState('');
   const [voice, setVoice] = useState('');
+
+  // Restore cached output on mount
+  useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem('compose-output');
+      if (cached) {
+        const d = JSON.parse(cached);
+        if (d.selectedIcpId) setSelectedIcpId(d.selectedIcpId);
+        if (d.selectedStoreId) setSelectedStoreId(d.selectedStoreId);
+        if (d.selectedClientId) setSelectedClientId(d.selectedClientId);
+        if (d.lyrics) setLyrics(d.lyrics);
+        if (d.style) setStyle(d.style);
+        if (d.styleNegations) setStyleNegations(d.styleNegations);
+        if (d.voice) setVoice(d.voice);
+        if (d.promptTitle) setPromptTitle(d.promptTitle);
+        if (d.creativeDirection) setCreativeDirection(d.creativeDirection);
+      }
+    } catch { /* ignore parse errors */ }
+  }, []);
+
+  // Cache output whenever it changes
+  const cacheOutput = useCallback(() => {
+    if (lyrics || style || styleNegations || voice) {
+      sessionStorage.setItem('compose-output', JSON.stringify({
+        selectedClientId, selectedStoreId, selectedIcpId,
+        lyrics, style, styleNegations, voice, promptTitle, creativeDirection,
+      }));
+    }
+  }, [selectedClientId, selectedStoreId, selectedIcpId, lyrics, style, styleNegations, voice, promptTitle, creativeDirection]);
+
+  useEffect(() => { cacheOutput(); }, [cacheOutput]);
 
   // Data fetching
   const { data: clientsData } = useQuery({
@@ -82,6 +115,7 @@ export default function PromptComposer() {
         store_icp_id: selectedIcpId,
         flow_factor_values: {},
         additional_instructions: additionalInstructions || undefined,
+        creative_direction: creativeDirection || undefined,
       },
     }),
     onSuccess: (result) => {
@@ -100,6 +134,7 @@ export default function PromptComposer() {
         store_icp_id: selectedIcpId,
         flow_factor_values: {},
         additional_instructions: additionalInstructions || undefined,
+        creative_direction: creativeDirection || undefined,
         reference_track_id: trackId,
       },
     }),
@@ -115,18 +150,30 @@ export default function PromptComposer() {
 
   // Save
   const saveMutation = useMutation({
-    mutationFn: () => api<{ data: any }>('/api/compose/save', {
-      method: 'POST',
-      body: {
-        store_icp_id: selectedIcpId,
-        prompt_text: lyrics,
-        flow_factor_values: {},
-        prompt_parameters: { style, style_negations: styleNegations, voice },
-        generation_system_id: selectedGenSystem || undefined,
-        title: promptTitle || 'Composed Prompt',
-      },
-    }),
+    mutationFn: async () => {
+      let audio_file_url = '';
+      let duration_seconds = 0;
+      if (droppedFile) {
+        const uploaded = await uploadFile(droppedFile.file);
+        audio_file_url = uploaded.url;
+        duration_seconds = Math.round(droppedFile.duration);
+      }
+      return api<{ data: any }>('/api/compose/save', {
+        method: 'POST',
+        body: {
+          store_icp_id: selectedIcpId,
+          prompt_text: lyrics,
+          flow_factor_values: {},
+          prompt_parameters: { style, style_negations: styleNegations, voice },
+          generation_system_id: selectedGenSystem || undefined,
+          title: promptTitle || 'Composed Prompt',
+          audio_file_url: audio_file_url || undefined,
+          duration_seconds: duration_seconds || undefined,
+        },
+      });
+    },
     onSuccess: (result) => {
+      sessionStorage.removeItem('compose-output');
       navigate(`/songs/${result.data.id}`);
     },
   });
@@ -184,6 +231,18 @@ export default function PromptComposer() {
       <div className="grid grid-cols-[380px_1fr] gap-6">
         {/* Left: Reference Tracks + Instructions + Generate */}
         <div className="space-y-4">
+          {/* Creative Direction */}
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-2">Creative Direction</label>
+            <textarea
+              value={creativeDirection}
+              onChange={(e) => setCreativeDirection(e.target.value)}
+              placeholder="nostalgia, rainy day, self-reflection, late-night drive..."
+              rows={2}
+              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm resize-none placeholder:text-[rgba(255,255,255,0.28)]"
+            />
+          </div>
+
           <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)]">
               <div className="flex items-baseline gap-2">
@@ -347,6 +406,47 @@ export default function PromptComposer() {
                   placeholder="Song title..."
                   className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm w-48"
                 />
+                {/* MP3 Drop */}
+                <label
+                  className="border border-dashed border-[rgba(255,255,255,0.12)] rounded-lg px-3 py-2 text-[10px] text-[rgba(255,255,255,0.4)] cursor-pointer hover:border-[#4a90a4]/40 transition-colors flex items-center gap-1.5"
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'rgba(74,144,164,0.5)'; }}
+                  onDragLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.style.borderColor = '';
+                    const file = e.dataTransfer.files[0];
+                    if (file && /\.(mp3|wav|flac)$/i.test(file.name)) {
+                      const audio = new Audio(URL.createObjectURL(file));
+                      audio.addEventListener('loadedmetadata', () => {
+                        setDroppedFile({ file, name: file.name, duration: audio.duration });
+                        if (!promptTitle) {
+                          setPromptTitle(file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+                        }
+                      });
+                    }
+                  }}
+                >
+                  {droppedFile ? (
+                    <span className="text-[#4a90a4]">{droppedFile.name} ({Math.round(droppedFile.duration)}s)</span>
+                  ) : (
+                    <>
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+                      Drop MP3
+                    </>
+                  )}
+                  <input type="file" accept=".mp3,.wav,.flac" className="hidden" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const audio = new Audio(URL.createObjectURL(file));
+                      audio.addEventListener('loadedmetadata', () => {
+                        setDroppedFile({ file, name: file.name, duration: audio.duration });
+                        if (!promptTitle) {
+                          setPromptTitle(file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+                        }
+                      });
+                    }
+                  }} />
+                </label>
                 <select
                   value={selectedGenSystem}
                   onChange={(e) => setSelectedGenSystem(e.target.value)}
