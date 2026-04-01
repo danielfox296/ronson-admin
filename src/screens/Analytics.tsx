@@ -24,8 +24,8 @@ const CSS = `
     --ra-border:   #1a1a1a;
     --ra-border2:  #141414;
     --ra-text:     #e0e0e0;
-    --ra-muted:    #888;
-    --ra-dim:      #525252;
+    --ra-muted:    #aaa;
+    --ra-dim:      #777;
     --ra-gold:     #c9a84c;
     --ra-teal:     #2dd4bf;
     --ra-violet:   #a78bfa;
@@ -263,7 +263,7 @@ const CSS = `
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #444;
+    color: #777;
     padding: 10px 0 5px;
     border-top: 1px solid #111;
     margin-top: 2px;
@@ -274,7 +274,7 @@ const CSS = `
   .ronson-analytics .corr { font-family: var(--ra-mono); font-size: 13px; }
   .ronson-analytics .corr-pos { color: var(--ra-teal); }
   .ronson-analytics .corr-neg { color: var(--ra-red); }
-  .ronson-analytics .corr-neutral { color: #5d5d5d; }
+  .ronson-analytics .corr-neutral { color: #888; }
 
   /* Legend */
   .ronson-analytics .legend {
@@ -303,7 +303,7 @@ const CSS = `
     font-size: 8px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #444;
+    color: #777;
     border: 1px solid #1a1a1a;
     padding: 2px 6px;
     margin-left: 8px;
@@ -375,7 +375,7 @@ const CSS = `
     text-align: center;
     font-family: var(--ra-mono);
     font-size: 12px;
-    color: #444;
+    color: #777;
     letter-spacing: 0.08em;
   }
   .ronson-analytics .upload-stub-btn {
@@ -413,7 +413,7 @@ const CSS = `
   }
 
   .ronson-analytics .reg-sig { color: var(--ra-teal); }
-  .ronson-analytics .reg-ns { color: #444; }
+  .ronson-analytics .reg-ns { color: #777; }
 
   .ronson-analytics .lift-row {
     display: flex;
@@ -496,7 +496,7 @@ const CSS = `
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #444;
+    color: #777;
     border: 1px solid #1a1a1a;
     background: transparent;
     cursor: not-allowed;
@@ -568,8 +568,8 @@ function CorrCell({ v }: { v: number }) {
   return <span className={`corr ${cls}`}>{v > 0 ? "+" : ""}{v.toFixed(2)}</span>;
 }
 
-const TT_STYLE = { background: "#111", border: "1px solid #222", color: "#888", fontSize: 12, fontFamily: "'Syne Mono', monospace" };
-const TICK = { fill: "#525252", fontSize: 11, fontFamily: "'Syne Mono', monospace" };
+const TT_STYLE = { background: "#111", border: "1px solid #222", color: "#aaa", fontSize: 12, fontFamily: "'Syne Mono', monospace" };
+const TICK = { fill: "#888", fontSize: 11, fontFamily: "'Syne Mono', monospace" };
 
 // ─── Sections ───────────────────────────────────────────────────────────────
 
@@ -616,14 +616,14 @@ function Overview() {
             <Area type="monotone" dataKey="footTraffic" stroke="#c9a84c" fill="url(#raGFT)" strokeWidth={1.5} dot={false} name="Foot Traffic" />
             <Area type="monotone" dataKey="pos" stroke="#2dd4bf" fill="url(#raGPOS)" strokeWidth={1.5} dot={false} name="POS Transactions" />
             {STATE_TRANSITIONS.map(t => (
-              <ReferenceLine key={t.time} x={t.time} stroke="#c9a84c" strokeDasharray="3 3" strokeOpacity={0.25} label={{ value: t.state, position: "top", fill: "#525252", fontSize: 8, fontFamily: "'Syne Mono', monospace" }} />
+              <ReferenceLine key={t.time} x={t.time} stroke="#c9a84c" strokeDasharray="3 3" strokeOpacity={0.25} label={{ value: t.state, position: "top", fill: "#888", fontSize: 8, fontFamily: "'Syne Mono', monospace" }} />
             ))}
           </AreaChart>
         </ResponsiveContainer>
         <div className="legend">
           <span><span className="legend-dot" style={{ background: "#c9a84c" }} />Foot Traffic</span>
           <span><span className="legend-dot" style={{ background: "#2dd4bf" }} />POS Transactions</span>
-          <span style={{ color: "#525252" }}>{"\u2506"} State Transitions</span>
+          <span style={{ color: "#aaa" }}>{"\u2506"} State Transitions</span>
         </div>
       </div>
     </div>
@@ -745,7 +745,7 @@ function Parameters() {
           <ResponsiveContainer width="100%" height={240}>
             <RadarChart data={PSY_OVERLAY} margin={{ top: 10, right: 18, bottom: 10, left: 18 }}>
               <PolarGrid stroke="#1e1e1e" />
-              <PolarAngleAxis dataKey="axis" tick={{ fill: "#6d6d6d", fontSize: 11, fontFamily: "'Syne Mono', monospace" }} />
+              <PolarAngleAxis dataKey="axis" tick={{ fill: "#999", fontSize: 11, fontFamily: "'Syne Mono', monospace" }} />
               <PolarRadiusAxis tick={false} axisLine={false} domain={[0, 100]} />
               <Radar dataKey="target" stroke="#c9a84c" fill="#c9a84c" fillOpacity={0.12} strokeWidth={1.5} dot={false} name="Target" />
               <Radar dataKey="actual" stroke="#2dd4bf" fill="#2dd4bf" fillOpacity={0.08} strokeWidth={1.5} strokeDasharray="4 3" dot={false} name="Actual (est.)" />
@@ -762,13 +762,13 @@ function Parameters() {
         <div className="card">
           <div className="card-label">Recipe</div>
           <div style={{ fontSize: 19, fontWeight: 600, color: "#c9a84c", marginBottom: 6, letterSpacing: "0.01em" }}>Ambient Anchor</div>
-          <div style={{ fontFamily: "var(--ra-mono)", fontSize: 11, color: "#525252", lineHeight: 1.6, letterSpacing: "0.03em", marginBottom: 10 }}>
+          <div style={{ fontFamily: "var(--ra-mono)", fontSize: 11, color: "#aaa", lineHeight: 1.6, letterSpacing: "0.03em", marginBottom: 10 }}>
             Low-arousal, positive-valence hold state for extended dwell. Optimised for mid-afternoon browsing windows.
           </div>
-          <div style={{ fontFamily: "var(--ra-mono)", fontSize: 11, color: "#6d6d6d", lineHeight: 2, letterSpacing: "0.05em" }}>
-            <div>Arousal <span style={{ color: "#a3a3a3" }}>55</span> &nbsp;&middot;&nbsp; Valence <span style={{ color: "#a3a3a3" }}>65</span></div>
-            <div>Temporal <span style={{ color: "#a3a3a3" }}>45</span> &nbsp;&middot;&nbsp; Social Dist. <span style={{ color: "#a3a3a3" }}>60</span></div>
-            <div>Self-Focus <span style={{ color: "#a3a3a3" }}>40</span></div>
+          <div style={{ fontFamily: "var(--ra-mono)", fontSize: 11, color: "#999", lineHeight: 2, letterSpacing: "0.05em" }}>
+            <div>Arousal <span style={{ color: "#bbb" }}>55</span> &nbsp;&middot;&nbsp; Valence <span style={{ color: "#bbb" }}>65</span></div>
+            <div>Temporal <span style={{ color: "#bbb" }}>45</span> &nbsp;&middot;&nbsp; Social Dist. <span style={{ color: "#bbb" }}>60</span></div>
+            <div>Self-Focus <span style={{ color: "#bbb" }}>40</span></div>
           </div>
         </div>
 
@@ -781,8 +781,8 @@ function Parameters() {
             { time: "20:00", state: "Closing Drift" },
           ].map(s => (
             <div key={s.time} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid #111" }}>
-              <span style={{ fontFamily: "var(--ra-mono)", fontSize: 12, color: "#6d6d6d" }}>{s.time}</span>
-              <span style={{ fontFamily: "var(--ra-mono)", fontSize: 11, color: "#888", letterSpacing: "0.05em" }}>{s.state}</span>
+              <span style={{ fontFamily: "var(--ra-mono)", fontSize: 12, color: "#999" }}>{s.time}</span>
+              <span style={{ fontFamily: "var(--ra-mono)", fontSize: 11, color: "#aaa", letterSpacing: "0.05em" }}>{s.state}</span>
             </div>
           ))}
         </div>
@@ -855,7 +855,7 @@ function Correlation() {
           <tbody>
             {CORRELATION_TABLE.map(row => (
               <tr key={row.factor}>
-                <td style={{ color: "#bebebe" }}>{row.factor}</td>
+                <td style={{ color: "#ccc" }}>{row.factor}</td>
                 <td><CorrCell v={row.footTraffic} /></td>
                 <td><CorrCell v={row.dwell} /></td>
                 <td><CorrCell v={row.pos} /></td>
@@ -883,10 +883,10 @@ function Correlation() {
           <tbody>
             {REGRESSION_DATA.map(row => (
               <tr key={row.factor}>
-                <td style={{ color: "#bebebe" }}>{row.factor}</td>
+                <td style={{ color: "#ccc" }}>{row.factor}</td>
                 <td><span className={`corr ${row.r2 > 0.2 ? "corr-pos" : "corr-neutral"}`}>{row.r2.toFixed(2)}</span></td>
                 <td><span className={row.p < 0.05 ? "reg-sig" : "reg-ns"}>{row.p < 0.05 ? `${row.p.toFixed(3)} *` : row.p.toFixed(3)}</span></td>
-                <td style={{ fontFamily: "var(--ra-mono)", fontSize: 12, color: "#6d6d6d" }}>[{row.ciLow.toFixed(2)}, {row.ciHigh.toFixed(2)}]</td>
+                <td style={{ fontFamily: "var(--ra-mono)", fontSize: 12, color: "#999" }}>[{row.ciLow.toFixed(2)}, {row.ciHigh.toFixed(2)}]</td>
               </tr>
             ))}
           </tbody>
@@ -903,7 +903,7 @@ function Correlation() {
             <div className="lift-meta">{ev.date} &middot; {ev.time}</div>
           </div>
         ))}
-        <div style={{ paddingTop: 8, fontFamily: "var(--ra-mono)", fontSize: 10, color: "#383838", letterSpacing: "0.08em" }}>
+        <div style={{ paddingTop: 8, fontFamily: "var(--ra-mono)", fontSize: 10, color: "#666", letterSpacing: "0.08em" }}>
           Manual annotations for known external events affecting retail metrics
         </div>
       </div>
@@ -942,7 +942,7 @@ function Modifiers() {
             <ResponsiveContainer width="100%" height={170}>
               <RadarChart data={CAPITAL_DATA} margin={{ top: 10, right: 18, bottom: 10, left: 18 }}>
                 <PolarGrid stroke="#1e1e1e" />
-                <PolarAngleAxis dataKey="axis" tick={{ fill: "#6d6d6d", fontSize: 11, fontFamily: "'Syne Mono', monospace" }} />
+                <PolarAngleAxis dataKey="axis" tick={{ fill: "#999", fontSize: 11, fontFamily: "'Syne Mono', monospace" }} />
                 <Radar dataKey="value" stroke="#2dd4bf" fill="#2dd4bf" fillOpacity={0.12} strokeWidth={1.5} dot={false} name="Cultural Capital" />
               </RadarChart>
             </ResponsiveContainer>
@@ -974,7 +974,7 @@ function Modifiers() {
           <div className="cohort-detail">25&ndash;34 &middot; Weight 0.5</div>
           <div className="cohort-era">1995&ndash;2004</div>
         </div>
-        <div style={{ fontFamily: "var(--ra-mono)", fontSize: 10, color: "#383838", letterSpacing: "0.08em", paddingTop: 8 }}>
+        <div style={{ fontFamily: "var(--ra-mono)", fontSize: 10, color: "#666", letterSpacing: "0.08em", paddingTop: 8 }}>
           Stores with bimodal age distributions receive blended modifier weights
         </div>
       </div>
@@ -1005,7 +1005,7 @@ function Modifiers() {
             <div className="constraint-rule">{c.constraint}</div>
           </div>
         ))}
-        <div style={{ fontFamily: "var(--ra-mono)", fontSize: 10, color: "#383838", letterSpacing: "0.08em", paddingTop: 8 }}>
+        <div style={{ fontFamily: "var(--ra-mono)", fontSize: 10, color: "#666", letterSpacing: "0.08em", paddingTop: 8 }}>
           Era and genre affinities map to Suno/ACE-Step prompt constraints via Eno
         </div>
       </div>
