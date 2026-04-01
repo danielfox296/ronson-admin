@@ -260,6 +260,9 @@ export default function PromptComposer() {
     return () => clearInterval(interval);
   }, [sunoStatus, sunoIds]);
 
+  // Track which suno IDs have been downloaded and their song IDs
+  const [downloadedTracks, setDownloadedTracks] = useState<Record<string, string>>({});
+
   // Download completed Suno track to R2
   const sunoDownloadMutation = useMutation({
     mutationFn: (sunoId: string) => {
@@ -269,12 +272,9 @@ export default function PromptComposer() {
         body: { suno_id: sunoId, song_id: savedSongId },
       });
     },
-    onSuccess: (result) => {
+    onSuccess: (result, sunoId) => {
       setDownloadingSunoId('');
-      sessionStorage.removeItem('compose-output');
-      if (result.data.song_id) {
-        navigate(`/songs/${result.data.song_id}`);
-      }
+      setDownloadedTracks(prev => ({ ...prev, [sunoId]: result.data.song_id || result.data.suno_id }));
     },
     onError: () => { setDownloadingSunoId(''); },
   });
@@ -591,14 +591,24 @@ export default function PromptComposer() {
                           <p className="text-sm text-[rgba(255,255,255,0.87)]">{r.title || r.id}</p>
                           {r.duration && <p className="text-[10px] text-[rgba(255,255,255,0.4)]">{Math.round(r.duration)}s</p>}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => sunoDownloadMutation.mutate(r.id)}
-                          disabled={downloadingSunoId === r.id}
-                          className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
-                        >
-                          {downloadingSunoId === r.id ? 'Downloading...' : 'Download to Library'}
-                        </button>
+                        {downloadedTracks[r.id] ? (
+                          <a
+                            href={`/songs/${downloadedTracks[r.id]}`}
+                            onClick={(e) => { e.preventDefault(); navigate(`/songs/${downloadedTracks[r.id]}`); }}
+                            className="text-emerald-400 text-xs font-semibold hover:underline"
+                          >
+                            Saved — View
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => sunoDownloadMutation.mutate(r.id)}
+                            disabled={downloadingSunoId === r.id}
+                            className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                          >
+                            {downloadingSunoId === r.id ? 'Downloading...' : 'Download to Library'}
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
