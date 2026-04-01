@@ -279,6 +279,88 @@ export default function PromptComposer() {
     onError: () => { setDownloadingSunoId(''); },
   });
 
+  // ─── Suno Token Status ───
+  const [sunoTokenSeconds, setSunoTokenSeconds] = useState<number | null>(null);
+  const [sunoTokenConnected, setSunoTokenConnected] = useState(false);
+  const [sunoTokenRefreshing, setSunoTokenRefreshing] = useState(false);
+  const [sunoTokenError, setSunoTokenError] = useState('');
+
+  const fetchTokenStatus = useCallback(async () => {
+    try {
+      const result = await api<{ data: { has_token: boolean; seconds_remaining: number } }>('/api/suno/token-status');
+      setSunoTokenConnected(result.data.has_token);
+      setSunoTokenSeconds(result.data.seconds_remaining);
+      setSunoTokenError('');
+      return result.data;
+    } catch {
+      setSunoTokenConnected(false);
+      setSunoTokenSeconds(0);
+      return null;
+    }
+  }, []);
+
+  const refreshSunoToken = useCallback(async () => {
+    setSunoTokenRefreshing(true);
+    setSunoTokenError('');
+    try {
+      const clerkResp = await fetch('https://clerk.suno.com/v1/client?_clerk_js_version=5', { credentials: 'include' });
+      if (!clerkResp.ok) throw new Error('Clerk request failed — are you logged into suno.com?');
+      const clerkData = await clerkResp.json();
+      const session = clerkData?.response?.sessions?.find((s: any) => s.status === 'active');
+      if (!session) throw new Error('No active Suno session — log into suno.com first');
+      const jwt = session.last_active_token?.jwt;
+      if (!jwt) throw new Error('No token in Suno session');
+      const pushResult = await api<{ data: any }>('/api/suno/refresh', { method: 'POST', body: { token: jwt } });
+      if (pushResult.data?.cached) {
+        await fetchTokenStatus();
+      }
+    } catch (err: any) {
+      setSunoTokenError(err.message || 'Failed to refresh Suno token');
+    } finally {
+      setSunoTokenRefreshing(false);
+    }
+  }, [fetchTokenStatus]);
+
+  // Poll token status every 60s + auto-refresh if low
+  useEffect(() => {
+    fetchTokenStatus().then(data => {
+      if (data && (data.seconds_remaining < 600 || !data.has_token)) {
+        refreshSunoToken();
+      }
+    });
+    const interval = setInterval(fetchTokenStatus, 60000);
+    return () => clearInterval(interval);
+  }, [fetchTokenStatus, refreshSunoToken]);
+
+  // Local countdown tick every second
+  useEffect(() => {
+    if (sunoTokenSeconds === null || sunoTokenSeconds <= 0) return;
+    const tick = setInterval(() => {
+      setSunoTokenSeconds(prev => (prev !== null && prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [sunoTokenSeconds]);
+
+  const formatTokenTime = (secs: number) => {
+    if (secs <= 0) return 'expired';
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
+
+  const tokenStatusColor = !sunoTokenConnected || (sunoTokenSeconds !== null && sunoTokenSeconds <= 0)
+    ? '#e74c3c' // red
+    : (sunoTokenSeconds !== null && sunoTokenSeconds < 600)
+      ? '#f39c12' // yellow
+      : '#2ecc71'; // green
+
+  const tokenStatusLabel = !sunoTokenConnected || (sunoTokenSeconds !== null && sunoTokenSeconds <= 0)
+    ? 'Disconnected'
+    : (sunoTokenSeconds !== null && sunoTokenSeconds < 600)
+      ? 'Expiring'
+      : 'Connected';
+
   const hasOutput = !!(lyrics || style || styleNegations || voice);
   const selectClass = "bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-2.5 text-sm w-full";
 
@@ -503,6 +585,40 @@ export default function PromptComposer() {
                     className="w-full accent-[#e91e8c] h-1.5"
                   />
                 </div>
+              </div>
+
+              {/* Suno Token Status */}
+              <div className="flex items-center gap-3 bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl px-4 py-2.5">
+                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                  {tokenStatusLabel !== 'Disconnected' && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40" style={{ backgroundColor: tokenStatusColor }} />
+                  )}
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: tokenStatusColor }} />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: tokenStatusColor }}>
+                  Suno {tokenStatusLabel}
+                </span>
+                {sunoTokenSeconds !== null && sunoTokenSeconds > 0 && (
+                  <span className="text-[10px] text-[rgba(255,255,255,0.4)] tabular-nums">
+                    {formatTokenTime(sunoTokenSeconds)}
+                  </span>
+                )}
+                <div className="flex-1" />
+                {sunoTokenError && (
+                  <span className="text-[10px] text-[#e74c3c] truncate max-w-[200px]" title={sunoTokenError}>
+                    {sunoTokenError}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={refreshSunoToken}
+                  disabled={sunoTokenRefreshing}
+                  className="text-[10px] font-bold uppercase tracking-widest text-[#4a90a4] hover:text-[#5ba3b8] transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {sunoTokenRefreshing ? (
+                    <><span className="inline-block w-2.5 h-2.5 border border-[#4a90a4]/30 border-t-[#4a90a4] rounded-full animate-spin" /> Refreshing...</>
+                  ) : 'Refresh'}
+                </button>
               </div>
 
               {/* Actions row */}
