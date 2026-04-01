@@ -303,13 +303,15 @@ export default function PromptComposer() {
     setSunoTokenRefreshing(true);
     setSunoTokenError('');
     try {
-      const clerkResp = await fetch('https://clerk.suno.com/v1/client?_clerk_js_version=5', { credentials: 'include' });
-      if (!clerkResp.ok) throw new Error('Clerk request failed — are you logged into suno.com?');
-      const clerkData = await clerkResp.json();
-      const session = clerkData?.response?.sessions?.find((s: any) => s.status === 'active');
-      if (!session) throw new Error('No active Suno session — log into suno.com first');
-      const jwt = session.last_active_token?.jwt;
-      if (!jwt) throw new Error('No token in Suno session');
+      // Prompt user to paste a token from suno.com console
+      const jwt = window.prompt(
+        'Paste your Suno JWT token.\n\n' +
+        'To get it: open suno.com → DevTools Console → run:\n' +
+        "fetch('https://clerk.suno.com/v1/client?_clerk_js_version=5',{credentials:'include'}).then(r=>r.json()).then(d=>{const jwt=d.response.sessions.find(s=>s.status==='active').last_active_token.jwt;console.log(jwt)})"
+      );
+      if (!jwt || !jwt.startsWith('eyJ')) {
+        throw new Error('No valid token provided');
+      }
       const pushResult = await api<{ data: any }>('/api/suno/refresh', { method: 'POST', body: { token: jwt } });
       if (pushResult.data?.cached) {
         await fetchTokenStatus();
@@ -321,13 +323,9 @@ export default function PromptComposer() {
     }
   }, [fetchTokenStatus]);
 
-  // Poll token status every 60s + auto-refresh if low
+  // Poll token status every 60s
   useEffect(() => {
-    fetchTokenStatus().then(data => {
-      if (data && (data.seconds_remaining < 600 || !data.has_token)) {
-        refreshSunoToken();
-      }
-    });
+    fetchTokenStatus();
     const interval = setInterval(fetchTokenStatus, 60000);
     return () => clearInterval(interval);
   }, [fetchTokenStatus, refreshSunoToken]);
