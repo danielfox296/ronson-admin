@@ -29,6 +29,8 @@ export default function PromptComposer() {
   const [sunoStatus, setSunoStatus] = useState<string>(''); // '', 'submitting', 'generating', 'complete', 'error'
   const [sunoError, setSunoError] = useState('');
   const [sunoResults, setSunoResults] = useState<any[]>([]);
+  const [savedSongId, setSavedSongId] = useState('');
+  const [downloadingSunoId, setDownloadingSunoId] = useState('');
 
   // Restore cached output on mount (only if no URL params drove initial state)
   useEffect(() => {
@@ -200,15 +202,8 @@ export default function PromptComposer() {
   const sunoSubmitMutation = useMutation({
     mutationFn: async () => {
       // First save the draft so we have a song_id
-      let songId = '';
-      if (!saveMutation.data?.data?.id) {
-        let audio_file_url = '';
-        let duration_seconds = 0;
-        if (droppedFile) {
-          const uploaded = await uploadFile(droppedFile.file);
-          audio_file_url = uploaded.url;
-          duration_seconds = Math.round(droppedFile.duration);
-        }
+      let songId = savedSongId;
+      if (!songId) {
         const saved = await api<{ data: any }>('/api/compose/save', {
           method: 'POST',
           body: {
@@ -218,13 +213,10 @@ export default function PromptComposer() {
             prompt_parameters: { style, style_negations: styleNegations, voice, weirdness, style_influence: styleInfluence },
             generation_system_id: selectedGenSystem || undefined,
             title: promptTitle || 'Composed Prompt',
-            audio_file_url: audio_file_url || undefined,
-            duration_seconds: duration_seconds || undefined,
           },
         });
         songId = saved.data.id;
-      } else {
-        songId = saveMutation.data.data.id;
+        setSavedSongId(songId);
       }
 
       return api<{ data: any }>('/api/suno/submit', {
@@ -270,14 +262,21 @@ export default function PromptComposer() {
 
   // Download completed Suno track to R2
   const sunoDownloadMutation = useMutation({
-    mutationFn: (sunoId: string) => api<{ data: any }>('/api/suno/download', {
-      method: 'POST',
-      body: { suno_id: sunoId, song_id: saveMutation.data?.data?.id },
-    }),
-    onSuccess: (result) => {
-      sessionStorage.removeItem('compose-output');
-      navigate(`/songs/${result.data.song_id}`);
+    mutationFn: (sunoId: string) => {
+      setDownloadingSunoId(sunoId);
+      return api<{ data: any }>('/api/suno/download', {
+        method: 'POST',
+        body: { suno_id: sunoId, song_id: savedSongId },
+      });
     },
+    onSuccess: (result) => {
+      setDownloadingSunoId('');
+      sessionStorage.removeItem('compose-output');
+      if (result.data.song_id) {
+        navigate(`/songs/${result.data.song_id}`);
+      }
+    },
+    onError: () => { setDownloadingSunoId(''); },
   });
 
   const hasOutput = !!(lyrics || style || styleNegations || voice);
@@ -595,10 +594,10 @@ export default function PromptComposer() {
                         <button
                           type="button"
                           onClick={() => sunoDownloadMutation.mutate(r.id)}
-                          disabled={sunoDownloadMutation.isPending}
-                          className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                          disabled={downloadingSunoId === r.id}
+                          className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
                         >
-                          {sunoDownloadMutation.isPending ? 'Downloading...' : 'Download to Library'}
+                          {downloadingSunoId === r.id ? 'Downloading...' : 'Download to Library'}
                         </button>
                       </div>
                     ))}
