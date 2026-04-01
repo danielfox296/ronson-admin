@@ -22,6 +22,14 @@ export default function PromptComposer() {
   const [styleNegations, setStyleNegations] = useState('');
   const [voice, setVoice] = useState('');
 
+  // Suno parameters
+  const [weirdness, setWeirdness] = useState(0.5);
+  const [styleInfluence, setStyleInfluence] = useState(0.5);
+  const [sunoIds, setSunoIds] = useState<string[]>([]);
+  const [sunoStatus, setSunoStatus] = useState<string>(''); // '', 'submitting', 'generating', 'complete', 'error'
+  const [sunoError, setSunoError] = useState('');
+  const [sunoResults, setSunoResults] = useState<any[]>([]);
+
   // Restore cached output on mount (only if no URL params drove initial state)
   useEffect(() => {
     if (searchParams.get('icpId')) return; // URL params take priority
@@ -185,6 +193,90 @@ export default function PromptComposer() {
     onSuccess: (result) => {
       sessionStorage.removeItem('compose-output');
       navigate(`/songs/${result.data.id}`);
+    },
+  });
+
+  // Submit to Suno
+  const sunoSubmitMutation = useMutation({
+    mutationFn: async () => {
+      // First save the draft so we have a song_id
+      let songId = '';
+      if (!saveMutation.data?.data?.id) {
+        let audio_file_url = '';
+        let duration_seconds = 0;
+        if (droppedFile) {
+          const uploaded = await uploadFile(droppedFile.file);
+          audio_file_url = uploaded.url;
+          duration_seconds = Math.round(droppedFile.duration);
+        }
+        const saved = await api<{ data: any }>('/api/compose/save', {
+          method: 'POST',
+          body: {
+            store_icp_id: selectedIcpId,
+            prompt_text: lyrics,
+            flow_factor_values: {},
+            prompt_parameters: { style, style_negations: styleNegations, voice, weirdness, style_influence: styleInfluence },
+            generation_system_id: selectedGenSystem || undefined,
+            title: promptTitle || 'Composed Prompt',
+            audio_file_url: audio_file_url || undefined,
+            duration_seconds: duration_seconds || undefined,
+          },
+        });
+        songId = saved.data.id;
+      } else {
+        songId = saveMutation.data.data.id;
+      }
+
+      return api<{ data: any }>('/api/suno/submit', {
+        method: 'POST',
+        body: {
+          song_id: songId,
+          lyrics,
+          style,
+          style_negations: styleNegations,
+          voice,
+          title: promptTitle || 'Untitled',
+          weirdness,
+          style_influence: styleInfluence,
+        },
+      });
+    },
+    onSuccess: (result) => {
+      setSunoIds(result.data.suno_ids || []);
+      setSunoStatus('generating');
+      setSunoError('');
+    },
+    onError: (err: Error) => {
+      setSunoStatus('error');
+      setSunoError(err.message);
+    },
+  });
+
+  // Poll Suno status
+  useEffect(() => {
+    if (sunoStatus !== 'generating' || sunoIds.length === 0) return;
+    const interval = setInterval(async () => {
+      try {
+        const result = await api<{ data: any[] }>(`/api/suno/status/${sunoIds.join(',')}`);
+        setSunoResults(result.data);
+        const allComplete = result.data.every((s: any) => s.status === 'complete');
+        const anyError = result.data.some((s: any) => s.status === 'error');
+        if (allComplete) setSunoStatus('complete');
+        else if (anyError) { setSunoStatus('error'); setSunoError('One or more tracks failed in Suno'); }
+      } catch { /* keep polling */ }
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [sunoStatus, sunoIds]);
+
+  // Download completed Suno track to R2
+  const sunoDownloadMutation = useMutation({
+    mutationFn: (sunoId: string) => api<{ data: any }>('/api/suno/download', {
+      method: 'POST',
+      body: { suno_id: sunoId, song_id: saveMutation.data?.data?.id },
+    }),
+    onSuccess: (result) => {
+      sessionStorage.removeItem('compose-output');
+      navigate(`/songs/${result.data.song_id}`);
     },
   });
 
@@ -386,6 +478,34 @@ export default function PromptComposer() {
                 </div>
               </div>
 
+              {/* Suno Parameters */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Weirdness</label>
+                    <span className="text-xs text-[rgba(255,255,255,0.4)] tabular-nums">{Math.round(weirdness * 100)}%</span>
+                  </div>
+                  <input
+                    type="range" min="0" max="1" step="0.1"
+                    value={weirdness}
+                    onChange={(e) => setWeirdness(Number(e.target.value))}
+                    className="w-full accent-[#e91e8c] h-1.5"
+                  />
+                </div>
+                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Style Influence</label>
+                    <span className="text-xs text-[rgba(255,255,255,0.4)] tabular-nums">{Math.round(styleInfluence * 100)}%</span>
+                  </div>
+                  <input
+                    type="range" min="0" max="1" step="0.1"
+                    value={styleInfluence}
+                    onChange={(e) => setStyleInfluence(Number(e.target.value))}
+                    className="w-full accent-[#e91e8c] h-1.5"
+                  />
+                </div>
+              </div>
+
               {/* Actions row */}
               <div className="flex items-center gap-3">
                 <button
@@ -404,47 +524,6 @@ export default function PromptComposer() {
                   placeholder="Song title..."
                   className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm w-48"
                 />
-                {/* MP3 Drop */}
-                <label
-                  className="border border-dashed border-[rgba(255,255,255,0.12)] rounded-lg px-3 py-2 text-[10px] text-[rgba(255,255,255,0.4)] cursor-pointer hover:border-[#4a90a4]/40 transition-colors flex items-center gap-1.5"
-                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'rgba(74,144,164,0.5)'; }}
-                  onDragLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.style.borderColor = '';
-                    const file = e.dataTransfer.files[0];
-                    if (file && /\.(mp3|wav|flac)$/i.test(file.name)) {
-                      const audio = new Audio(URL.createObjectURL(file));
-                      audio.addEventListener('loadedmetadata', () => {
-                        setDroppedFile({ file, name: file.name, duration: audio.duration });
-                        if (!promptTitle) {
-                          setPromptTitle(file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
-                        }
-                      });
-                    }
-                  }}
-                >
-                  {droppedFile ? (
-                    <span className="text-[#4a90a4]">{droppedFile.name} ({Math.round(droppedFile.duration)}s)</span>
-                  ) : (
-                    <>
-                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
-                      Drop MP3
-                    </>
-                  )}
-                  <input type="file" accept=".mp3,.wav,.flac" className="hidden" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const audio = new Audio(URL.createObjectURL(file));
-                      audio.addEventListener('loadedmetadata', () => {
-                        setDroppedFile({ file, name: file.name, duration: audio.duration });
-                        if (!promptTitle) {
-                          setPromptTitle(file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
-                        }
-                      });
-                    }
-                  }} />
-                </label>
                 <select
                   value={selectedGenSystem}
                   onChange={(e) => setSelectedGenSystem(e.target.value)}
@@ -457,11 +536,82 @@ export default function PromptComposer() {
                   type="button"
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending}
-                  className="bg-[#4a90a4] text-white py-2 px-5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:bg-[#5ba3b8] transition-colors"
+                  className="bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.5)] py-2 px-5 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.1)] transition-colors"
                 >
                   {saveMutation.isPending ? 'Saving...' : 'Save Draft'}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => { setSunoStatus('submitting'); sunoSubmitMutation.mutate(); }}
+                  disabled={sunoSubmitMutation.isPending || sunoStatus === 'generating'}
+                  className="bg-gradient-to-r from-[#e91e8c] to-[#c41874] text-white py-2 px-5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-all flex items-center gap-2"
+                >
+                  {sunoStatus === 'submitting' || sunoSubmitMutation.isPending ? (
+                    <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Submitting...</>
+                  ) : sunoStatus === 'generating' ? (
+                    <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Generating...</>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                      Submit to Suno
+                    </>
+                  )}
+                </button>
               </div>
+
+              {/* Suno Status */}
+              {sunoStatus === 'generating' && (
+                <div className="bg-[rgba(233,30,140,0.08)] border border-[rgba(233,30,140,0.2)] rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="inline-block w-4 h-4 border-2 border-[#e91e8c]/30 border-t-[#e91e8c] rounded-full animate-spin" />
+                    <div>
+                      <p className="text-sm text-[rgba(255,255,255,0.87)]">Suno is generating your track...</p>
+                      <p className="text-[10px] text-[rgba(255,255,255,0.4)] mt-0.5">This usually takes 1-3 minutes. Polling every 8s.</p>
+                    </div>
+                  </div>
+                  {sunoResults.length > 0 && (
+                    <div className="mt-3 space-y-1">
+                      {sunoResults.map((r: any) => (
+                        <div key={r.id} className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.55)]">
+                          <span className={r.status === 'complete' ? 'text-emerald-400' : 'text-[rgba(255,255,255,0.3)]'}>{r.status}</span>
+                          <span>{r.title || r.id}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {sunoStatus === 'complete' && sunoResults.length > 0 && (
+                <div className="bg-[rgba(46,204,113,0.08)] border border-[rgba(46,204,113,0.2)] rounded-xl p-4">
+                  <p className="text-sm text-emerald-400 font-semibold mb-3">Generation complete!</p>
+                  <div className="space-y-2">
+                    {sunoResults.filter((r: any) => r.status === 'complete').map((r: any) => (
+                      <div key={r.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-[rgba(255,255,255,0.87)]">{r.title || r.id}</p>
+                          {r.duration && <p className="text-[10px] text-[rgba(255,255,255,0.4)]">{Math.round(r.duration)}s</p>}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => sunoDownloadMutation.mutate(r.id)}
+                          disabled={sunoDownloadMutation.isPending}
+                          className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                        >
+                          {sunoDownloadMutation.isPending ? 'Downloading...' : 'Download to Library'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {sunoStatus === 'error' && sunoError && (
+                <div className="bg-[rgba(231,76,60,0.1)] border border-[rgba(231,76,60,0.2)] rounded-xl p-4 text-[#e74c3c] text-sm">
+                  {sunoError}
+                </div>
+              )}
+
               {saveMutation.isError && (
                 <p className="text-[#e74c3c] text-xs">{(saveMutation.error as Error).message}</p>
               )}
