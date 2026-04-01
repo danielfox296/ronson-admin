@@ -237,7 +237,17 @@ export default function StoreDetail() {
       {/* Play Log Tab */}
       {tab === 'playlog' && (
         <div>
-          <h2 className="font-medium mb-3 text-[rgba(255,255,255,0.87)]">Play Log</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-medium text-[rgba(255,255,255,0.87)]">Play Log</h2>
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-[rgba(255,255,255,0.4)]">
+                <span className="text-[rgba(255,255,255,0.7)] font-medium tabular-nums">{playEvents.length}</span> plays
+                {playEvents.length > 0 && (
+                  <> · <span className="text-[rgba(255,255,255,0.7)] font-medium tabular-nums">{Math.round(playEvents.reduce((sum: number, ev: any) => sum + (ev.duration_played || 0), 0) / 60)}</span> min total</>
+                )}
+              </span>
+            </div>
+          </div>
           <table className="w-full bg-[#1b1b24] rounded-xl text-sm">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.09)]">
