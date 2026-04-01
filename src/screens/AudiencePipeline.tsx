@@ -571,7 +571,7 @@ export default function AudiencePipeline() {
                             {isAnalyzing ? 'Analyzing…' : 'Re-analyze'}
                           </button>
                           {rt.analyzed && (
-                            <button type="button" onClick={() => navigate(`/clients/${clientId}/stores/${storeId}/audiences/${icpId}/compose/${rt.id}`)} className="text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] text-xs transition-colors shrink-0">Compose</button>
+                            <button type="button" onClick={() => navigate(`/compose?clientId=${clientId}&storeId=${storeId}&icpId=${icpId}&trackId=${rt.id}`)} className="text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] text-xs transition-colors shrink-0">Compose</button>
                           )}
                           {analyzeErrors[rt.id] && <span className="text-[#ea6152] text-[10px] truncate">{analyzeErrors[rt.id]}</span>}
                         </div>

@@ -1,18 +1,19 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, uploadFile } from '../lib/api.js';
 
 export default function PromptComposer() {
   const navigate = useNavigate();
-  const [selectedClientId, setSelectedClientId] = useState('');
-  const [selectedStoreId, setSelectedStoreId] = useState('');
-  const [selectedIcpId, setSelectedIcpId] = useState('');
-  const [additionalInstructions, setAdditionalInstructions] = useState('');
+  const [searchParams] = useSearchParams();
+  const [selectedClientId, setSelectedClientId] = useState(searchParams.get('clientId') || '');
+  const [selectedStoreId, setSelectedStoreId] = useState(searchParams.get('storeId') || '');
+  const [selectedIcpId, setSelectedIcpId] = useState(searchParams.get('icpId') || '');
   const [creativeDirection, setCreativeDirection] = useState('');
   const [selectedGenSystem, setSelectedGenSystem] = useState('');
   const [promptTitle, setPromptTitle] = useState('');
   const [generatingTrackId, setGeneratingTrackId] = useState<string | null>(null);
+  const [autoGenerateTrackId] = useState(searchParams.get('trackId') || '');
   const [droppedFile, setDroppedFile] = useState<{ file: File; name: string; duration: number } | null>(null);
 
   // Generated output fields
@@ -21,8 +22,9 @@ export default function PromptComposer() {
   const [styleNegations, setStyleNegations] = useState('');
   const [voice, setVoice] = useState('');
 
-  // Restore cached output on mount
+  // Restore cached output on mount (only if no URL params drove initial state)
   useEffect(() => {
+    if (searchParams.get('icpId')) return; // URL params take priority
     try {
       const cached = sessionStorage.getItem('compose-output');
       if (cached) {
@@ -101,6 +103,16 @@ export default function PromptComposer() {
   });
   const refTracks = refTracksData?.data || [];
 
+  // Auto-trigger "Use Style" when arriving from ICP page with a trackId
+  const [autoTriggered, setAutoTriggered] = useState(false);
+  useEffect(() => {
+    if (autoGenerateTrackId && selectedIcpId && refTracks.length > 0 && !autoTriggered && !lyrics) {
+      setAutoTriggered(true);
+      setGeneratingTrackId(autoGenerateTrackId);
+      generateFromTrackMutation.mutate(autoGenerateTrackId);
+    }
+  }, [autoGenerateTrackId, selectedIcpId, refTracks, autoTriggered, lyrics]);
+
   const { data: gsData } = useQuery({
     queryKey: ['generation-systems'],
     queryFn: () => api<{ data: any[] }>('/api/generation-systems'),
@@ -114,7 +126,6 @@ export default function PromptComposer() {
       body: {
         store_icp_id: selectedIcpId,
         flow_factor_values: {},
-        additional_instructions: additionalInstructions || undefined,
         creative_direction: creativeDirection || undefined,
       },
     }),
@@ -133,7 +144,6 @@ export default function PromptComposer() {
       body: {
         store_icp_id: selectedIcpId,
         flow_factor_values: {},
-        additional_instructions: additionalInstructions || undefined,
         creative_direction: creativeDirection || undefined,
         reference_track_id: trackId,
       },
@@ -233,12 +243,12 @@ export default function PromptComposer() {
         <div className="space-y-4">
           {/* Creative Direction */}
           <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-2">Creative Direction</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-2">What's this song about?</label>
             <textarea
               value={creativeDirection}
               onChange={(e) => setCreativeDirection(e.target.value)}
-              placeholder="nostalgia, rainy day, self-reflection, late-night drive..."
-              rows={2}
+              placeholder="missing someone on a rainy night, the feeling when you walk into a new city, letting go of something that used to matter..."
+              rows={3}
               className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm resize-none placeholder:text-[rgba(255,255,255,0.28)]"
             />
           </div>
@@ -284,18 +294,6 @@ export default function PromptComposer() {
                 <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.38)] text-xs">Select an audience to see reference tracks</div>
               )}
             </div>
-          </div>
-
-          {/* Additional Instructions */}
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-2">Additional Instructions</label>
-            <textarea
-              value={additionalInstructions}
-              onChange={(e) => setAdditionalInstructions(e.target.value)}
-              placeholder="e.g., 'Under 120 BPM, no vocals, ambient textures...'"
-              rows={3}
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm resize-none placeholder:text-[rgba(255,255,255,0.28)]"
-            />
           </div>
 
           {/* Generate button */}
