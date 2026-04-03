@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 
@@ -25,8 +25,8 @@ function textColor(score: number): string {
 
 export default function OutcomeScores({ songId }: { songId: string }) {
   const queryClient = useQueryClient();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Record<string, number>>({});
 
   const { data } = useQuery({
     queryKey: ['outcome-scores', songId],
@@ -34,43 +34,59 @@ export default function OutcomeScores({ songId }: { songId: string }) {
   });
 
   const saveMutation = useMutation({
-    mutationFn: ({ outcome_id, score }: { outcome_id: string; score: number }) =>
-      api(`/api/songs/${songId}/outcome-scores`, { method: 'PUT', body: { scores: [{ outcome_id, score }] } }),
+    mutationFn: (scores: { outcome_id: string; score: number }[]) =>
+      api(`/api/songs/${songId}/outcome-scores`, { method: 'PUT', body: { scores } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['outcome-scores', songId] });
-      setEditingId(null);
+      setEditing(false);
     },
   });
 
   const scores = data?.data || [];
 
+  const startEdit = () => {
+    const form: Record<string, number> = {};
+    scores.forEach((s) => { form[s.outcome_id] = s.score; });
+    setEditForm(form);
+    setEditing(true);
+  };
+
+  const handleSave = () => {
+    const batch = Object.entries(editForm).map(([outcome_id, score]) => ({ outcome_id, score }));
+    saveMutation.mutate(batch);
+  };
+
   return (
-    <div className="mb-6">
-      <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-3">Outcome Affinity</h2>
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Outcome Strength</h2>
+        {!editing ? (
+          <button type="button" onClick={startEdit} className="text-[#5ea2b6] text-[10px] font-bold uppercase tracking-widest hover:text-[#70b4c8]">Edit</button>
+        ) : (
+          <div className="flex gap-2">
+            <button type="button" onClick={handleSave} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs">Save</button>
+            <button type="button" onClick={() => setEditing(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
+          </div>
+        )}
+      </div>
       <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)]">
         {scores.map((s) => (
-          <div key={s.outcome_id} className="flex items-center gap-3 px-4 py-2.5 group">
-            <span className="text-xs text-[rgba(255,255,255,0.5)] w-44 shrink-0">{s.outcome_name}</span>
+          <div key={s.outcome_id} className="flex items-center gap-3 px-4 py-2.5">
+            <span className="text-xs text-[rgba(255,255,255,0.5)] w-36 shrink-0 truncate">{s.outcome_name}</span>
 
-            {editingId === s.outcome_id ? (
+            {editing ? (
               <div className="flex items-center gap-2 flex-1">
                 <input
-                  type="number"
+                  type="range"
                   min={0}
                   max={100}
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  autoFocus
-                  className="w-20 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-1 text-xs text-right"
+                  value={editForm[s.outcome_id] ?? s.score}
+                  onChange={(e) => setEditForm({ ...editForm, [s.outcome_id]: parseInt(e.target.value) })}
+                  className="flex-1 h-1.5 appearance-none rounded-full bg-[rgba(255,255,255,0.08)] accent-[#5ea2b6] cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#5ea2b6]"
                 />
-                <button
-                  type="button"
-                  onClick={() => saveMutation.mutate({ outcome_id: s.outcome_id, score: parseInt(editValue) || 0 })}
-                  className="bg-[#5ea2b6] text-white px-2 py-1 rounded text-[10px] hover:bg-[#70b4c8]"
-                >
-                  Save
-                </button>
-                <button type="button" onClick={() => setEditingId(null)} className="text-[rgba(255,255,255,0.3)] text-[10px]">Cancel</button>
+                <span className="text-xs font-mono w-8 text-right text-[rgba(255,255,255,0.5)]">
+                  {editForm[s.outcome_id] ?? s.score}
+                </span>
               </div>
             ) : (
               <>
@@ -86,13 +102,6 @@ export default function OutcomeScores({ songId }: { songId: string }) {
                 {s.is_override && (
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-[rgba(230,126,34,0.15)] text-[#e98f38]">manual</span>
                 )}
-                <button
-                  type="button"
-                  onClick={() => { setEditingId(s.outcome_id); setEditValue(String(s.score)); }}
-                  className="opacity-0 group-hover:opacity-100 text-[#5ea2b6] text-[10px] transition-opacity"
-                >
-                  Edit
-                </button>
               </>
             )}
           </div>
