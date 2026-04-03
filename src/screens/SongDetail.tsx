@@ -51,8 +51,6 @@ export default function SongDetail() {
   const [showAssign, setShowAssign] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleVal, setTitleVal] = useState('');
-  const [editingStatus, setEditingStatus] = useState(false);
-  const [statusVal, setStatusVal] = useState('');
   const [storeSearch, setStoreSearch] = useState('');
   const [uploading, setUploading] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState(false);
@@ -151,11 +149,22 @@ export default function SongDetail() {
     ? stores.filter((s: any) => (s.name || '').toLowerCase().includes(storeSearch.toLowerCase()))
     : stores;
 
-  // Build flow entries from the 31 config definitions, filling with song values where they exist
+  // Build flow entries from the 31 config definitions, with value_type metadata
   const allFactorConfigs = flowFactorConfigs?.data || [];
-  const flowEntries: [string, unknown][] = allFactorConfigs.length > 0
-    ? allFactorConfigs.map((fc: any) => [fc.name, editingFlow ? (flowForm[fc.name] ?? '') : (flowFactors[fc.name] ?? '')])
-    : Object.entries(editingFlow ? flowForm : flowFactors);
+  const flowEntries = allFactorConfigs.length > 0
+    ? allFactorConfigs.map((fc: any) => ({
+        key: fc.name as string,
+        label: fc.display_name as string,
+        value: editingFlow ? (flowForm[fc.name] ?? '') : (flowFactors[fc.name] ?? ''),
+        valueType: fc.value_type as string, // 'numeric' | 'scale' | 'enum' | 'text'
+        rangeLow: fc.value_range_low as number | null,
+        rangeHigh: fc.value_range_high as number | null,
+        options: fc.value_options as string[] | null,
+      }))
+    : Object.entries(editingFlow ? flowForm : flowFactors).map(([k, v]) => ({
+        key: k, label: k, value: v, valueType: isNumericValue(v) ? 'numeric' : 'text',
+        rangeLow: null, rangeHigh: null, options: null,
+      }));
 
   return (
     <div>
@@ -199,24 +208,17 @@ export default function SongDetail() {
 
           <span className="text-[rgba(255,255,255,0.1)]">|</span>
 
-          {editingStatus ? (
-            <div className="flex items-center gap-2">
-              <select value={statusVal} onChange={(e) => setStatusVal(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-xs">
-                <option value="draft">Draft</option>
-                <option value="generated">Generated</option>
-                <option value="active">Active</option>
-                <option value="flagged">Flagged</option>
-                <option value="removed">Removed</option>
-              </select>
-              <button type="button" onClick={() => updateMutation.mutate({ status: statusVal })} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs">Save</button>
-              <button type="button" onClick={() => setEditingStatus(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <StatusBadge status={song.status || 'active'} />
-              <button type="button" onClick={() => { setStatusVal(song.status || 'active'); setEditingStatus(true); }} className="text-[#5ea2b6] hover:text-[#70b4c8] text-[10px]">change</button>
-            </div>
-          )}
+          <select
+            value={song.status || 'active'}
+            onChange={(e) => updateMutation.mutate({ status: e.target.value })}
+            className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-xs text-[rgba(255,255,255,0.7)] cursor-pointer"
+          >
+            <option value="draft">Draft</option>
+            <option value="generated">Generated</option>
+            <option value="active">Active</option>
+            <option value="flagged">Flagged</option>
+            <option value="removed">Removed</option>
+          </select>
         </div>
 
         <div className="flex items-center gap-4 text-xs text-[rgba(255,255,255,0.4)]">
@@ -288,40 +290,52 @@ export default function SongDetail() {
                 )}
               </div>
               <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)] max-h-[600px] overflow-y-auto">
-                {flowEntries.map(([k, v]) => {
-                  const numeric = isNumericValue(v);
-                  const numVal = numeric ? Number(v) : 0;
+                {flowEntries.map((f) => {
+                  const isSlider = f.valueType === 'numeric' || f.valueType === 'scale';
+                  const numVal = isSlider ? Number(f.value) || 0 : 0;
+                  const min = f.rangeLow ?? 0;
+                  const max = f.rangeHigh ?? 100;
+                  const pct = max > min ? ((numVal - min) / (max - min)) * 100 : 0;
                   return (
-                    <div key={k} className="flex items-center gap-2 px-3 py-1.5 text-[11px]">
-                      <span className="text-[rgba(255,255,255,0.4)] w-28 shrink-0 truncate">{k}</span>
+                    <div key={f.key} className="flex items-center gap-2 px-3 py-1.5 text-[11px]">
+                      <span className="text-[rgba(255,255,255,0.4)] w-28 shrink-0 truncate" title={f.label}>{f.label}</span>
                       {editingFlow ? (
-                        numeric ? (
+                        isSlider ? (
                           <div className="flex items-center gap-1 flex-1">
                             <input
-                              type="range" min={0} max={100} step={0.1}
-                              value={Number(flowForm[k]) || 0}
-                              onChange={(e) => setFlowForm({ ...flowForm, [k]: e.target.value })}
+                              type="range" min={min} max={max} step={f.valueType === 'scale' ? 1 : 0.1}
+                              value={Number(flowForm[f.key]) || min}
+                              onChange={(e) => setFlowForm({ ...flowForm, [f.key]: e.target.value })}
                               className="flex-1 h-1 appearance-none rounded-full bg-[rgba(255,255,255,0.08)] accent-[#5ea2b6] cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#5ea2b6]"
                             />
-                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{Number(flowForm[k] || 0).toFixed(1)}</span>
+                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{f.valueType === 'scale' ? Math.round(Number(flowForm[f.key]) || min) : Number(flowForm[f.key] || min).toFixed(1)}</span>
                           </div>
+                        ) : f.valueType === 'enum' && f.options ? (
+                          <select
+                            value={flowForm[f.key] || ''}
+                            onChange={(e) => setFlowForm({ ...flowForm, [f.key]: e.target.value })}
+                            className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-0.5 text-[11px] flex-1"
+                          >
+                            <option value="">—</option>
+                            {f.options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
                         ) : (
                           <input
-                            value={flowForm[k] || ''}
-                            onChange={(e) => setFlowForm({ ...flowForm, [k]: e.target.value })}
+                            value={flowForm[f.key] || ''}
+                            onChange={(e) => setFlowForm({ ...flowForm, [f.key]: e.target.value })}
                             className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-0.5 text-[11px] flex-1"
                           />
                         )
                       ) : (
-                        numeric ? (
+                        isSlider && String(f.value) !== '' ? (
                           <>
                             <div className="flex-1 h-1 bg-[rgba(255,255,255,0.04)] rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-[rgba(255,255,255,0.18)]" style={{ width: `${Math.min(100, numVal)}%` }} />
+                              <div className="h-full rounded-full bg-[rgba(255,255,255,0.18)]" style={{ width: `${Math.min(100, pct)}%` }} />
                             </div>
-                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{numVal % 1 === 0 ? numVal : numVal.toFixed(1)}</span>
+                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{f.valueType === 'scale' ? Math.round(numVal) : numVal.toFixed(1)}</span>
                           </>
                         ) : (
-                          <span className="text-[rgba(255,255,255,0.7)] flex-1 text-right truncate">{String(v) || <span className="text-[rgba(255,255,255,0.15)]">&mdash;</span>}</span>
+                          <span className="text-[rgba(255,255,255,0.7)] flex-1 text-right truncate">{String(f.value) || <span className="text-[rgba(255,255,255,0.15)]">&mdash;</span>}</span>
                         )
                       )}
                     </div>

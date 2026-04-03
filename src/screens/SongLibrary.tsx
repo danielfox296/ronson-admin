@@ -2,20 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api, uploadFile } from '../lib/api.js';
-import { humanize, formatDuration } from '../lib/utils.js';
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
-    generated: 'bg-[rgba(94,162,182,0.15)] text-[#5ea2b6]',
-    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]',
-    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
-    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
-    removed: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
-    archived: 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]',
-  };
-  return <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[status] || 'bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
-}
+import { formatDuration } from '../lib/utils.js';
 
 type Filter = 'all' | 'unassigned' | 'active' | 'flagged';
 
@@ -237,7 +224,19 @@ export default function SongLibrary() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4"><StatusBadge status={s.status || 'active'} /></td>
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={s.status || 'active'}
+                      onChange={async (e) => { await api(`/api/songs/${s.id}`, { method: 'PUT', body: { status: e.target.value } }); queryClient.invalidateQueries({ queryKey: ['songs'] }); }}
+                      className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-xs text-[rgba(255,255,255,0.7)] cursor-pointer"
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="generated">Generated</option>
+                      <option value="active">Active</option>
+                      <option value="flagged">Flagged</option>
+                      <option value="removed">Removed</option>
+                    </select>
+                  </td>
                   <td className="px-6 py-4 text-center">
                     {s.loves > 0 ? (
                       <span className="text-[#70d4b3] font-semibold text-sm">{s.loves}</span>
@@ -257,7 +256,7 @@ export default function SongLibrary() {
                       <div className="flex flex-wrap gap-1">
                         {s.store_playlists.slice(0, 2).map((sp: any) => (
                           <span key={sp.id || sp.store_id} className="px-2 py-0.5 rounded-full text-[10px] bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.55)]">
-                            {sp.store?.name || 'Store'}
+                            {sp.store?.name || '—'}
                           </span>
                         ))}
                         {s.store_playlists.length > 2 && (
@@ -265,7 +264,7 @@ export default function SongLibrary() {
                         )}
                       </div>
                     ) : (s._count?.store_playlists ?? 0) > 0 ? (
-                      <span className="text-xs text-[rgba(255,255,255,0.45)]">{s._count.store_playlists} store{s._count.store_playlists !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-[rgba(255,255,255,0.45)]">{s._count.store_playlists}</span>
                     ) : (
                       <span className="text-[rgba(255,255,255,0.15)] text-sm">—</span>
                     )}
