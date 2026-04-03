@@ -246,19 +246,47 @@ export default function SongDetail() {
             {hasMp3 ? (
               <div>
                 <audio controls src={song.audio_file_url} className="w-full" />
-                <label className="flex items-center justify-center gap-1.5 mt-2 text-[10px] text-[rgba(255,255,255,0.25)] hover:text-[#5ea2b6] cursor-pointer transition-colors">
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
-                  {uploading ? 'Uploading...' : 'Replace audio'}
-                  <input type="file" accept=".mp3,.wav,.flac" className="hidden" disabled={uploading} onChange={(e) => { if (e.target.files?.[0]) handleUploadMp3(e.target.files[0]); }} />
-                </label>
+                <div className="flex items-center justify-center mt-2">
+                  <input
+                    id="replace-audio"
+                    type="file"
+                    accept=".mp3,.wav,.flac"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => { if (e.target.files?.[0]) handleUploadMp3(e.target.files[0]); }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('replace-audio')?.click()}
+                    disabled={uploading}
+                    className="flex items-center gap-1.5 text-[10px] text-[rgba(255,255,255,0.25)] hover:text-[#5ea2b6] transition-colors disabled:opacity-50"
+                  >
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+                    {uploading ? 'Uploading...' : 'Replace audio'}
+                  </button>
+                </div>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl p-6 cursor-pointer hover:border-[#5ea2b6]/40 hover:bg-[rgba(94,162,182,0.03)] transition-all">
-                <svg className="w-6 h-6 text-[#5ea2b6] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
-                <span className="text-sm text-[rgba(255,255,255,0.4)]">{uploading ? 'Uploading...' : 'Drop file or click to upload'}</span>
-                <span className="text-[10px] text-[rgba(255,255,255,0.2)] mt-1">MP3, WAV, FLAC</span>
-                <input type="file" accept=".mp3,.wav,.flac" className="hidden" disabled={uploading} onChange={(e) => { if (e.target.files?.[0]) handleUploadMp3(e.target.files[0]); }} />
-              </label>
+              <div>
+                <input
+                  id="upload-audio"
+                  type="file"
+                  accept=".mp3,.wav,.flac"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => { if (e.target.files?.[0]) handleUploadMp3(e.target.files[0]); }}
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('upload-audio')?.click()}
+                  disabled={uploading}
+                  className="w-full flex flex-col items-center justify-center border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl p-6 hover:border-[#5ea2b6]/40 hover:bg-[rgba(94,162,182,0.03)] transition-all"
+                >
+                  <svg className="w-6 h-6 text-[#5ea2b6] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+                  <span className="text-sm text-[rgba(255,255,255,0.4)]">{uploading ? 'Uploading...' : 'Drop file or click to upload'}</span>
+                  <span className="text-[10px] text-[rgba(255,255,255,0.2)] mt-1">MP3, WAV, FLAC</span>
+                </button>
+              </div>
             )}
 
             {/* Compact Loves + Reports inside player card */}
