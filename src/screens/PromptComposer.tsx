@@ -639,6 +639,50 @@ export default function PromptComposer() {
                 </button>
               </div>
 
+              {/* Manual audio upload — alternative to Suno */}
+              <div
+                className={`border-2 border-dashed rounded-xl p-4 transition-all ${droppedFile ? 'border-[#5ea2b6]/40 bg-[rgba(94,162,182,0.05)]' : 'border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.12)]'}`}
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={(e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  const file = e.dataTransfer.files?.[0];
+                  if (file && /\.(mp3|wav|flac)$/i.test(file.name)) {
+                    const audio = new Audio(URL.createObjectURL(file));
+                    audio.addEventListener('loadedmetadata', () => {
+                      setDroppedFile({ file, name: file.name, duration: audio.duration });
+                    });
+                    audio.addEventListener('error', () => {
+                      setDroppedFile({ file, name: file.name, duration: 0 });
+                    });
+                  }
+                }}
+              >
+                {droppedFile ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-[#5ea2b6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                      <span className="text-sm text-[rgba(255,255,255,0.7)]">{droppedFile.name}</span>
+                      {droppedFile.duration > 0 && <span className="text-[10px] text-[rgba(255,255,255,0.3)]">{Math.floor(droppedFile.duration / 60)}:{String(Math.floor(droppedFile.duration % 60)).padStart(2, '0')}</span>}
+                    </div>
+                    <button type="button" onClick={() => setDroppedFile(null)} className="text-[rgba(255,255,255,0.3)] hover:text-[#ea6152] text-xs transition-colors">Remove</button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center gap-1 cursor-pointer">
+                    <svg className="w-5 h-5 text-[rgba(255,255,255,0.2)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span className="text-[11px] text-[rgba(255,255,255,0.3)]">Drop audio file or click to upload</span>
+                    <span className="text-[9px] text-[rgba(255,255,255,0.15)]">MP3, WAV, FLAC — will be saved with draft</span>
+                    <input type="file" accept=".mp3,.wav,.flac" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const audio = new Audio(URL.createObjectURL(file));
+                        audio.addEventListener('loadedmetadata', () => setDroppedFile({ file, name: file.name, duration: audio.duration }));
+                        audio.addEventListener('error', () => setDroppedFile({ file, name: file.name, duration: 0 }));
+                      }
+                    }} />
+                  </label>
+                )}
+              </div>
+
               {/* Actions row */}
               <div className="flex items-center gap-3">
                 <button
