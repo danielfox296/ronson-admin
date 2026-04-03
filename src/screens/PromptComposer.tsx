@@ -253,10 +253,12 @@ export default function PromptComposer() {
       try {
         const result = await api<{ data: any[] }>(`/api/suno/status/${sunoIds.join(',')}`);
         setSunoResults(result.data);
-        const allComplete = result.data.every((s: any) => s.status === 'complete');
-        const anyError = result.data.some((s: any) => s.status === 'error');
-        if (allComplete) setSunoStatus('complete');
-        else if (anyError) { setSunoStatus('error'); setSunoError('One or more tracks failed in Suno'); }
+        const completeCount = result.data.filter((s: any) => s.status === 'complete').length;
+        const errorCount = result.data.filter((s: any) => s.status === 'error').length;
+        const totalDone = completeCount + errorCount;
+        // Flip to complete when all tracks are done (complete or errored), and at least one succeeded
+        if (totalDone >= result.data.length && completeCount > 0) setSunoStatus('complete');
+        else if (totalDone >= result.data.length && errorCount > 0) { setSunoStatus('error'); setSunoError('All tracks failed in Suno'); }
       } catch { /* keep polling */ }
     }, 8000);
     return () => clearInterval(interval);
@@ -738,22 +740,52 @@ export default function PromptComposer() {
                 </button>
               </div>
 
-              {/* Suno Status */}
+              {/* Suno Status — generating (may have some tracks already complete) */}
               {sunoStatus === 'generating' && (
                 <div className="bg-[rgba(233,30,140,0.08)] border border-[rgba(233,30,140,0.2)] rounded-xl p-4">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 mb-3">
                     <span className="inline-block w-4 h-4 border-2 border-[#e91e8c]/30 border-t-[#e91e8c] rounded-full animate-spin" />
                     <div>
-                      <p className="text-sm text-[rgba(255,255,255,0.87)]">Suno is generating your track...</p>
+                      <p className="text-sm text-[rgba(255,255,255,0.87)]">Suno is generating your tracks...</p>
                       <p className="text-[10px] text-[rgba(255,255,255,0.4)] mt-0.5">This usually takes 1-3 minutes. Polling every 8s.</p>
                     </div>
                   </div>
                   {sunoResults.length > 0 && (
-                    <div className="mt-3 space-y-1">
+                    <div className="space-y-2">
                       {sunoResults.map((r: any) => (
-                        <div key={r.id} className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.55)]">
-                          <span className={r.status === 'complete' ? 'text-emerald-400' : 'text-[rgba(255,255,255,0.3)]'}>{r.status}</span>
-                          <span>{r.title || r.id}</span>
+                        <div key={r.id} className="flex items-center gap-3 bg-[rgba(0,0,0,0.15)] rounded-lg px-3 py-2">
+                          {r.status === 'complete' && r.audio_url ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (playingSunoId === r.id) {
+                                  sunoAudio?.pause();
+                                  setPlayingSunoId(null);
+                                  setSunoAudio(null);
+                                } else {
+                                  sunoAudio?.pause();
+                                  const el = new Audio(r.audio_url);
+                                  el.onended = () => { setPlayingSunoId(null); setSunoAudio(null); };
+                                  el.play().catch(() => {});
+                                  setSunoAudio(el);
+                                  setPlayingSunoId(r.id);
+                                }
+                              }}
+                              className="w-7 h-7 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 flex items-center justify-center transition-colors shrink-0"
+                            >
+                              {playingSunoId === r.id ? (
+                                <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                              ) : (
+                                <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                              )}
+                            </button>
+                          ) : (
+                            <span className="inline-block w-3 h-3 border-2 border-[#e91e8c]/30 border-t-[#e91e8c] rounded-full animate-spin shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs text-[rgba(255,255,255,0.7)] truncate block">{r.title || r.id}</span>
+                          </div>
+                          <span className={`text-[10px] font-bold uppercase tracking-widest ${r.status === 'complete' ? 'text-emerald-400' : 'text-[rgba(255,255,255,0.3)]'}`}>{r.status}</span>
                         </div>
                       ))}
                     </div>
