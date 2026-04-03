@@ -123,7 +123,9 @@ export default function SongDetail() {
     setUploading(true);
     setUploadError('');
     try {
+      console.log('[upload] Starting upload for:', file.name, file.size, 'bytes');
       const result = await uploadFile(file);
+      console.log('[upload] Upload complete, R2 URL:', result.url);
       // Detect duration with a timeout — don't hang forever
       let duration = 0;
       try {
@@ -136,13 +138,18 @@ export default function SongDetail() {
           new Promise<number>((resolve) => setTimeout(() => resolve(0), 5000)),
         ]);
       } catch { /* duration stays 0 */ }
+      console.log('[upload] Duration detected:', duration);
       await updateMutation.mutateAsync({ audio_file_url: result.url, duration_seconds: Math.round(duration) || 0 });
+      console.log('[upload] Song record updated');
+      // Force refetch
+      await queryClient.refetchQueries({ queryKey: ['song', id] });
+      console.log('[upload] Query refetched');
     } catch (err: any) {
-      console.error('Upload failed:', err);
+      console.error('[upload] Failed:', err);
       setUploadError(err.message || 'Upload failed');
     }
     setUploading(false);
-  }, [updateMutation]);
+  }, [updateMutation, queryClient, id]);
 
   if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
   const song = songData?.data;
