@@ -31,6 +31,8 @@ export default function PromptComposer() {
   const [sunoResults, setSunoResults] = useState<any[]>([]);
   const [savedSongId, setSavedSongId] = useState('');
   const [downloadingSunoId, setDownloadingSunoId] = useState('');
+  const [playingSunoId, setPlayingSunoId] = useState<string | null>(null);
+  const [sunoAudio, setSunoAudio] = useState<HTMLAudioElement | null>(null);
 
   // Restore cached output on mount (only if no URL params drove initial state)
   useEffect(() => {
@@ -762,30 +764,67 @@ export default function PromptComposer() {
               {sunoStatus === 'complete' && sunoResults.length > 0 && (
                 <div className="bg-[rgba(46,204,113,0.08)] border border-[rgba(46,204,113,0.2)] rounded-xl p-4">
                   <p className="text-sm text-emerald-400 font-semibold mb-3">Generation complete!</p>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {sunoResults.filter((r: any) => r.status === 'complete').map((r: any) => (
-                      <div key={r.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-[rgba(255,255,255,0.87)]">{r.title || r.id}</p>
-                          {r.duration && <p className="text-[10px] text-[rgba(255,255,255,0.4)]">{Math.round(r.duration)}s</p>}
+                      <div key={r.id} className="bg-[rgba(0,0,0,0.2)] rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            {r.audio_url && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (playingSunoId === r.id) {
+                                    sunoAudio?.pause();
+                                    setPlayingSunoId(null);
+                                    setSunoAudio(null);
+                                  } else {
+                                    sunoAudio?.pause();
+                                    const el = new Audio(r.audio_url);
+                                    el.onended = () => { setPlayingSunoId(null); setSunoAudio(null); };
+                                    el.play().catch(() => {});
+                                    setSunoAudio(el);
+                                    setPlayingSunoId(r.id);
+                                  }
+                                }}
+                                className="w-8 h-8 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 flex items-center justify-center transition-colors shrink-0"
+                              >
+                                {playingSunoId === r.id ? (
+                                  <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                                ) : (
+                                  <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                )}
+                              </button>
+                            )}
+                            <div>
+                              <p className="text-sm text-[rgba(255,255,255,0.87)]">{r.title || r.id}</p>
+                              {r.duration && <p className="text-[10px] text-[rgba(255,255,255,0.4)]">{Math.round(r.duration)}s</p>}
+                            </div>
+                          </div>
+                          {downloadedTracks[r.id] ? (
+                            <a
+                              href={`/songs/${downloadedTracks[r.id]}`}
+                              onClick={(e) => { e.preventDefault(); navigate(`/songs/${downloadedTracks[r.id]}`); }}
+                              className="text-emerald-400 text-xs font-semibold hover:underline"
+                            >
+                              Saved — View
+                            </a>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => sunoDownloadMutation.mutate(r.id)}
+                              disabled={downloadingSunoId === r.id}
+                              className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                            >
+                              {downloadingSunoId === r.id ? 'Downloading...' : 'Download to Library'}
+                            </button>
+                          )}
                         </div>
-                        {downloadedTracks[r.id] ? (
-                          <a
-                            href={`/songs/${downloadedTracks[r.id]}`}
-                            onClick={(e) => { e.preventDefault(); navigate(`/songs/${downloadedTracks[r.id]}`); }}
-                            className="text-emerald-400 text-xs font-semibold hover:underline"
-                          >
-                            Saved — View
-                          </a>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => sunoDownloadMutation.mutate(r.id)}
-                            disabled={downloadingSunoId === r.id}
-                            className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
-                          >
-                            {downloadingSunoId === r.id ? 'Downloading...' : 'Download to Library'}
-                          </button>
+                        {r.audio_url && playingSunoId === r.id && (
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="flex-1 h-0.5 bg-[rgba(46,204,113,0.15)] rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-400/50 rounded-full animate-pulse" style={{ width: '60%' }} />
+                            </div>
+                          </div>
                         )}
                       </div>
                     ))}
