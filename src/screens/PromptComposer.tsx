@@ -430,6 +430,14 @@ export default function PromptComposer() {
                 <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Reference Tracks</h2>
                 {refTracks.length > 0 && <span className="text-xs text-[rgba(255,255,255,0.3)]">{refTracks.length}</span>}
               </div>
+              {selectedIcpId && selectedStoreId && selectedClientId && (
+                <a
+                  href={`/clients/${selectedClientId}/stores/${selectedStoreId}/audiences/${selectedIcpId}`}
+                  className="text-[#4a90a4] hover:text-[#5ba3b8] text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                  + Add
+                </a>
+              )}
             </div>
             <div className="max-h-[280px] overflow-y-auto">
               {selectedIcpId ? (
@@ -606,6 +614,18 @@ export default function PromptComposer() {
                   <span className="text-[10px] text-[#e74c3c] truncate max-w-[200px]" title={sunoTokenError}>
                     {sunoTokenError}
                   </span>
+                )}
+                {tokenStatusLabel === 'Disconnected' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText("fetch('https://clerk.suno.com/v1/client?_clerk_js_version=5',{credentials:'include'}).then(r=>r.json()).then(d=>{const jwt=d.response.sessions.find(s=>s.status==='active').last_active_token.jwt;console.log(jwt)})");
+                    }}
+                    className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] transition-colors flex items-center gap-1"
+                  >
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Copy Command
+                  </button>
                 )}
                 <button
                   type="button"
