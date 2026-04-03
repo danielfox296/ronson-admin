@@ -117,17 +117,30 @@ export default function SongDetail() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['song', id] }),
   });
 
+  const [uploadError, setUploadError] = useState('');
+
   const handleUploadMp3 = useCallback(async (file: File) => {
     setUploading(true);
+    setUploadError('');
     try {
       const result = await uploadFile(file);
-      const audio = new Audio(result.url);
-      const duration = await new Promise<number>((resolve) => {
-        audio.addEventListener('loadedmetadata', () => resolve(audio.duration));
-        audio.addEventListener('error', () => resolve(0));
-      });
-      await updateMutation.mutateAsync({ audio_file_url: result.url, duration_seconds: Math.round(duration) });
-    } catch { /* handled by mutation */ }
+      // Detect duration with a timeout — don't hang forever
+      let duration = 0;
+      try {
+        const audio = new Audio(result.url);
+        duration = await Promise.race([
+          new Promise<number>((resolve) => {
+            audio.addEventListener('loadedmetadata', () => resolve(audio.duration));
+            audio.addEventListener('error', () => resolve(0));
+          }),
+          new Promise<number>((resolve) => setTimeout(() => resolve(0), 5000)),
+        ]);
+      } catch { /* duration stays 0 */ }
+      await updateMutation.mutateAsync({ audio_file_url: result.url, duration_seconds: Math.round(duration) || 0 });
+    } catch (err: any) {
+      console.error('Upload failed:', err);
+      setUploadError(err.message || 'Upload failed');
+    }
     setUploading(false);
   }, [updateMutation]);
 
@@ -280,12 +293,22 @@ export default function SongDetail() {
                   type="button"
                   onClick={() => document.getElementById('upload-audio')?.click()}
                   disabled={uploading}
-                  className="w-full flex flex-col items-center justify-center border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl p-6 hover:border-[#5ea2b6]/40 hover:bg-[rgba(94,162,182,0.03)] transition-all"
+                  className="w-full flex flex-col items-center justify-center border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl p-6 hover:border-[#5ea2b6]/40 hover:bg-[rgba(94,162,182,0.03)] transition-all disabled:opacity-50"
                 >
-                  <svg className="w-6 h-6 text-[#5ea2b6] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
-                  <span className="text-sm text-[rgba(255,255,255,0.4)]">{uploading ? 'Uploading...' : 'Drop file or click to upload'}</span>
-                  <span className="text-[10px] text-[rgba(255,255,255,0.2)] mt-1">MP3, WAV, FLAC</span>
+                  {uploading ? (
+                    <>
+                      <span className="inline-block w-5 h-5 border-2 border-[#5ea2b6]/30 border-t-[#5ea2b6] rounded-full animate-spin mb-2" />
+                      <span className="text-sm text-[#5ea2b6]">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-6 h-6 text-[#5ea2b6] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+                      <span className="text-sm text-[rgba(255,255,255,0.4)]">Drop file or click to upload</span>
+                      <span className="text-[10px] text-[rgba(255,255,255,0.2)] mt-1">MP3, WAV, FLAC</span>
+                    </>
+                  )}
                 </button>
+                {uploadError && <p className="text-[#ea6152] text-xs mt-2 text-center">{uploadError}</p>}
               </div>
             )}
 
