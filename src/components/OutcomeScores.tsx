@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 
@@ -11,16 +11,9 @@ interface OutcomeScore {
   exists: boolean;
 }
 
-function barColor(score: number): string {
-  if (score >= 70) return '#5ea2b6';
-  if (score >= 40) return 'rgba(255,255,255,0.25)';
-  return 'rgba(255,255,255,0.1)';
-}
-
-function textColor(score: number): string {
-  if (score >= 70) return '#70b4c8';
-  if (score >= 40) return 'rgba(255,255,255,0.5)';
-  return 'rgba(255,255,255,0.25)';
+function barGradient(score: number): string {
+  // Grey on left, red on right — more score reveals more of the gradient
+  return `linear-gradient(to right, rgba(160,160,170,0.5), rgba(200,60,50,0.8))`;
 }
 
 export default function OutcomeScores({ songId }: { songId: string }) {
@@ -57,7 +50,7 @@ export default function OutcomeScores({ songId }: { songId: string }) {
   };
 
   return (
-    <div>
+    <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Outcome Strength</h2>
         {!editing ? (
@@ -72,7 +65,7 @@ export default function OutcomeScores({ songId }: { songId: string }) {
       <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)]">
         {scores.map((s) => (
           <div key={s.outcome_id} className="flex items-center gap-3 px-4 py-2.5">
-            <span className="text-xs text-[rgba(255,255,255,0.5)] w-36 shrink-0 truncate">{s.outcome_name}</span>
+            <span className="text-xs text-[rgba(255,255,255,0.5)] w-44 shrink-0 truncate">{s.outcome_name}</span>
 
             {editing ? (
               <div className="flex items-center gap-2 flex-1">
@@ -92,11 +85,14 @@ export default function OutcomeScores({ songId }: { songId: string }) {
               <>
                 <div className="flex-1 h-2 bg-[rgba(255,255,255,0.04)] rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${s.score}%`, backgroundColor: barColor(s.score) }}
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${s.score}%`,
+                      background: barGradient(s.score),
+                    }}
                   />
                 </div>
-                <span className="text-xs font-mono w-8 text-right" style={{ color: textColor(s.score) }}>
+                <span className="text-xs font-mono w-8 text-right text-[rgba(255,255,255,0.5)]">
                   {s.score}
                 </span>
                 {s.is_override && (

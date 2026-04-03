@@ -22,45 +22,6 @@ function Triangle({ open, className = '' }: { open: boolean; className?: string 
   );
 }
 
-function FeedbackSection({ songId }: { songId: string }) {
-  const { data } = useQuery({
-    queryKey: ['song-feedback', songId],
-    queryFn: () => api<{ data: any[] }>(`/api/songs/${songId}/feedback`),
-  });
-  const feedback = data?.data || [];
-  const loves = feedback.filter((f: any) => f.type === 'love');
-  const reports = feedback.filter((f: any) => f.type === 'report');
-
-  return (
-    <div className="mb-6">
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 text-center">
-          <div className="text-2xl font-light text-[#70d4b3]">{loves.length}</div>
-          <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">Loves</div>
-        </div>
-        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 text-center">
-          <div className="text-2xl font-light text-[#f3aa8c]">{reports.length}</div>
-          <div className="text-xs text-[rgba(255,255,255,0.4)] mt-1">Reports</div>
-        </div>
-      </div>
-      {reports.length > 0 && (
-        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl">
-          <div className="px-4 py-2 border-b border-[rgba(255,255,255,0.09)] text-xs text-[rgba(255,255,255,0.4)] font-medium">Report Details</div>
-          {reports.map((r: any) => (
-            <div key={r.id} className="flex items-center justify-between px-4 py-2 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
-              <div>
-                <span className="text-[#f3aa8c]">{reasonLabels[r.reason] || r.reason}</span>
-                <span className="text-[rgba(255,255,255,0.3)] ml-2">from {r.store?.name || 'Unknown store'}</span>
-              </div>
-              <span className="text-[rgba(255,255,255,0.25)] text-xs">{new Date(r.created_at).toLocaleDateString()}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
@@ -81,80 +42,6 @@ function isNumericValue(v: unknown): boolean {
     return trimmed !== '' && !isNaN(Number(trimmed));
   }
   return false;
-}
-
-function FlowFactorsSection({ flowFactors, editingFlow, flowForm, setEditingFlow, setFlowForm, onSave }: {
-  flowFactors: Record<string, unknown>;
-  editingFlow: boolean;
-  flowForm: Record<string, string>;
-  setEditingFlow: (v: boolean) => void;
-  setFlowForm: (v: Record<string, string>) => void;
-  onSave: () => void;
-}) {
-  const entries = Object.entries(editingFlow ? flowForm : flowFactors);
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Flow Factors</h2>
-        {!editingFlow ? (
-          <button type="button" onClick={() => { setEditingFlow(true); setFlowForm(Object.fromEntries(Object.entries(flowFactors).map(([k, v]) => [k, String(v)]))); }} className="text-[#5ea2b6] text-[10px] font-bold uppercase tracking-widest hover:text-[#70b4c8]">Edit</button>
-        ) : (
-          <div className="flex gap-2">
-            <button type="button" onClick={onSave} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs">Save</button>
-            <button type="button" onClick={() => setEditingFlow(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
-          </div>
-        )}
-      </div>
-      <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)] max-h-[500px] overflow-y-auto">
-        {entries.map(([k, v]) => {
-          const numeric = isNumericValue(v);
-          const numVal = numeric ? Number(v) : 0;
-          return (
-            <div key={k} className="flex items-center gap-3 px-4 py-2 text-xs">
-              <span className="text-[rgba(255,255,255,0.4)] w-36 shrink-0 truncate">{k}</span>
-              {editingFlow ? (
-                numeric ? (
-                  <div className="flex items-center gap-2 flex-1">
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={0.1}
-                      value={Number(flowForm[k]) || 0}
-                      onChange={(e) => setFlowForm({ ...flowForm, [k]: e.target.value })}
-                      className="flex-1 h-1.5 appearance-none rounded-full bg-[rgba(255,255,255,0.08)] accent-[#5ea2b6] cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#5ea2b6]"
-                    />
-                    <span className="font-mono w-10 text-right text-[rgba(255,255,255,0.5)]">{Number(flowForm[k] || 0).toFixed(1)}</span>
-                  </div>
-                ) : (
-                  <input
-                    value={flowForm[k] || ''}
-                    onChange={(e) => setFlowForm({ ...flowForm, [k]: e.target.value })}
-                    className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-1 text-xs flex-1"
-                  />
-                )
-              ) : (
-                numeric ? (
-                  <>
-                    <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.04)] rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-[rgba(255,255,255,0.2)]" style={{ width: `${Math.min(100, numVal)}%` }} />
-                    </div>
-                    <span className="font-mono w-10 text-right text-[rgba(255,255,255,0.5)]">{numVal % 1 === 0 ? numVal : numVal.toFixed(1)}</span>
-                  </>
-                ) : (
-                  <span className="text-[rgba(255,255,255,0.8)] font-medium flex-1 text-right">{String(v)}</span>
-                )
-              )}
-            </div>
-          );
-        })}
-        {entries.length === 0 && (
-          <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)]">No flow factors set</p>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export default function SongDetail() {
@@ -194,6 +81,11 @@ export default function SongDetail() {
   const { data: gsData } = useQuery({
     queryKey: ['generation-systems'],
     queryFn: () => api<{ data: any[] }>('/api/generation-systems'),
+  });
+
+  const { data: feedbackData } = useQuery({
+    queryKey: ['song-feedback', id],
+    queryFn: () => api<{ data: any[] }>(`/api/songs/${id}/feedback`),
   });
 
   const gsNameMap = useMemo(() => {
@@ -246,45 +138,50 @@ export default function SongDetail() {
   const assignments = song.store_playlists || [];
   const stores = storesData?.data || [];
   const hasMp3 = !!song.audio_file_url;
+  const feedback = feedbackData?.data || [];
+  const loves = feedback.filter((f: any) => f.type === 'love');
+  const reports = feedback.filter((f: any) => f.type === 'report');
 
   const filteredStores = storeSearch
     ? stores.filter((s: any) => (s.name || '').toLowerCase().includes(storeSearch.toLowerCase()))
     : stores;
 
+  const flowEntries = Object.entries(editingFlow ? flowForm : flowFactors);
+
   return (
     <div>
-      <Breadcrumb items={[
-        { label: 'Songs', href: '/songs' },
-        { label: song.title || 'Untitled' },
-      ]} />
+      {/* Breadcrumb — just Songs link, no title (we render it ourselves) */}
+      <nav className="flex items-center gap-1 text-xs text-[rgba(255,255,255,0.25)] mb-2 tracking-wide">
+        <a href="/songs" className="hover:text-[rgba(255,255,255,0.5)] transition-colors">Songs</a>
+      </nav>
 
       {/* Lineage */}
       {(lineage.client || lineage.store || lineage.store_icp) && (
-        <div className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.55)] mb-3">
+        <div className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.55)] mb-2">
           {lineage.client && <span>{lineage.client.name}</span>}
           {lineage.store && <><span className="text-[rgba(255,255,255,0.15)]">/</span><span>{lineage.store.name}</span></>}
           {lineage.store_icp && <><span className="text-[rgba(255,255,255,0.15)]">/</span><span className="text-[#5ea2b6]">{lineage.store_icp.name}</span></>}
         </div>
       )}
 
-      {/* Title + Status + Metadata */}
+      {/* Title row with pencil + status + metadata */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           {editingTitle ? (
             <div className="flex items-center gap-2">
-              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-lg font-medium border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-[rgba(255,255,255,0.87)]" autoFocus />
+              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-4xl tracking-tight leading-none text-white border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 bg-transparent" autoFocus />
               <button type="button" onClick={() => updateMutation.mutate({ title: titleVal })} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs hover:bg-[#70b4c8]">Save</button>
               <button type="button" onClick={() => setEditingTitle(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="text-lg font-medium text-[rgba(255,255,255,0.87)]">{song.title || 'Untitled'}</span>
+              <h1 className="text-4xl tracking-tight leading-none text-white">{song.title || 'Untitled'}</h1>
               <button
                 type="button"
                 onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }}
-                className="text-[rgba(255,255,255,0.25)] hover:text-[#5ea2b6] transition-colors"
+                className="text-[rgba(255,255,255,0.2)] hover:text-[#5ea2b6] transition-colors mt-1"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
                 </svg>
               </button>
@@ -320,11 +217,13 @@ export default function SongDetail() {
         </div>
       </div>
 
-      {/* Two-column layout: 1/3 player | 2/3 content */}
-      <div className="grid grid-cols-[1fr_2fr] gap-6">
-        {/* Left: Audio Player */}
-        <div>
-          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 sticky top-0">
+      {/* Main layout: 1/3 left | 2/3 right */}
+      <div className="grid grid-cols-[1fr_2fr] gap-6 items-start">
+
+        {/* LEFT COLUMN: Player, Feedback, Flow Factors */}
+        <div className="space-y-4">
+          {/* Audio Player */}
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
             {hasMp3 ? (
               <audio controls src={song.audio_file_url} className="w-full" />
             ) : (
@@ -335,12 +234,95 @@ export default function SongDetail() {
                 <input type="file" accept=".mp3,.wav,.flac" className="hidden" disabled={uploading} onChange={(e) => { if (e.target.files?.[0]) handleUploadMp3(e.target.files[0]); }} />
               </label>
             )}
+
+            {/* Compact Loves + Reports inside player card */}
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[rgba(255,255,255,0.06)]">
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg font-light text-[#70d4b3]">{loves.length}</span>
+                <span className="text-[10px] text-[rgba(255,255,255,0.35)]">Loves</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg font-light text-[#f3aa8c]">{reports.length}</span>
+                <span className="text-[10px] text-[rgba(255,255,255,0.35)]">Reports</span>
+              </div>
+            </div>
+            {reports.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {reports.map((r: any) => (
+                  <div key={r.id} className="flex items-center justify-between text-[10px]">
+                    <span className="text-[#f3aa8c]">{reasonLabels[r.reason] || r.reason}</span>
+                    <span className="text-[rgba(255,255,255,0.2)]">{new Date(r.created_at).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Flow Factors */}
+          {(flowEntries.length > 0 || editingFlow) && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Flow Factors</h2>
+                {!editingFlow ? (
+                  <button type="button" onClick={() => { setEditingFlow(true); setFlowForm(Object.fromEntries(Object.entries(flowFactors).map(([k, v]) => [k, String(v)]))); }} className="text-[#5ea2b6] text-[10px] font-bold uppercase tracking-widest hover:text-[#70b4c8]">Edit</button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => { updateMutation.mutate({ flow_factor_values: flowForm }); setEditingFlow(false); }} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs">Save</button>
+                    <button type="button" onClick={() => setEditingFlow(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
+                  </div>
+                )}
+              </div>
+              <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl divide-y divide-[rgba(255,255,255,0.04)] max-h-[600px] overflow-y-auto">
+                {flowEntries.map(([k, v]) => {
+                  const numeric = isNumericValue(v);
+                  const numVal = numeric ? Number(v) : 0;
+                  return (
+                    <div key={k} className="flex items-center gap-2 px-3 py-1.5 text-[11px]">
+                      <span className="text-[rgba(255,255,255,0.4)] w-28 shrink-0 truncate">{k}</span>
+                      {editingFlow ? (
+                        numeric ? (
+                          <div className="flex items-center gap-1 flex-1">
+                            <input
+                              type="range" min={0} max={100} step={0.1}
+                              value={Number(flowForm[k]) || 0}
+                              onChange={(e) => setFlowForm({ ...flowForm, [k]: e.target.value })}
+                              className="flex-1 h-1 appearance-none rounded-full bg-[rgba(255,255,255,0.08)] accent-[#5ea2b6] cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#5ea2b6]"
+                            />
+                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{Number(flowForm[k] || 0).toFixed(1)}</span>
+                          </div>
+                        ) : (
+                          <input
+                            value={flowForm[k] || ''}
+                            onChange={(e) => setFlowForm({ ...flowForm, [k]: e.target.value })}
+                            className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-0.5 text-[11px] flex-1"
+                          />
+                        )
+                      ) : (
+                        numeric ? (
+                          <>
+                            <div className="flex-1 h-1 bg-[rgba(255,255,255,0.04)] rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-[rgba(255,255,255,0.18)]" style={{ width: `${Math.min(100, numVal)}%` }} />
+                            </div>
+                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{numVal % 1 === 0 ? numVal : numVal.toFixed(1)}</span>
+                          </>
+                        ) : (
+                          <span className="text-[rgba(255,255,255,0.7)] flex-1 text-right truncate">{String(v)}</span>
+                        )
+                      )}
+                    </div>
+                  );
+                })}
+                {flowEntries.length === 0 && (
+                  <p className="px-4 py-4 text-center text-[rgba(255,255,255,0.3)] text-xs">No flow factors set</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right column */}
+        {/* RIGHT COLUMN: Store Assignments, Outcome Strength, Suno Prompt, Delete */}
         <div>
-          {/* 1. Store Assignments */}
+          {/* Store Assignments */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Store Assignments</h2>
@@ -382,25 +364,10 @@ export default function SongDetail() {
             </div>
           </div>
 
-          {/* 2. Feedback */}
-          <FeedbackSection songId={id!} />
+          {/* Outcome Strength — full 2/3 width */}
+          <OutcomeScores songId={id!} />
 
-          {/* 3. Flow Factors + Outcome Strength side by side */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {(Object.keys(flowFactors).length > 0 || editingFlow) && (
-              <FlowFactorsSection
-                flowFactors={flowFactors}
-                editingFlow={editingFlow}
-                flowForm={flowForm}
-                setEditingFlow={setEditingFlow}
-                setFlowForm={setFlowForm}
-                onSave={() => { updateMutation.mutate({ flow_factor_values: flowForm }); setEditingFlow(false); }}
-              />
-            )}
-            <OutcomeScores songId={id!} />
-          </div>
-
-          {/* 4. Suno Prompt — collapsible */}
+          {/* Suno Prompt — collapsible */}
           {(song.prompt_text || promptParams.style || promptParams.style_negations || promptParams.voice || editingPrompt) && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
@@ -498,7 +465,7 @@ export default function SongDetail() {
             </div>
           )}
 
-          {/* 5. Delete */}
+          {/* Delete */}
           <div className="border-t border-[rgba(255,255,255,0.09)] pt-6">
             <button
               type="button"
