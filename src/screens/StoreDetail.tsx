@@ -31,6 +31,9 @@ export default function StoreDetail() {
   const [playerEmailLoaded, setPlayerEmailLoaded] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordSaved, setPasswordSaved] = useState(false);
+  const [defaultMode, setDefaultMode] = useState('');
+  const [defaultModeLoaded, setDefaultModeLoaded] = useState(false);
+  const [modeSaved, setModeSaved] = useState(false);
 
   const { data: storeData, isLoading } = useQuery({
     queryKey: ['store', storeId],
@@ -65,6 +68,13 @@ export default function StoreDetail() {
       setPlayerEmailLoaded(true);
     }
   }, [store, playerEmailLoaded]);
+
+  useEffect(() => {
+    if (store && !defaultModeLoaded) {
+      setDefaultMode(store.default_mode || 'linger');
+      setDefaultModeLoaded(true);
+    }
+  }, [store, defaultModeLoaded]);
 
   const updateMutation = useMutation({
     mutationFn: (body: any) => api(`/api/stores/${storeId}`, { method: 'PUT', body }),
@@ -388,6 +398,30 @@ export default function StoreDetail() {
                 <button type="button" onClick={() => { saveWonderCredsMutation.mutate({ player_password: newPassword }); setNewPassword(''); }} disabled={!newPassword.trim()} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#70b4c8] transition-colors">{store.has_player_password ? 'Reset' : 'Set'}</button>
               </div>
               {passwordSaved && <p className="text-[#33be6a] text-xs mt-1">Saved successfully.</p>}
+            </div>
+            <div>
+              <label className="text-[rgba(255,255,255,0.4)] block mb-1">Default Outcome Mode</label>
+              <div className="flex gap-2">
+                <select
+                  value={defaultMode}
+                  onChange={(e) => setDefaultMode(e.target.value)}
+                  className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm flex-1 bg-[rgba(255,255,255,0.03)]"
+                >
+                  <option value="linger">Linger — Stay longer, explore more</option>
+                  <option value="elevate">Elevate — Spend more per item</option>
+                  <option value="energize">Energize — More activity, more items</option>
+                  <option value="move">Move — Increase turnover</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => { saveWonderCredsMutation.mutate({ default_mode: defaultMode } as any); setModeSaved(true); setTimeout(() => setModeSaved(false), 3000); }}
+                  className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#70b4c8] transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+              {modeSaved && <p className="text-[#33be6a] text-xs mt-1">Mode saved.</p>}
+              <p className="text-[rgba(255,255,255,0.2)] text-xs mt-1">Wonder will start in this mode when the player connects.</p>
             </div>
             <div className="border-t border-[rgba(255,255,255,0.09)] pt-3 text-[rgba(255,255,255,0.4)] text-xs">
               <p>To set up the player at this store:</p>

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, uploadFile } from '../lib/api.js';
 import { humanize, formatDuration } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
+import OutcomeScores from '../components/OutcomeScores.js';
 
 const reasonLabels: Record<string, string> = {
   off_brand: 'Not our vibe',
@@ -318,6 +319,9 @@ export default function SongDetail() {
               </div>
             </div>
           )}
+
+          {/* Outcome Affinity */}
+          <OutcomeScores songId={id!} />
 
           {/* Store Assignments */}
           <div className="flex items-center justify-between mb-3">
