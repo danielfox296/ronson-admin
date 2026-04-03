@@ -83,6 +83,11 @@ export default function SongDetail() {
     queryFn: () => api<{ data: any[] }>('/api/generation-systems'),
   });
 
+  const { data: flowFactorConfigs } = useQuery({
+    queryKey: ['flow-factor-configs'],
+    queryFn: () => api<{ data: any[] }>('/api/flow-factors'),
+  });
+
   const { data: feedbackData } = useQuery({
     queryKey: ['song-feedback', id],
     queryFn: () => api<{ data: any[] }>(`/api/songs/${id}/feedback`),
@@ -146,7 +151,11 @@ export default function SongDetail() {
     ? stores.filter((s: any) => (s.name || '').toLowerCase().includes(storeSearch.toLowerCase()))
     : stores;
 
-  const flowEntries = Object.entries(editingFlow ? flowForm : flowFactors);
+  // Build flow entries from the 31 config definitions, filling with song values where they exist
+  const allFactorConfigs = flowFactorConfigs?.data || [];
+  const flowEntries: [string, unknown][] = allFactorConfigs.length > 0
+    ? allFactorConfigs.map((fc: any) => [fc.name, editingFlow ? (flowForm[fc.name] ?? '') : (flowFactors[fc.name] ?? '')])
+    : Object.entries(editingFlow ? flowForm : flowFactors);
 
   return (
     <div>
@@ -258,13 +267,19 @@ export default function SongDetail() {
             )}
           </div>
 
-          {/* Flow Factors */}
-          {(flowEntries.length > 0 || editingFlow) && (
-            <div>
+          {/* Flow Factors — always show (31 configs from API) */}
+          <div>
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Flow Factors</h2>
                 {!editingFlow ? (
-                  <button type="button" onClick={() => { setEditingFlow(true); setFlowForm(Object.fromEntries(Object.entries(flowFactors).map(([k, v]) => [k, String(v)]))); }} className="text-[#5ea2b6] text-[10px] font-bold uppercase tracking-widest hover:text-[#70b4c8]">Edit</button>
+                  <button type="button" onClick={() => {
+                    setEditingFlow(true);
+                    const form: Record<string, string> = {};
+                    allFactorConfigs.forEach((fc: any) => { form[fc.name] = String(flowFactors[fc.name] ?? ''); });
+                    // Also include any song values not in configs
+                    Object.entries(flowFactors).forEach(([k, v]) => { if (!(k in form)) form[k] = String(v); });
+                    setFlowForm(form);
+                  }} className="text-[#5ea2b6] text-[10px] font-bold uppercase tracking-widest hover:text-[#70b4c8]">Edit</button>
                 ) : (
                   <div className="flex gap-2">
                     <button type="button" onClick={() => { updateMutation.mutate({ flow_factor_values: flowForm }); setEditingFlow(false); }} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs">Save</button>
@@ -306,18 +321,17 @@ export default function SongDetail() {
                             <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{numVal % 1 === 0 ? numVal : numVal.toFixed(1)}</span>
                           </>
                         ) : (
-                          <span className="text-[rgba(255,255,255,0.7)] flex-1 text-right truncate">{String(v)}</span>
+                          <span className="text-[rgba(255,255,255,0.7)] flex-1 text-right truncate">{String(v) || <span className="text-[rgba(255,255,255,0.15)]">&mdash;</span>}</span>
                         )
                       )}
                     </div>
                   );
                 })}
-                {flowEntries.length === 0 && (
-                  <p className="px-4 py-4 text-center text-[rgba(255,255,255,0.3)] text-xs">No flow factors set</p>
+                {flowEntries.length === 0 && !allFactorConfigs.length && (
+                  <p className="px-4 py-4 text-center text-[rgba(255,255,255,0.3)] text-xs">Loading flow factors...</p>
                 )}
               </div>
             </div>
-          )}
         </div>
 
         {/* RIGHT COLUMN: Store Assignments, Outcome Strength, Suno Prompt, Delete */}
