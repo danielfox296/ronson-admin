@@ -99,7 +99,7 @@ export default function SongDetail() {
 
   const updateMutation = useMutation({
     mutationFn: (body: any) => api(`/api/songs/${id}`, { method: 'PUT', body }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['song', id] }); setEditingTitle(false); setEditingStatus(false); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['song', id] }); setEditingTitle(false); },
   });
 
   const assignMutation = useMutation({
