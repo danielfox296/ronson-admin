@@ -14,6 +14,7 @@ import SunoCompose from './screens/SunoCompose.js';
 import Prompts from './screens/Prompts.js';
 import Account from './screens/Account.js';
 import Analytics from './screens/Analytics.js';
+import BatchEntry from './screens/BatchEntry.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -62,8 +63,13 @@ function Layout() {
     {
       to: '/songs',
       label: 'Songs',
-      separatorAfter: true,
       icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>,
+    },
+    {
+      to: '/batch-entry',
+      label: 'Batch Entry',
+      separatorAfter: true,
+      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
     },
     {
       to: '/config',
@@ -148,6 +154,7 @@ export default function App() {
         <Route path="clients/:clientId/stores/:storeId/audiences/:icpId/compose/:refTrackId" element={<SunoCompose />} />
         <Route path="songs" element={<SongLibrary />} />
         <Route path="songs/:id" element={<SongDetail />} />
+        <Route path="batch-entry" element={<BatchEntry />} />
         <Route path="compose" element={<PromptComposer />} />
         <Route path="config" element={<Config />} />
         <Route path="prompts" element={<Prompts />} />

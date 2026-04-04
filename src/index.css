@@ -46,4 +46,42 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  /* Batch entry slider styling */
+  input[type="range"].slider-active::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #2dd4bf;
+    border: 2px solid white;
+    cursor: pointer;
+  }
+  input[type="range"].slider-unset::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #333333;
+    border: 2px solid #555;
+    cursor: pointer;
+  }
+  input[type="range"].slider-active::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #2dd4bf;
+    border: 2px solid white;
+    cursor: pointer;
+  }
+  input[type="range"].slider-unset::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #333333;
+    border: 2px solid #555;
+    cursor: pointer;
+  }
 }
