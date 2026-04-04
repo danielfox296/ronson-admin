@@ -9,7 +9,7 @@ export default function PromptComposer() {
   const [selectedClientId, setSelectedClientId] = useState(searchParams.get('clientId') || '');
   const [selectedStoreId, setSelectedStoreId] = useState(searchParams.get('storeId') || '');
   const [selectedIcpId, setSelectedIcpId] = useState(searchParams.get('icpId') || '');
-  const [creativeDirection, setCreativeDirection] = useState('');
+  const [creativeDirection, setCreativeDirection] = useState(searchParams.get('topic') || '');
   const [selectedGenSystem, setSelectedGenSystem] = useState('');
   const [promptTitle, setPromptTitle] = useState('');
   const [generatingTrackId, setGeneratingTrackId] = useState<string | null>(null);

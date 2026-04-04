@@ -121,6 +121,7 @@ export default function AudiencePipeline() {
   const [bulkText, setBulkText] = useState('');
   const [showBulkAdd, setShowBulkAdd] = useState(false);
   const [expandedTracks, setExpandedTracks] = useState<Set<string>>(new Set());
+  const [trackTopics, setTrackTopics] = useState<Record<string, string>>({});
   const [refFilter, setRefFilter] = useState('');
 
   // Songs
@@ -571,7 +572,17 @@ export default function AudiencePipeline() {
                             {isAnalyzing ? 'Analyzing…' : 'Re-analyze'}
                           </button>
                           {rt.analyzed && (
-                            <button type="button" onClick={() => navigate(`/compose?clientId=${clientId}&storeId=${storeId}&icpId=${icpId}&trackId=${rt.id}`)} className="text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] text-xs transition-colors shrink-0">Compose</button>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <input
+                                type="text"
+                                value={trackTopics[rt.id] || ''}
+                                onChange={(e) => setTrackTopics((prev) => ({ ...prev, [rt.id]: e.target.value }))}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Topic…"
+                                className="w-[140px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-0.5 text-[10px] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
+                              />
+                              <button type="button" onClick={() => { const topic = trackTopics[rt.id]; navigate(`/compose?clientId=${clientId}&storeId=${storeId}&icpId=${icpId}&trackId=${rt.id}${topic ? `&topic=${encodeURIComponent(topic)}` : ''}`); }} className="text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] text-xs transition-colors shrink-0">Compose</button>
+                            </div>
                           )}
                           {analyzeErrors[rt.id] && <span className="text-[#ea6152] text-[10px] truncate">{analyzeErrors[rt.id]}</span>}
                         </div>
