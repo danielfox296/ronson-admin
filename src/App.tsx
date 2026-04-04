@@ -15,6 +15,7 @@ import Prompts from './screens/Prompts.js';
 import Account from './screens/Account.js';
 import Analytics from './screens/Analytics.js';
 import BatchEntry from './screens/BatchEntry.js';
+import OutcomesIntelligence from './screens/OutcomesIntelligence.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -46,6 +47,11 @@ function Layout() {
       to: '/analytics',
       label: 'Analytics',
       icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-6"/></svg>,
+    },
+    {
+      to: '/outcomes',
+      label: 'Outcomes',
+      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>,
     },
     {
       to: '/clients',
@@ -146,6 +152,7 @@ export default function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="outcomes" element={<OutcomesIntelligence />} />
         <Route path="profiles" element={<CustomerProfiles />} />
         <Route path="clients" element={<ClientList />} />
         <Route path="clients/:id" element={<ClientDetail />} />
