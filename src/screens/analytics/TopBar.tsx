@@ -1,4 +1,4 @@
-// ── Kraftwerk V1 — Top Bar ──
+// ── Kraftwerk V2 — Top Bar ──
 
 interface TopBarProps {
   selectedDate: string;
@@ -9,7 +9,7 @@ interface TopBarProps {
 
 function formatDateDisplay(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 }
 
 function shiftDate(dateStr: string, delta: number): string {
@@ -30,15 +30,10 @@ export default function TopBar({
 }: TopBarProps) {
   return (
     <div className="kw-topbar">
-      {/* Brand */}
-      <span className="kw-label">
-        KRAFTWERK<span className="kw-label-version">v1</span>
+      <span className="kw-brand">
+        Ronson Analytics
+        <span className="kw-brand-sub">Pilot — Denver, CO</span>
       </span>
-
-      {/* Store selector (disabled, single) */}
-      <select className="kw-chip" disabled>
-        <option>Pilot — Denver, CO</option>
-      </select>
 
       {/* Date navigation */}
       <div className="kw-date-nav">
@@ -60,9 +55,7 @@ export default function TopBar({
       </div>
 
       {/* Baseline selector */}
-      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: '#3a3a3a' }}>
-        vs
-      </span>
+      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>vs</span>
       <select
         className="kw-chip"
         value={baselineMode}
@@ -78,7 +71,7 @@ export default function TopBar({
       <div className="kw-status">
         <div className={`kw-status-dot ${isToday(selectedDate) ? '' : 'historical'}`} />
         <span className="kw-status-text">
-          {isToday(selectedDate) ? 'Receiving' : 'Historical'}
+          {isToday(selectedDate) ? 'Live' : 'Historical'}
         </span>
       </div>
     </div>

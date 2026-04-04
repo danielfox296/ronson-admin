@@ -135,8 +135,8 @@ export default function CustomerProfiles() {
             <div className="w-14 h-14 rounded-full bg-[rgba(255,255,255,0.04)] flex items-center justify-center mb-4 group-hover:bg-[rgba(74,144,164,0.15)] transition-colors">
               <svg className="w-6 h-6 text-[#5ea2b6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             </div>
-            <h3 className="text-lg font-bold text-[rgba(255,255,255,0.8)] mb-1">Build New Audience</h3>
-            <p className="text-xs text-[rgba(255,255,255,0.3)] max-w-[200px]">
+            <h3 className="text-lg font-bold text-[rgba(255,255,255,0.87)] mb-1">Build New Audience</h3>
+            <p className="text-xs text-[rgba(255,255,255,0.45)] max-w-[200px]">
               Define custom sonic characteristics and client parameters.
             </p>
           </div>

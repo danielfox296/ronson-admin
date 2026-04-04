@@ -72,7 +72,7 @@ export default function Dashboard() {
 
         {liveNow.length === 0 ? (
           <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-8 text-center">
-            <div className="text-[rgba(255,255,255,0.2)] text-sm">No stores playing right now</div>
+            <div className="text-[rgba(255,255,255,0.35)] text-sm">No stores playing right now</div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -93,7 +93,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-xs text-[rgba(255,255,255,0.3)] uppercase">Duration</div>
+                  <div className="text-xs text-[rgba(255,255,255,0.45)] uppercase">Duration</div>
                   <div className="text-sm text-[rgba(255,255,255,0.6)] font-mono mt-0.5">
                     {item.song?.duration_seconds ? formatDuration(Math.round(item.song.duration_seconds)) : '--:--'}
                   </div>
@@ -112,7 +112,7 @@ function StatCard({ label, value, sub, icon }: { label: string; value: string; s
     <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="text-[10px] text-[rgba(255,255,255,0.45)] uppercase tracking-widest">{label}</div>
-        {icon && <div className="text-[rgba(255,255,255,0.2)]">{icon}</div>}
+        {icon && <div className="text-[rgba(255,255,255,0.35)]">{icon}</div>}
       </div>
       <div className="flex items-baseline gap-2">
         <span className="text-2xl font-light text-[rgba(255,255,255,0.87)]">{value}</span>

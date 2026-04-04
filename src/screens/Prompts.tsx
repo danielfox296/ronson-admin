@@ -60,7 +60,7 @@ export default function Prompts() {
     <div>
       <Breadcrumb items={[{ label: 'Prompts' }]} />
       <div className="flex items-center justify-between mt-4 mb-6">
-        <h1 className="text-3xl font-light tracking-tight text-white">Prompts</h1>
+        <h1 className="text-4xl tracking-tight leading-none text-white">Prompts</h1>
         <div className="flex gap-2">
           <button type="button" onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 rounded-lg text-xs font-medium bg-[#5ea2b6] hover:bg-[#70b4c8] text-white transition-colors">
             + New Prompt
@@ -83,26 +83,26 @@ export default function Prompts() {
         <form ref={formRef} onSubmit={handleSubmit} className="bg-[#1b1b24] border border-[rgba(94,162,182,0.3)] rounded-xl p-5 mb-6 space-y-4">
           <div className="grid grid-cols-4 gap-3">
             <div>
-              <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-1">Type</label>
+              <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.5)] block mb-1">Type</label>
               <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full border border-[rgba(255,255,255,0.09)] rounded-lg px-3 py-2 text-sm">
                 {TYPE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-1">Name</label>
+              <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.5)] block mb-1">Name</label>
               <input value={form.name} onChange={e => { setForm({ ...form, name: e.target.value, slug: editing ? form.slug : autoSlug(e.target.value) }); }} placeholder="e.g. Yacht Rock" className="w-full border border-[rgba(255,255,255,0.09)] rounded-lg px-3 py-2 text-sm" />
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-1">Slug</label>
+              <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.5)] block mb-1">Slug</label>
               <input value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} placeholder="yacht-rock" className="w-full border border-[rgba(255,255,255,0.09)] rounded-lg px-3 py-2 text-sm" />
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-1">Era</label>
+              <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.5)] block mb-1">Era</label>
               <input value={form.era} onChange={e => setForm({ ...form, era: e.target.value })} placeholder="1970s" className="w-full border border-[rgba(255,255,255,0.09)] rounded-lg px-3 py-2 text-sm" />
             </div>
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.35)] block mb-1">Content</label>
+            <label className="text-[10px] uppercase tracking-widest text-[rgba(255,255,255,0.5)] block mb-1">Content</label>
             <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={16} className="w-full border border-[rgba(255,255,255,0.09)] rounded-xl px-4 py-3 text-sm font-mono resize-y leading-relaxed" spellCheck={false} />
           </div>
           <div className="flex items-center justify-between">

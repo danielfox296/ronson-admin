@@ -1,4 +1,5 @@
-// ── Kraftwerk V1 — Timeline Area ──
+// ── Kraftwerk V2 — Timeline Area ──
+// Now supports a `mode` prop to render only the relevant lane(s) per section.
 
 import { useMemo, useRef, useCallback, useState, useEffect } from 'react';
 import {
@@ -24,12 +25,13 @@ interface TimelineAreaProps {
   onHoverTimeChange: (time: number | null) => void;
   onSelectTrack: (trackId: string | null) => void;
   selectedTrackId: string | null;
+  /** Which lanes to render: schedule, factors, confounders, outputs, or all */
+  mode?: 'schedule' | 'factors' | 'confounders' | 'outputs' | 'all';
 }
 
 const TOTAL_MINUTES = 720; // 9AM – 9PM
 const DAY_START_HOUR = 9;
 
-/** Build the tick labels for the shared X-axis: 9a, 10a, ... 12p, 1p, ... 9p */
 const TIME_TICKS = Array.from({ length: 13 }, (_, i) => {
   const hour24 = DAY_START_HOUR + i;
   if (hour24 === 12) return '12p';
@@ -48,11 +50,11 @@ export default function TimelineArea({
   onHoverTimeChange,
   onSelectTrack,
   selectedTrackId,
+  mode = 'all',
 }: TimelineAreaProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(800);
 
-  // Measure container width
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -65,7 +67,6 @@ export default function TimelineArea({
     return () => ro.disconnect();
   }, []);
 
-  // Generate data
   const playbackEvents = useMemo(
     () => generatePlaybackSchedule(new Date(selectedDate)),
     [selectedDate],
@@ -73,7 +74,6 @@ export default function TimelineArea({
 
   const outcomeBins = useMemo(() => generateOutcomeData(), []);
 
-  // No real baseline data yet — generate a shifted copy for demo
   const baselineBins = useMemo(() => {
     if (!showBaseline) return null;
     return generateOutcomeData().map((bin) => ({
@@ -86,7 +86,6 @@ export default function TimelineArea({
     }));
   }, [showBaseline]);
 
-  // Mouse tracking for crosshair
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const rect = containerRef.current?.getBoundingClientRect();
@@ -105,24 +104,22 @@ export default function TimelineArea({
   const crosshairLeft =
     hoverTime !== null ? (hoverTime / TOTAL_MINUTES) * containerWidth : null;
 
+  const showSchedule = mode === 'all' || mode === 'schedule';
+  const showFactors = mode === 'all' || mode === 'factors';
+  const showConfounders = mode === 'all' || mode === 'confounders';
+  const showOutputs = mode === 'all' || mode === 'outputs';
+
   return (
     <div>
       {/* Shared time axis */}
-      <div style={{ position: 'relative', height: 20, marginBottom: 2 }}>
+      <div style={{ position: 'relative', height: 20, marginBottom: 4 }}>
         {TIME_TICKS.map((label, i) => {
           const left = (i / 12) * 100;
           return (
             <span
               key={label}
-              style={{
-                position: 'absolute',
-                left: `${left}%`,
-                transform: 'translateX(-50%)',
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 9,
-                color: '#3a3a3a',
-                userSelect: 'none',
-              }}
+              className="kw-time-tick"
+              style={{ position: 'absolute', left: `${left}%` }}
             >
               {label}
             </span>
@@ -130,53 +127,61 @@ export default function TimelineArea({
         })}
       </div>
 
-      {/* Lanes container — crosshair scope */}
+      {/* Lanes container */}
       <div
         ref={containerRef}
         style={{ position: 'relative' }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Crosshair */}
         {crosshairLeft !== null && (
           <div className="kw-crosshair" style={{ left: crosshairLeft }} />
         )}
 
-        <HealthStrip
-          storeId={storeId}
-          selectedDate={selectedDate}
-          playbackEvents={playbackEvents}
-        />
+        {showSchedule && (
+          <>
+            <HealthStrip
+              storeId={storeId}
+              selectedDate={selectedDate}
+              playbackEvents={playbackEvents}
+            />
+            <TrackLane
+              playbackEvents={playbackEvents}
+              tracks={TRACKS}
+              selectedTrackId={selectedTrackId}
+              onSelectTrack={onSelectTrack}
+              hoverTime={hoverTime}
+              containerWidth={containerWidth}
+            />
+          </>
+        )}
 
-        <TrackLane
-          playbackEvents={playbackEvents}
-          tracks={TRACKS}
-          selectedTrackId={selectedTrackId}
-          onSelectTrack={onSelectTrack}
-          hoverTime={hoverTime}
-          containerWidth={containerWidth}
-        />
+        {showFactors && (
+          <FlowFactorLane
+            playbackEvents={playbackEvents}
+            selectedFactors={selectedFlowFactors}
+            hoverTime={hoverTime}
+            containerWidth={containerWidth}
+          />
+        )}
 
-        <FlowFactorLane
-          playbackEvents={playbackEvents}
-          selectedFactors={selectedFlowFactors}
-          hoverTime={hoverTime}
-          containerWidth={containerWidth}
-        />
+        {showConfounders && (
+          <ConfounderLane
+            confounders={MOCK_CONFOUNDERS}
+            hoverTime={hoverTime}
+            containerWidth={containerWidth}
+          />
+        )}
 
-        <ConfounderLane
-          confounders={MOCK_CONFOUNDERS}
-          hoverTime={hoverTime}
-          containerWidth={containerWidth}
-        />
-
-        <OutputLane
-          outcomeBins={outcomeBins}
-          baselineBins={baselineBins}
-          selectedMetrics={selectedOutputMetrics}
-          showBaseline={showBaseline}
-          hoverTime={hoverTime}
-        />
+        {showOutputs && (
+          <OutputLane
+            outcomeBins={outcomeBins}
+            baselineBins={baselineBins}
+            selectedMetrics={selectedOutputMetrics}
+            showBaseline={showBaseline}
+            hoverTime={hoverTime}
+          />
+        )}
       </div>
     </div>
   );

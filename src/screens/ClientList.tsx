@@ -102,7 +102,7 @@ export default function ClientList() {
       )}
 
       {isLoading ? (
-        <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>
+        <p className="text-[rgba(255,255,255,0.45)]">Loading...</p>
       ) : (
         <table className="w-full bg-[#1b1b24] rounded-xl text-sm">
           <thead>
@@ -123,7 +123,7 @@ export default function ClientList() {
               </tr>
             ))}
             {clients.length === 0 && (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)]">No clients found</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-[rgba(255,255,255,0.45)]">No clients found</td></tr>
             )}
           </tbody>
         </table>

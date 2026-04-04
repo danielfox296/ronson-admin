@@ -1,4 +1,4 @@
-// ── Kraftwerk V1 — Track Lane ──
+// ── Kraftwerk V2 — Track Lane ──
 
 import { useCallback } from 'react';
 import type { PlaybackEvent, TrackDef } from './kraftwerk-data.js';
@@ -57,13 +57,13 @@ export default function TrackLane({
             <span
               style={{
                 fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 9,
-                color: '#d4a843',
+                fontSize: 10,
+                color: '#5ea2b6',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 display: 'block',
-                padding: '0 4px',
+                padding: '0 6px',
                 lineHeight: '44px',
               }}
             >

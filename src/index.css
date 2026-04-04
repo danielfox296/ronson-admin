@@ -7,8 +7,8 @@
   --border:        rgba(255,255,255,0.09);
   --border-subtle: rgba(255,255,255,0.05);
   --text:          rgba(255,255,255,0.87);
-  --text-muted:    rgba(255,255,255,0.55);
-  --text-faint:    rgba(255,255,255,0.3);
+  --text-muted:    rgba(255,255,255,0.65);
+  --text-faint:    rgba(255,255,255,0.4);
   --accent:        #5ea2b6;
   --accent-2:      #70b4c8;
 }
@@ -31,7 +31,7 @@
     outline: none;
     box-shadow: 0 0 0 1px rgba(94,162,182,0.3);
   }
-  input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
+  input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.35); }
   table { border-color: var(--border-subtle); }
   option {
     background: var(--surface);

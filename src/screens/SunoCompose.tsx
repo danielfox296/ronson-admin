@@ -11,7 +11,7 @@ function CopyBtn({ text }: { text: string }) {
     <button
       type="button"
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-      className="shrink-0 w-7 h-7 flex items-center justify-center rounded-md hover:bg-[rgba(255,255,255,0.06)] transition-colors text-[rgba(255,255,255,0.35)] hover:text-[rgba(255,255,255,0.7)]"
+      className="shrink-0 w-7 h-7 flex items-center justify-center rounded-md hover:bg-[rgba(255,255,255,0.06)] transition-colors text-[rgba(255,255,255,0.5)] hover:text-[rgba(255,255,255,0.7)]"
       title="Copy to clipboard"
     >
       {copied ? (
@@ -28,7 +28,7 @@ function FieldCard({ label, value, onChange, rows }: { label: string; value: str
   return (
     <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-[rgba(255,255,255,0.06)]">
-        <span className="text-[9px] uppercase tracking-[0.15em] text-[rgba(255,255,255,0.35)] font-medium">{label}</span>
+        <span className="text-[9px] uppercase tracking-[0.15em] text-[rgba(255,255,255,0.5)] font-medium">{label}</span>
         <CopyBtn text={value} />
       </div>
       <textarea
@@ -219,7 +219,7 @@ export default function SunoCompose() {
               { label: icp?.name || 'Audience', href: backPath },
               { label: 'Compose' },
             ]} />
-            <h1 className="text-xl font-light tracking-tight text-white leading-tight mt-3">
+            <h1 className="text-4xl tracking-tight leading-none text-white mt-3">
               {track ? `"${track.title}"` : 'Loading...'}
               {track?.artist && <span className="text-[rgba(255,255,255,0.4)]"> by {track.artist}</span>}
             </h1>

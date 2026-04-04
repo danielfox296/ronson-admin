@@ -189,7 +189,7 @@ export default function SongDetail() {
   return (
     <div>
       {/* Breadcrumb — just Songs link, no title (we render it ourselves) */}
-      <nav className="flex items-center gap-1 text-xs text-[rgba(255,255,255,0.25)] mb-2 tracking-wide">
+      <nav className="flex items-center gap-1 text-xs text-[rgba(255,255,255,0.4)] mb-2 tracking-wide">
         <a href="/songs" className="hover:text-[rgba(255,255,255,0.5)] transition-colors">Songs</a>
       </nav>
 
@@ -279,7 +279,7 @@ export default function SongDetail() {
                     type="button"
                     onClick={() => document.getElementById('replace-audio')?.click()}
                     disabled={uploading}
-                    className="flex items-center gap-1.5 text-[10px] text-[rgba(255,255,255,0.25)] hover:text-[#5ea2b6] transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 text-[10px] text-[rgba(255,255,255,0.4)] hover:text-[#5ea2b6] transition-colors disabled:opacity-50"
                   >
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
                     {uploading ? 'Uploading...' : 'Replace audio'}
@@ -335,7 +335,7 @@ export default function SongDetail() {
                 {reports.map((r: any) => (
                   <div key={r.id} className="flex items-center justify-between text-[10px]">
                     <span className="text-[#f3aa8c]">{reasonLabels[r.reason] || r.reason}</span>
-                    <span className="text-[rgba(255,255,255,0.2)]">{new Date(r.created_at).toLocaleDateString()}</span>
+                    <span className="text-[rgba(255,255,255,0.35)]">{new Date(r.created_at).toLocaleDateString()}</span>
                   </div>
                 ))}
               </div>
@@ -345,7 +345,7 @@ export default function SongDetail() {
           {/* Flow Factors — always show (31 configs from API) */}
           <div>
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Flow Factors</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Flow Factors</h2>
                 {!editingFlow ? (
                   <button type="button" onClick={() => {
                     setEditingFlow(true);
@@ -370,8 +370,8 @@ export default function SongDetail() {
                   const max = f.rangeHigh ?? 100;
                   const pct = max > min ? ((numVal - min) / (max - min)) * 100 : 0;
                   return (
-                    <div key={f.key} className="flex items-center gap-2 px-3 py-1.5 text-[11px]">
-                      <span className="text-[rgba(255,255,255,0.4)] w-28 shrink-0 truncate" title={f.label}>{f.label}</span>
+                    <div key={f.key} className="flex items-center gap-2 px-3 py-2 text-xs">
+                      <span className="text-[rgba(255,255,255,0.55)] w-32 shrink-0 truncate" title={f.label}>{f.label}</span>
                       {editingFlow ? (
                         isSlider ? (
                           <div className="flex items-center gap-1 flex-1">
@@ -381,7 +381,7 @@ export default function SongDetail() {
                               onChange={(e) => setFlowForm({ ...flowForm, [f.key]: e.target.value })}
                               className="flex-1 h-1 appearance-none rounded-full bg-[rgba(255,255,255,0.08)] accent-[#5ea2b6] cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#5ea2b6]"
                             />
-                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{f.valueType === 'scale' ? Math.round(Number(flowForm[f.key]) || min) : Number(flowForm[f.key] || min).toFixed(1)}</span>
+                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.55)]">{f.valueType === 'scale' ? Math.round(Number(flowForm[f.key]) || min) : Number(flowForm[f.key] || min).toFixed(1)}</span>
                           </div>
                         ) : f.valueType === 'enum' && f.options ? (
                           <select
@@ -402,13 +402,13 @@ export default function SongDetail() {
                       ) : (
                         isSlider && String(f.value) !== '' ? (
                           <>
-                            <div className="flex-1 h-1 bg-[rgba(255,255,255,0.04)] rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-[rgba(255,255,255,0.18)]" style={{ width: `${Math.min(100, pct)}%` }} />
+                            <div className="flex-1 h-1 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-[rgba(255,255,255,0.25)]" style={{ width: `${Math.min(100, pct)}%` }} />
                             </div>
-                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.4)]">{f.valueType === 'scale' ? Math.round(numVal) : numVal.toFixed(1)}</span>
+                            <span className="font-mono w-8 text-right text-[rgba(255,255,255,0.55)]">{f.valueType === 'scale' ? Math.round(numVal) : numVal.toFixed(1)}</span>
                           </>
                         ) : (
-                          <span className="text-[rgba(255,255,255,0.7)] flex-1 text-right truncate">{String(f.value) || <span className="text-[rgba(255,255,255,0.15)]">&mdash;</span>}</span>
+                          <span className="text-[rgba(255,255,255,0.7)] flex-1 text-right truncate">{String(f.value) || <span className="text-[rgba(255,255,255,0.3)]">&mdash;</span>}</span>
                         )
                       )}
                     </div>
@@ -426,7 +426,7 @@ export default function SongDetail() {
           {/* Store Assignments */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Store Assignments</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Store Assignments</h2>
               <button type="button" onClick={() => setShowAssign(true)} className="bg-[#5ea2b6] text-white px-3 py-1.5 rounded-lg text-xs hover:bg-[#70b4c8] transition-colors">+ Assign to Store</button>
             </div>
 
@@ -473,8 +473,8 @@ export default function SongDetail() {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <button type="button" onClick={() => setShowPrompt(!showPrompt)} className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Suno Prompt</h2>
-                  <Triangle open={showPrompt} className="text-[rgba(255,255,255,0.25)]" />
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Suno Prompt</h2>
+                  <Triangle open={showPrompt} className="text-[rgba(255,255,255,0.4)]" />
                 </button>
                 {showPrompt && (
                   !editingPrompt ? (
@@ -494,14 +494,14 @@ export default function SongDetail() {
                   <div className="px-4 py-3">
                     <button type="button" onClick={() => setShowCreative(!showCreative)} className="flex items-center justify-between w-full">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-[#5ea2b6]">Creative</span>
-                      <Triangle open={showCreative} className="text-[rgba(255,255,255,0.2)]" />
+                      <Triangle open={showCreative} className="text-[rgba(255,255,255,0.35)]" />
                     </button>
                     {showCreative && (
                       <div className="mt-2">
                         {editingPrompt ? (
                           <textarea value={promptForm.style} onChange={(e) => setPromptForm({ ...promptForm, style: e.target.value })} rows={3} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm resize-none" />
                         ) : (
-                          <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</p>
+                          <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style || <span className="text-[rgba(255,255,255,0.35)] italic">Not set</span>}</p>
                         )}
                       </div>
                     )}
@@ -511,14 +511,14 @@ export default function SongDetail() {
                   <div className="px-4 py-3">
                     <button type="button" onClick={() => setShowNegative(!showNegative)} className="flex items-center justify-between w-full">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-[#f3aa8c]">Negative</span>
-                      <Triangle open={showNegative} className="text-[rgba(255,255,255,0.2)]" />
+                      <Triangle open={showNegative} className="text-[rgba(255,255,255,0.35)]" />
                     </button>
                     {showNegative && (
                       <div className="mt-2">
                         {editingPrompt ? (
                           <textarea value={promptForm.style_negations} onChange={(e) => setPromptForm({ ...promptForm, style_negations: e.target.value })} rows={2} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm resize-none" />
                         ) : (
-                          <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style_negations || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</p>
+                          <p className="text-sm text-[rgba(255,255,255,0.8)]">{promptParams.style_negations || <span className="text-[rgba(255,255,255,0.35)] italic">Not set</span>}</p>
                         )}
                       </div>
                     )}
@@ -528,7 +528,7 @@ export default function SongDetail() {
                   <div className="px-4 py-3">
                     <button type="button" onClick={() => setShowVoice(!showVoice)} className="flex items-center justify-between w-full">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Vocal Gender</span>
-                      <Triangle open={showVoice} className="text-[rgba(255,255,255,0.2)]" />
+                      <Triangle open={showVoice} className="text-[rgba(255,255,255,0.35)]" />
                     </button>
                     {showVoice && (
                       <div className="mt-2">
@@ -539,7 +539,7 @@ export default function SongDetail() {
                             <option value="female">Female</option>
                           </select>
                         ) : (
-                          <p className="text-sm text-[rgba(255,255,255,0.8)] capitalize">{promptParams.voice || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</p>
+                          <p className="text-sm text-[rgba(255,255,255,0.8)] capitalize">{promptParams.voice || <span className="text-[rgba(255,255,255,0.35)] italic">Not set</span>}</p>
                         )}
                       </div>
                     )}
@@ -549,14 +549,14 @@ export default function SongDetail() {
                   <div className="px-4 py-3">
                     <button type="button" onClick={() => setShowLyrics(!showLyrics)} className="flex items-center justify-between w-full">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Lyrics</span>
-                      <Triangle open={showLyrics} className="text-[rgba(255,255,255,0.2)]" />
+                      <Triangle open={showLyrics} className="text-[rgba(255,255,255,0.35)]" />
                     </button>
                     {showLyrics && (
                       <div className="mt-2">
                         {editingPrompt ? (
                           <textarea value={promptForm.lyrics} onChange={(e) => setPromptForm({ ...promptForm, lyrics: e.target.value })} rows={10} className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm resize-none font-mono leading-relaxed" />
                         ) : (
-                          <pre className="text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)] font-sans leading-relaxed max-h-60 overflow-y-auto">{song.prompt_text || <span className="text-[rgba(255,255,255,0.2)] italic">No lyrics</span>}</pre>
+                          <pre className="text-sm whitespace-pre-wrap text-[rgba(255,255,255,0.7)] font-sans leading-relaxed max-h-60 overflow-y-auto">{song.prompt_text || <span className="text-[rgba(255,255,255,0.35)] italic">No lyrics</span>}</pre>
                         )}
                       </div>
                     )}

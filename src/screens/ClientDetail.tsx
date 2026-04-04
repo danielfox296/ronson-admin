@@ -48,7 +48,7 @@ export default function ClientDetail() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); navigate('/clients'); },
   });
 
-  if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
+  if (isLoading) return <p className="text-[rgba(255,255,255,0.45)]">Loading...</p>;
   const client = data?.data;
   if (!client) return <p className="text-[#ea6152]">Client not found</p>;
 
@@ -139,7 +139,7 @@ export default function ClientDetail() {
             </div>
           ))}
           {(!client.stores || client.stores.length === 0) && (
-            <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No stores yet</p>
+            <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.45)] text-sm">No stores yet</p>
           )}
         </div>
       </div>
@@ -153,7 +153,7 @@ export default function ClientDetail() {
               <div key={icp.id} className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
                 <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
                 {icp.psychographic_summary && <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">{icp.psychographic_summary}</p>}
-                <div className="flex gap-3 text-[rgba(255,255,255,0.3)] text-xs mt-1">
+                <div className="flex gap-3 text-[rgba(255,255,255,0.45)] text-xs mt-1">
                   {icp.gender && <span>Gender: {icp.gender}</span>}
                   {(icp.age_range_low || icp.age_range_high) && <span>Age: {icp.age_range_low || '?'}–{icp.age_range_high || '?'}</span>}
                   {icp.income_bracket && <span>Income: {icp.income_bracket}</span>}

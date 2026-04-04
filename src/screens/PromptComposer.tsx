@@ -376,7 +376,7 @@ export default function PromptComposer() {
       {/* Row 1: Three dropdowns in one row */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-1.5">Client</label>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-1.5">Client</label>
           <select
             value={selectedClientId}
             onChange={(e) => { setSelectedClientId(e.target.value); setSelectedStoreId(''); setSelectedIcpId(''); setLyrics(''); setStyle(''); setStyleNegations(''); setVoice(''); }}
@@ -387,7 +387,7 @@ export default function PromptComposer() {
           </select>
         </div>
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-1.5">Store</label>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-1.5">Store</label>
           <select
             value={selectedStoreId}
             onChange={(e) => { setSelectedStoreId(e.target.value); setSelectedIcpId(''); setLyrics(''); setStyle(''); setStyleNegations(''); setVoice(''); }}
@@ -399,7 +399,7 @@ export default function PromptComposer() {
           </select>
         </div>
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-1.5">Audience</label>
+          <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-1.5">Audience</label>
           <select
             value={selectedIcpId}
             onChange={(e) => { setSelectedIcpId(e.target.value); setLyrics(''); setStyle(''); setStyleNegations(''); setVoice(''); }}
@@ -418,13 +418,13 @@ export default function PromptComposer() {
         <div className="space-y-4">
           {/* Creative Direction */}
           <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)] block mb-2">What's this song about?</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-2">What's this song about?</label>
             <textarea
               value={creativeDirection}
               onChange={(e) => setCreativeDirection(e.target.value)}
               placeholder="missing someone on a rainy night, the feeling when you walk into a new city, letting go of something that used to matter..."
               rows={3}
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm resize-none placeholder:text-[rgba(255,255,255,0.28)]"
+              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-3 py-2 text-sm resize-none placeholder:text-[rgba(255,255,255,0.42)]"
             />
           </div>
 
@@ -432,7 +432,7 @@ export default function PromptComposer() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)]">
               <div className="flex items-baseline gap-2">
                 <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Reference Tracks</h2>
-                {refTracks.length > 0 && <span className="text-xs text-[rgba(255,255,255,0.3)]">{refTracks.length}</span>}
+                {refTracks.length > 0 && <span className="text-xs text-[rgba(255,255,255,0.45)]">{refTracks.length}</span>}
               </div>
               {selectedIcpId && selectedStoreId && selectedClientId && (
                 <a
@@ -471,10 +471,10 @@ export default function PromptComposer() {
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.38)] text-xs">No reference tracks for this audience</div>
+                  <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.55)] text-xs">No reference tracks for this audience</div>
                 )
               ) : (
-                <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.38)] text-xs">Select an audience to see reference tracks</div>
+                <div className="px-4 py-8 text-center text-[rgba(255,255,255,0.55)] text-xs">Select an audience to see reference tracks</div>
               )}
             </div>
           </div>
@@ -666,15 +666,15 @@ export default function PromptComposer() {
                     <div className="flex items-center gap-2">
                       <svg className="w-4 h-4 text-[#5ea2b6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                       <span className="text-sm text-[rgba(255,255,255,0.7)]">{droppedFile.name}</span>
-                      {droppedFile.duration > 0 && <span className="text-[10px] text-[rgba(255,255,255,0.3)]">{Math.floor(droppedFile.duration / 60)}:{String(Math.floor(droppedFile.duration % 60)).padStart(2, '0')}</span>}
+                      {droppedFile.duration > 0 && <span className="text-[10px] text-[rgba(255,255,255,0.45)]">{Math.floor(droppedFile.duration / 60)}:{String(Math.floor(droppedFile.duration % 60)).padStart(2, '0')}</span>}
                     </div>
-                    <button type="button" onClick={() => setDroppedFile(null)} className="text-[rgba(255,255,255,0.3)] hover:text-[#ea6152] text-xs transition-colors">Remove</button>
+                    <button type="button" onClick={() => setDroppedFile(null)} className="text-[rgba(255,255,255,0.45)] hover:text-[#ea6152] text-xs transition-colors">Remove</button>
                   </div>
                 ) : (
                   <label className="flex flex-col items-center gap-1 cursor-pointer">
-                    <svg className="w-5 h-5 text-[rgba(255,255,255,0.2)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
-                    <span className="text-[11px] text-[rgba(255,255,255,0.3)]">Drop audio file or click to upload</span>
-                    <span className="text-[9px] text-[rgba(255,255,255,0.15)]">MP3, WAV, FLAC — will be saved with draft</span>
+                    <svg className="w-5 h-5 text-[rgba(255,255,255,0.35)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span className="text-[11px] text-[rgba(255,255,255,0.45)]">Drop audio file or click to upload</span>
+                    <span className="text-[9px] text-[rgba(255,255,255,0.3)]">MP3, WAV, FLAC — will be saved with draft</span>
                     <input type="file" accept=".mp3,.wav,.flac" className="hidden" onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -785,7 +785,7 @@ export default function PromptComposer() {
                           <div className="flex-1 min-w-0">
                             <span className="text-xs text-[rgba(255,255,255,0.7)] truncate block">{r.title || r.id}</span>
                           </div>
-                          <span className={`text-[10px] font-bold uppercase tracking-widest ${r.status === 'complete' ? 'text-emerald-400' : 'text-[rgba(255,255,255,0.3)]'}`}>{r.status}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-widest ${r.status === 'complete' ? 'text-emerald-400' : 'text-[rgba(255,255,255,0.45)]'}`}>{r.status}</span>
                         </div>
                       ))}
                     </div>
@@ -876,9 +876,9 @@ export default function PromptComposer() {
             </>
           ) : (
             <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl flex flex-col items-center justify-center py-20 text-center">
-              <svg className="w-12 h-12 text-[rgba(255,255,255,0.08)] mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              <p className="text-[rgba(255,255,255,0.38)] text-sm">Select an audience and click Generate Prompt</p>
-              <p className="text-[rgba(255,255,255,0.22)] text-xs mt-1">Lyrics, creative, negative, and voice will appear here</p>
+              <svg className="w-12 h-12 text-[rgba(255,255,255,0.2)] mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <p className="text-[rgba(255,255,255,0.55)] text-sm">Select an audience and click Generate Prompt</p>
+              <p className="text-[rgba(255,255,255,0.4)] text-xs mt-1">Lyrics, creative, negative, and voice will appear here</p>
             </div>
           )}
         </div>

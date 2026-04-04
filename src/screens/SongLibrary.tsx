@@ -163,7 +163,7 @@ export default function SongLibrary() {
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.3)] hover:text-[rgba(255,255,255,0.6)] transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.45)] hover:text-[rgba(255,255,255,0.6)] transition-colors"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -241,14 +241,14 @@ export default function SongLibrary() {
                     {s.loves > 0 ? (
                       <span className="text-[#70d4b3] font-semibold text-sm">{s.loves}</span>
                     ) : (
-                      <span className="text-[rgba(255,255,255,0.1)] text-sm">0</span>
+                      <span className="text-[rgba(255,255,255,0.25)] text-sm">0</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     {s.reports > 0 ? (
                       <span className="text-[#f3aa8c] font-semibold text-sm">{s.reports}</span>
                     ) : (
-                      <span className="text-[rgba(255,255,255,0.1)] text-sm">0</span>
+                      <span className="text-[rgba(255,255,255,0.25)] text-sm">0</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
@@ -260,7 +260,7 @@ export default function SongLibrary() {
                           </span>
                         ))}
                         {s.store_playlists.length > 2 && (
-                          <span className="text-[10px] text-[rgba(255,255,255,0.3)] self-center">+{s.store_playlists.length - 2}</span>
+                          <span className="text-[10px] text-[rgba(255,255,255,0.45)] self-center">+{s.store_playlists.length - 2}</span>
                         )}
                       </div>
                     ) : (s._count?.store_playlists ?? 0) > 0 ? (
@@ -281,7 +281,7 @@ export default function SongLibrary() {
           </table>
 
           {songs.length > 0 && (
-            <div className="px-6 py-3 border-t border-[rgba(255,255,255,0.04)] text-[rgba(255,255,255,0.3)] text-xs">
+            <div className="px-6 py-3 border-t border-[rgba(255,255,255,0.04)] text-[rgba(255,255,255,0.45)] text-xs">
               Showing {songs.length} of {allSongs.length} tracks
             </div>
           )}

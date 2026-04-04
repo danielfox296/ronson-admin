@@ -12,7 +12,7 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
     <div className="mb-6">
       {parents.length > 0 && (
-        <nav className="flex items-center gap-1 text-xs text-[rgba(255,255,255,0.25)] mb-2 tracking-wide">
+        <nav className="flex items-center gap-1 text-xs text-[rgba(255,255,255,0.4)] mb-2 tracking-wide">
           {parents.map((item, i) => (
             <span key={i} className="flex items-center gap-1">
               {i > 0 && <span className="mx-1">/</span>}

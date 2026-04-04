@@ -134,7 +134,7 @@ export default function Config() {
           </div>
         )}
 
-        {ffLoading ? <p className="text-[rgba(255,255,255,0.3)] text-sm">Loading...</p> : (
+        {ffLoading ? <p className="text-[rgba(255,255,255,0.45)] text-sm">Loading...</p> : (
           <table className="w-full bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl text-sm">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.09)]">
@@ -161,7 +161,7 @@ export default function Config() {
                 </tr>
               ))}
               {flowFactors.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)]">No flow factors configured</td></tr>
+                <tr><td colSpan={6} className="px-4 py-6 text-center text-[rgba(255,255,255,0.45)]">No flow factors configured</td></tr>
               )}
             </tbody>
           </table>
@@ -197,7 +197,7 @@ export default function Config() {
           </div>
         )}
 
-        {gsLoading ? <p className="text-[rgba(255,255,255,0.3)] text-sm">Loading...</p> : (
+        {gsLoading ? <p className="text-[rgba(255,255,255,0.45)] text-sm">Loading...</p> : (
           <table className="w-full bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl text-sm">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.09)]">
@@ -224,7 +224,7 @@ export default function Config() {
                 </tr>
               ))}
               {genSystems.length === 0 && (
-                <tr><td colSpan={4} className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)]">No generation systems configured</td></tr>
+                <tr><td colSpan={4} className="px-4 py-6 text-center text-[rgba(255,255,255,0.45)]">No generation systems configured</td></tr>
               )}
             </tbody>
           </table>

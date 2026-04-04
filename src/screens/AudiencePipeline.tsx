@@ -50,7 +50,7 @@ function InlineEdit({ value, onSave, as = 'input', className = '', placeholder =
   const cls = 'border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 text-sm bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)] w-full';
   if (!editing) return (
     <span onClick={() => setEditing(true)} className={`cursor-pointer hover:bg-[rgba(255,255,255,0.05)] rounded px-1 -mx-1 transition-colors ${className}`} title="Click to edit">
-      {value || <span className="text-[rgba(255,255,255,0.2)] italic">{placeholder || 'empty'}</span>}
+      {value || <span className="text-[rgba(255,255,255,0.35)] italic">{placeholder || 'empty'}</span>}
     </span>
   );
   if (as === 'textarea') return (
@@ -347,7 +347,7 @@ export default function AudiencePipeline() {
 
   /* ---- Render ---- */
 
-  if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
+  if (isLoading) return <p className="text-[rgba(255,255,255,0.45)]">Loading...</p>;
   if (!icp) return <p className="text-[#ea6152]">Audience not found</p>;
 
   const ageRange = [icp.age_range_low, icp.age_range_high].filter(Boolean).join('–');
@@ -385,7 +385,7 @@ export default function AudiencePipeline() {
                 {icp.income_bracket && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{icp.income_bracket}</span>}
                 {icp.location_type && <span className="bg-[rgba(255,255,255,0.05)] px-1.5 py-0.5 rounded">{icp.location_type}</span>}
               </div>
-              <span className={`text-[rgba(255,255,255,0.3)] text-xs transition-transform ${showProfile ? 'rotate-180' : ''}`}>▼</span>
+              <span className={`text-[rgba(255,255,255,0.45)] text-xs transition-transform ${showProfile ? 'rotate-180' : ''}`}>▼</span>
             </div>
           </button>
 
@@ -393,7 +393,7 @@ export default function AudiencePipeline() {
             <div className="border-t border-[rgba(255,255,255,0.09)] px-4 py-4 space-y-4 max-h-[50vh] overflow-y-auto">
               {/* Demographics */}
               <div>
-                <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Demographics</span>
+                <span className="text-[rgba(255,255,255,0.4)] text-xs uppercase tracking-widest block mb-2">Demographics</span>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                   {[
                     { label: 'Age Range', value: ageRange, hint: 'e.g. 25-45', onSave: (v: string) => { const parts = v.split(/[-–]/); updateIcpMutation.mutate({ age_range_low: parseInt(parts[0]) || null, age_range_high: parseInt(parts[1]) || null }); } },
@@ -413,7 +413,7 @@ export default function AudiencePipeline() {
 
               {/* Psychographics */}
               <div>
-                <span className="text-[rgba(255,255,255,0.25)] text-xs uppercase tracking-widest block mb-2">Psychographics</span>
+                <span className="text-[rgba(255,255,255,0.4)] text-xs uppercase tracking-widest block mb-2">Psychographics</span>
                 <div className="space-y-3">
                   {[
                     { label: 'Summary', field: 'psychographic_summary', value: icp.psychographic_summary || '' },
@@ -437,7 +437,7 @@ export default function AudiencePipeline() {
                 </button>
                 {showFullDetails && (
                   <div className="mt-3">
-                    <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">Paste full audience research, extended notes, or any context here.</p>
+                    <p className="text-[rgba(255,255,255,0.4)] text-xs mb-2">Paste full audience research, extended notes, or any context here.</p>
                     <InlineEdit value={icp.notes || ''} onSave={(v) => updateIcpMutation.mutate({ notes: v || null })} as="textarea" className="text-[rgba(255,255,255,0.7)]" />
                   </div>
                 )}
@@ -451,12 +451,12 @@ export default function AudiencePipeline() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)] shrink-0">
             <div className="flex items-baseline gap-2">
               <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Reference Tracks</h2>
-              <span className="text-xs text-[rgba(255,255,255,0.3)]">{allRefTracks.length}</span>
+              <span className="text-xs text-[rgba(255,255,255,0.45)]">{allRefTracks.length}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.09)] rounded-lg px-2.5 py-1">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="4" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2"/><path d="M8.5 8.5L11 11" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                <input value={refFilter} onChange={(e) => setRefFilter(e.target.value)} placeholder="Filter..." className="bg-transparent border-none outline-none text-xs text-[rgba(255,255,255,0.87)] w-16 placeholder:text-[rgba(255,255,255,0.2)]" />
+                <input value={refFilter} onChange={(e) => setRefFilter(e.target.value)} placeholder="Filter..." className="bg-transparent border-none outline-none text-xs text-[rgba(255,255,255,0.87)] w-16 placeholder:text-[rgba(255,255,255,0.35)]" />
               </div>
               <button type="button" onClick={() => { setShowBulkAdd(true); setShowRefForm(false); }} className="border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.5)] hover:text-[rgba(255,255,255,0.8)] hover:border-[rgba(255,255,255,0.2)] rounded-lg px-2.5 py-1 text-xs transition-colors flex items-center gap-1">
                 <span>+</span> Add
@@ -473,12 +473,12 @@ export default function AudiencePipeline() {
                   onChange={(e) => setBulkText(e.target.value)}
                   placeholder={"Midnight City - M83\nSunday Morning - No Doubt\nBlue Monday - New Order"}
                   rows={6}
-                  className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)] resize-none font-mono leading-relaxed placeholder:text-[rgba(255,255,255,0.15)]"
+                  className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs bg-[rgba(255,255,255,0.03)] text-[rgba(255,255,255,0.87)] resize-none font-mono leading-relaxed placeholder:text-[rgba(255,255,255,0.3)]"
                   autoFocus
                 />
                 {bulkError && <p className="text-[#ea6152] text-xs">{bulkError}</p>}
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[rgba(255,255,255,0.25)]">
+                  <span className="text-[10px] text-[rgba(255,255,255,0.4)]">
                     {bulkText.split('\n').filter((l) => l.trim()).length} tracks detected
                   </span>
                   <div className="flex gap-2">
@@ -511,15 +511,15 @@ export default function AudiencePipeline() {
                         Analyzing
                       </span>
                     )}
-                    {!isAnalyzing && rt.genre && <span className="text-[rgba(255,255,255,0.25)] text-xs shrink-0">{rt.genre}</span>}
-                    {rt.duration_seconds && <span className="text-[rgba(255,255,255,0.25)] text-xs tabular-nums shrink-0">{formatDuration(rt.duration_seconds)}</span>}
+                    {!isAnalyzing && rt.genre && <span className="text-[rgba(255,255,255,0.4)] text-xs shrink-0">{rt.genre}</span>}
+                    {rt.duration_seconds && <span className="text-[rgba(255,255,255,0.4)] text-xs tabular-nums shrink-0">{formatDuration(rt.duration_seconds)}</span>}
                   </button>
                   {expandedTracks.has(rt.id) && (
                     <div className="border-t border-[rgba(255,255,255,0.09)] px-4 py-3 space-y-3">
                       <div className="grid grid-cols-3 gap-x-6 gap-y-1 text-xs">
                         {([['Title', rt.title, 'title'], ['Artist', rt.artist, 'artist'], ['Genre', rt.genre, 'genre'], ['Album', rt.album, 'album']] as [string, string, string][]).map(([label, val, field]) => (
                           <div key={field} className="flex items-baseline gap-1">
-                            <span className="text-[rgba(255,255,255,0.3)] shrink-0">{label}:</span>
+                            <span className="text-[rgba(255,255,255,0.45)] shrink-0">{label}:</span>
                             <InlineEdit value={val || ''} onSave={(v) => updateRefMutation.mutate({ id: rt.id, body: { [field]: v } })} className="text-[rgba(255,255,255,0.7)]" />
                           </div>
                         ))}
@@ -531,7 +531,7 @@ export default function AudiencePipeline() {
                             if (val == null) return null;
                             if (type === 'bar') return (
                               <div key={key} className="flex items-center gap-1.5">
-                                <span className="text-[rgba(255,255,255,0.35)] text-[10px] shrink-0 w-[110px]">{label}</span>
+                                <span className="text-[rgba(255,255,255,0.5)] text-[10px] shrink-0 w-[110px]">{label}</span>
                                 <div className="flex-1 h-[3px] bg-[rgba(255,255,255,0.07)] rounded-full">
                                   <div className="h-full rounded-full bg-[rgba(159,225,203,0.7)]" style={{ width: `${Math.round(val * 100)}%` }} />
                                 </div>
@@ -540,13 +540,13 @@ export default function AudiencePipeline() {
                             );
                             if (type === 'number') return (
                               <div key={key} className="flex items-center gap-1.5">
-                                <span className="text-[rgba(255,255,255,0.35)] text-[10px] shrink-0 w-[110px]">{label}</span>
+                                <span className="text-[rgba(255,255,255,0.5)] text-[10px] shrink-0 w-[110px]">{label}</span>
                                 <span className="text-[rgba(255,255,255,0.75)] text-[10px] font-medium tabular-nums">{Math.round(val)}</span>
                               </div>
                             );
                             return (
                               <div key={key} className="flex items-baseline gap-1.5 min-w-0">
-                                <span className="text-[rgba(255,255,255,0.35)] text-[10px] shrink-0 w-[110px]">{label}</span>
+                                <span className="text-[rgba(255,255,255,0.5)] text-[10px] shrink-0 w-[110px]">{label}</span>
                                 <span className="text-[rgba(255,255,255,0.7)] text-[10px]">{String(val)}</span>
                               </div>
                             );
@@ -559,12 +559,12 @@ export default function AudiencePipeline() {
                             </div>
                           )}
                           {rt.analysis_data?.notes && (
-                            <p className="text-[rgba(255,255,255,0.38)] text-[10px] italic border-t border-[rgba(255,255,255,0.04)] pt-2">{rt.analysis_data.notes}</p>
+                            <p className="text-[rgba(255,255,255,0.55)] text-[10px] italic border-t border-[rgba(255,255,255,0.04)] pt-2">{rt.analysis_data.notes}</p>
                           )}
                         </div>
                       )}
                       {!rt.analyzed && !isAnalyzing && (
-                        <p className="text-[rgba(255,255,255,0.2)] text-xs italic">Not yet analyzed</p>
+                        <p className="text-[rgba(255,255,255,0.35)] text-xs italic">Not yet analyzed</p>
                       )}
                       <div className="flex items-center justify-between pt-1">
                         <div className="flex items-center gap-2 min-w-0">
@@ -579,7 +579,7 @@ export default function AudiencePipeline() {
                                 onChange={(e) => setTrackTopics((prev) => ({ ...prev, [rt.id]: e.target.value }))}
                                 onClick={(e) => e.stopPropagation()}
                                 placeholder="Topic…"
-                                className="w-[140px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-0.5 text-[10px] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
+                                className="w-[140px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded px-2 py-0.5 text-[10px] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.35)] focus:outline-none focus:border-[rgba(255,255,255,0.2)]"
                               />
                               <button type="button" onClick={() => { const topic = trackTopics[rt.id]; navigate(`/compose?clientId=${clientId}&storeId=${storeId}&icpId=${icpId}&trackId=${rt.id}${topic ? `&topic=${encodeURIComponent(topic)}` : ''}`); }} className="text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] text-xs transition-colors shrink-0">Compose</button>
                             </div>
@@ -596,7 +596,7 @@ export default function AudiencePipeline() {
 
             {refTracks.length === 0 && !showBulkAdd && (
               <div className="px-4 py-8 text-center">
-                <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">No reference tracks</p>
+                <p className="text-[rgba(255,255,255,0.4)] text-xs mb-2">No reference tracks</p>
                 <button type="button" onClick={() => setShowBulkAdd(true)} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors">+ Add tracks</button>
               </div>
             )}
@@ -611,12 +611,12 @@ export default function AudiencePipeline() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)] shrink-0">
             <div className="flex items-baseline gap-2">
               <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Songs</h2>
-              <span className="text-xs text-[rgba(255,255,255,0.3)]">{allSongs.length}</span>
+              <span className="text-xs text-[rgba(255,255,255,0.45)]">{allSongs.length}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.09)] rounded-lg px-2.5 py-1">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="4" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2"/><path d="M8.5 8.5L11 11" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                <input value={songFilter} onChange={(e) => setSongFilter(e.target.value)} placeholder="Filter..." className="bg-transparent border-none outline-none text-xs text-[rgba(255,255,255,0.87)] w-16 placeholder:text-[rgba(255,255,255,0.2)]" />
+                <input value={songFilter} onChange={(e) => setSongFilter(e.target.value)} placeholder="Filter..." className="bg-transparent border-none outline-none text-xs text-[rgba(255,255,255,0.87)] w-16 placeholder:text-[rgba(255,255,255,0.35)]" />
               </div>
               <button type="button" onClick={() => setShowSongModal(true)} className="bg-[#5ea2b6] text-white rounded-lg px-2.5 py-1 text-xs font-medium hover:bg-[#70b4c8] transition-colors flex items-center gap-1">
                 <span>+</span> Upload
@@ -639,25 +639,25 @@ export default function AudiencePipeline() {
               ) : (
                 <>
                   <p className="text-[rgba(255,255,255,0.55)] text-xs">Drop audio files here</p>
-                  <p className="text-[rgba(255,255,255,0.15)] text-[10px] mt-0.5">MP3, WAV, FLAC</p>
+                  <p className="text-[rgba(255,255,255,0.3)] text-[10px] mt-0.5">MP3, WAV, FLAC</p>
                 </>
               )}
             </div>
             {uploadError && !showSongModal && <p className="text-[#ea6152] text-xs px-4 py-1">{uploadError}</p>}
 
-            {songsLoading && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-xs">Loading...</p>}
+            {songsLoading && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.45)] text-xs">Loading...</p>}
             {!songsLoading && songs.map((song) => (
               <div key={song.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-[rgba(255,255,255,0.04)] last:border-0 hover:bg-[rgba(255,255,255,0.02)] transition-colors">
                 <StatusBadge status={song.status || 'generated'} />
                 <span className="flex-1 text-sm text-[rgba(255,255,255,0.87)] truncate">{song.title || 'Untitled'}</span>
-                {song.duration_seconds && <span className="text-[rgba(255,255,255,0.25)] text-xs tabular-nums shrink-0">{formatDuration(song.duration_seconds)}</span>}
+                {song.duration_seconds && <span className="text-[rgba(255,255,255,0.4)] text-xs tabular-nums shrink-0">{formatDuration(song.duration_seconds)}</span>}
                 <button type="button" onClick={() => navigate(`/songs/${song.id}`)} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors shrink-0">View</button>
-                <button type="button" onClick={() => { if (window.confirm(`Delete "${song.title || 'this song'}"?`)) deleteSongMutation.mutate(song.id); }} className="text-[rgba(255,255,255,0.15)] hover:text-[#ea6152] text-xs transition-colors shrink-0">Delete</button>
+                <button type="button" onClick={() => { if (window.confirm(`Delete "${song.title || 'this song'}"?`)) deleteSongMutation.mutate(song.id); }} className="text-[rgba(255,255,255,0.3)] hover:text-[#ea6152] text-xs transition-colors shrink-0">Delete</button>
               </div>
             ))}
             {!songsLoading && songs.length === 0 && (
               <div className="px-4 py-8 text-center">
-                <p className="text-[rgba(255,255,255,0.25)] text-xs mb-2">No songs yet</p>
+                <p className="text-[rgba(255,255,255,0.4)] text-xs mb-2">No songs yet</p>
                 <button type="button" onClick={() => setShowSongModal(true)} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs transition-colors">+ Add first song</button>
               </div>
             )}
@@ -671,7 +671,7 @@ export default function AudiencePipeline() {
           <div className="bg-[#0e0e1a] border border-[rgba(255,255,255,0.08)] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[rgba(255,255,255,0.09)]">
               <h2 className="text-base font-medium text-[rgba(255,255,255,0.87)]">Add Song</h2>
-              <button type="button" onClick={closeSongModal} className="text-[rgba(255,255,255,0.3)] hover:text-[rgba(255,255,255,0.6)] transition-colors text-lg leading-none">✕</button>
+              <button type="button" onClick={closeSongModal} className="text-[rgba(255,255,255,0.45)] hover:text-[rgba(255,255,255,0.6)] transition-colors text-lg leading-none">✕</button>
             </div>
 
             <div className="px-6 py-4 space-y-4">
@@ -679,7 +679,7 @@ export default function AudiencePipeline() {
               {songForm.audio_file_url ? (
                 <div className="space-y-2">
                   <audio controls src={songForm.audio_file_url} className="w-full" />
-                  <button type="button" onClick={() => setSongForm((p) => ({ ...p, audio_file_url: '', duration_seconds: '' }))} className="text-[rgba(255,255,255,0.3)] hover:text-[rgba(255,255,255,0.5)] text-xs transition-colors">Remove file</button>
+                  <button type="button" onClick={() => setSongForm((p) => ({ ...p, audio_file_url: '', duration_seconds: '' }))} className="text-[rgba(255,255,255,0.45)] hover:text-[rgba(255,255,255,0.5)] text-xs transition-colors">Remove file</button>
                 </div>
               ) : (
                 <div
@@ -694,7 +694,7 @@ export default function AudiencePipeline() {
                   ) : (
                     <>
                       <p className="text-[rgba(255,255,255,0.4)] text-sm">Drop audio file here or click to browse</p>
-                      <p className="text-[rgba(255,255,255,0.2)] text-xs mt-1">.mp3 · .wav · .flac — title & duration auto-detected</p>
+                      <p className="text-[rgba(255,255,255,0.35)] text-xs mt-1">.mp3 · .wav · .flac — title & duration auto-detected</p>
                     </>
                   )}
                 </div>
@@ -706,12 +706,12 @@ export default function AudiencePipeline() {
                 <div className="bg-[rgba(74,144,164,0.06)] border border-[rgba(74,144,164,0.15)] rounded-lg px-3 py-2.5">
                   <span className="text-[#5ea2b6] text-[10px] uppercase tracking-widest font-medium block mb-1.5">Detected from file</span>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                    {fileMeta.artist && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Artist:</span> {fileMeta.artist}</span>}
-                    {fileMeta.album && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Album:</span> {fileMeta.album}</span>}
-                    {fileMeta.genre && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Genre:</span> {fileMeta.genre}</span>}
-                    {fileMeta.bpm && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">BPM:</span> {fileMeta.bpm}</span>}
-                    {fileMeta.key && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Key:</span> {fileMeta.key}</span>}
-                    {fileMeta.year && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.3)]">Year:</span> {fileMeta.year}</span>}
+                    {fileMeta.artist && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.45)]">Artist:</span> {fileMeta.artist}</span>}
+                    {fileMeta.album && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.45)]">Album:</span> {fileMeta.album}</span>}
+                    {fileMeta.genre && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.45)]">Genre:</span> {fileMeta.genre}</span>}
+                    {fileMeta.bpm && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.45)]">BPM:</span> {fileMeta.bpm}</span>}
+                    {fileMeta.key && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.45)]">Key:</span> {fileMeta.key}</span>}
+                    {fileMeta.year && <span className="text-[rgba(255,255,255,0.6)]"><span className="text-[rgba(255,255,255,0.45)]">Year:</span> {fileMeta.year}</span>}
                   </div>
                 </div>
               )}

@@ -1,4 +1,4 @@
-// ── Kraftwerk V1 — Output Lane (Recharts) ──
+// ── Kraftwerk V2 — Output Lane (Recharts) ──
 
 import { useMemo } from 'react';
 import {
@@ -20,10 +20,7 @@ interface OutputLaneProps {
   hoverTime: number | null;
 }
 
-const LANE_HEIGHT = 220;
-
-// Map metric keys to OutcomeBin field names — they're the same in our schema
-// selectedMetrics already uses keys like "conversionRate", "aov", etc.
+const LANE_HEIGHT = 240;
 
 export default function OutputLane({
   outcomeBins,
@@ -32,7 +29,6 @@ export default function OutputLane({
   showBaseline,
   hoverTime: _hoverTime,
 }: OutputLaneProps) {
-  // Merge baseline data into the chart data if needed
   const chartData = useMemo(() => {
     return outcomeBins.map((bin, i) => {
       const row: Record<string, string | number> = { time: bin.time };
@@ -57,81 +53,77 @@ export default function OutputLane({
   if (selectedMetrics.length === 0) {
     return (
       <div className="kw-lane" style={{ height: LANE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span className="kw-empty-text">Select output metrics from the panel</span>
+        <span className="kw-empty-text">Select metrics above to chart them</span>
       </div>
     );
   }
 
   return (
     <div className="kw-lane" style={{ height: LANE_HEIGHT, position: 'relative' }}>
-      <span className="kw-lane-label">Outputs</span>
       <ResponsiveContainer width="100%" height={LANE_HEIGHT}>
-        <AreaChart data={chartData} margin={{ top: 16, right: 12, bottom: 4, left: 4 }}>
+        <AreaChart data={chartData} margin={{ top: 12, right: 12, bottom: 4, left: 4 }}>
           <XAxis
             dataKey="time"
-            tick={{ fontSize: 9, fontFamily: "'JetBrains Mono', monospace", fill: '#3a3a3a' }}
-            axisLine={{ stroke: '#1e1e1e' }}
+            tick={{ fontSize: 11, fontFamily: 'Inter, sans-serif', fill: 'rgba(255,255,255,0.2)' }}
+            axisLine={{ stroke: 'rgba(255,255,255,0.05)' }}
             tickLine={false}
             interval={3}
           />
 
-          {/* First metric gets left Y-axis */}
           {metricDefs[0] && (
             <YAxis
               yAxisId="left"
               orientation="left"
-              tick={{ fontSize: 9, fontFamily: "'JetBrains Mono', monospace", fill: metricDefs[0].color }}
+              tick={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", fill: 'rgba(255,255,255,0.35)' }}
               axisLine={false}
               tickLine={false}
-              width={48}
+              width={52}
             />
           )}
 
-          {/* Second metric gets right Y-axis */}
           {metricDefs.length >= 2 && (
             <YAxis
               yAxisId="right"
               orientation="right"
-              tick={{ fontSize: 9, fontFamily: "'JetBrains Mono', monospace", fill: metricDefs[1].color }}
+              tick={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", fill: 'rgba(255,255,255,0.35)' }}
               axisLine={false}
               tickLine={false}
-              width={48}
+              width={52}
             />
           )}
 
           <Tooltip
             contentStyle={{
-              background: '#1a1a1a',
-              border: '1px solid #2a2a2a',
-              fontSize: 11,
-              fontFamily: "'JetBrains Mono', monospace",
-              color: '#737373',
+              background: '#1b1b24',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 6,
+              fontSize: 12,
+              fontFamily: 'Inter, sans-serif',
+              color: 'rgba(255,255,255,0.87)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             }}
             labelStyle={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: '#525252',
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.4)',
             }}
           />
 
-          {/* Primary metric areas */}
           {metricDefs.map((md, idx) => (
             <Area
               key={md.key}
               type="monotone"
               dataKey={md.key}
               stroke={md.color}
-              strokeWidth={1.5}
+              strokeWidth={2}
               fill={md.color}
-              fillOpacity={0.08}
+              fillOpacity={0.06}
               yAxisId={idx <= 1 ? (idx === 0 ? 'left' : 'right') : 'left'}
               name={md.label}
               dot={false}
-              activeDot={{ r: 2, strokeWidth: 0 }}
+              activeDot={{ r: 3, strokeWidth: 0, fill: md.color }}
             />
           ))}
 
-          {/* Baseline dashed overlays */}
           {showBaseline &&
             baselineBins &&
             metricDefs.map((md, idx) => (
@@ -141,7 +133,7 @@ export default function OutputLane({
                 dataKey={`${md.key}_baseline`}
                 stroke={md.color}
                 strokeWidth={1}
-                strokeOpacity={0.4}
+                strokeOpacity={0.3}
                 strokeDasharray="4 4"
                 fill="none"
                 yAxisId={idx <= 1 ? (idx === 0 ? 'left' : 'right') : 'left'}

@@ -96,7 +96,7 @@ export default function StoreDetail() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['store', storeId] }); setPasswordSaved(true); setTimeout(() => setPasswordSaved(false), 3000); },
   });
 
-  if (isLoading) return <p className="text-[rgba(255,255,255,0.3)]">Loading...</p>;
+  if (isLoading) return <p className="text-[rgba(255,255,255,0.45)]">Loading...</p>;
   if (!store) return <p className="text-[#ea6152]">Store not found</p>;
 
   const icps = icpsData?.data || [];
@@ -171,19 +171,19 @@ export default function StoreDetail() {
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
             <div>
               <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">Address</label>
-              <span className="text-[rgba(255,255,255,0.87)]">{store.address_line_1 || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
+              <span className="text-[rgba(255,255,255,0.87)]">{store.address_line_1 || <span className="text-[rgba(255,255,255,0.35)] italic">Not set</span>}</span>
             </div>
             <div>
               <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">City / State / Zip</label>
-              <span className="text-[rgba(255,255,255,0.87)]">{[store.city, store.state, store.zip].filter(Boolean).join(', ') || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
+              <span className="text-[rgba(255,255,255,0.87)]">{[store.city, store.state, store.zip].filter(Boolean).join(', ') || <span className="text-[rgba(255,255,255,0.35)] italic">Not set</span>}</span>
             </div>
             <div>
               <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">Country</label>
-              <span className="text-[rgba(255,255,255,0.87)]">{store.country || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
+              <span className="text-[rgba(255,255,255,0.87)]">{store.country || <span className="text-[rgba(255,255,255,0.35)] italic">Not set</span>}</span>
             </div>
             <div>
               <label className="text-[rgba(255,255,255,0.4)] text-xs block mb-0.5">Timezone</label>
-              <span className="text-[rgba(255,255,255,0.87)]">{store.timezone || <span className="text-[rgba(255,255,255,0.2)] italic">Not set</span>}</span>
+              <span className="text-[rgba(255,255,255,0.87)]">{store.timezone || <span className="text-[rgba(255,255,255,0.35)] italic">Not set</span>}</span>
             </div>
           </div>
           <p className="mt-3 text-xs text-[#5ea2b6]">Click to edit</p>
@@ -234,19 +234,19 @@ export default function StoreDetail() {
                 >
                   <span className="font-medium text-[rgba(255,255,255,0.87)]">{icp.name}</span>
                   {icp._count?.songs > 0 && (
-                    <span className="ml-2 text-[rgba(255,255,255,0.3)] text-xs">{icp._count.songs} song{icp._count.songs !== 1 ? 's' : ''}</span>
+                    <span className="ml-2 text-[rgba(255,255,255,0.45)] text-xs">{icp._count.songs} song{icp._count.songs !== 1 ? 's' : ''}</span>
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setDeleteIcpTarget({ id: icp.id, name: icp.name, songCount: icp._count?.songs || 0 }); }}
-                  className="opacity-0 group-hover:opacity-100 text-[rgba(255,255,255,0.2)] hover:text-[#ea6152] text-xs transition-all ml-4 shrink-0"
+                  className="opacity-0 group-hover:opacity-100 text-[rgba(255,255,255,0.35)] hover:text-[#ea6152] text-xs transition-all ml-4 shrink-0"
                 >
                   Delete
                 </button>
               </div>
             ))}
-            {icps.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.3)] text-sm">No audiences yet</p>}
+            {icps.length === 0 && <p className="px-4 py-6 text-center text-[rgba(255,255,255,0.45)] text-sm">No audiences yet</p>}
           </div>
         </div>
       )}
@@ -282,7 +282,7 @@ export default function StoreDetail() {
                 </tr>
               ))}
               {playEvents.length === 0 && (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)]">No play events yet</td></tr>
+                <tr><td colSpan={3} className="px-4 py-8 text-center text-[rgba(255,255,255,0.45)]">No play events yet</td></tr>
               )}
             </tbody>
           </table>
@@ -354,14 +354,14 @@ export default function StoreDetail() {
       {tab === 'ambient' && (
         <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl">
           {(ambientData?.data || []).length === 0 ? (
-            <p className="px-4 py-8 text-center text-[rgba(255,255,255,0.3)] text-sm">No ambient readings recorded yet</p>
+            <p className="px-4 py-8 text-center text-[rgba(255,255,255,0.45)] text-sm">No ambient readings recorded yet</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[rgba(255,255,255,0.09)]">
-                  <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Time</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Avg dB</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.3)]">Peak dB</th>
+                  <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Time</th>
+                  <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Avg dB</th>
+                  <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Peak dB</th>
                 </tr>
               </thead>
               <tbody>
@@ -389,7 +389,7 @@ export default function StoreDetail() {
                 <input type="email" placeholder="store@example.com" value={playerEmail} onChange={(e) => setPlayerEmail(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm flex-1 bg-[rgba(255,255,255,0.03)]" />
                 <button type="button" onClick={() => saveWonderCredsMutation.mutate({ player_email: playerEmail })} disabled={!playerEmail.trim()} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#70b4c8] transition-colors">Save</button>
               </div>
-              {store.player_email && <p className="text-[rgba(255,255,255,0.2)] text-xs mt-1">Current: {store.player_email}</p>}
+              {store.player_email && <p className="text-[rgba(255,255,255,0.35)] text-xs mt-1">Current: {store.player_email}</p>}
             </div>
             <div>
               <label className="text-[rgba(255,255,255,0.4)] block mb-1">{store.has_player_password ? 'Reset Player Password' : 'Set Player Password'}</label>
@@ -421,7 +421,7 @@ export default function StoreDetail() {
                 </button>
               </div>
               {modeSaved && <p className="text-[#33be6a] text-xs mt-1">Mode saved.</p>}
-              <p className="text-[rgba(255,255,255,0.2)] text-xs mt-1">Wonder will start in this mode when the player connects.</p>
+              <p className="text-[rgba(255,255,255,0.35)] text-xs mt-1">Wonder will start in this mode when the player connects.</p>
             </div>
             <div className="border-t border-[rgba(255,255,255,0.09)] pt-3 text-[rgba(255,255,255,0.4)] text-xs">
               <p>To set up the player at this store:</p>

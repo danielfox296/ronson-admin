@@ -279,7 +279,7 @@ export default function BatchEntry() {
     <div className="max-w-3xl mx-auto pb-24">
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-lg font-semibold text-[rgba(255,255,255,0.87)]">Batch Entry</h1>
+        <h1 className="text-4xl tracking-tight leading-none text-white">Batch Entry</h1>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.4)]">
             Filter
@@ -358,12 +358,12 @@ export default function BatchEntry() {
                   className="group flex items-center gap-1.5 text-sm font-medium text-[rgba(255,255,255,0.87)] hover:text-white"
                 >
                   {currentSong.title || 'Untitled'}
-                  <svg className="w-3 h-3 text-[rgba(255,255,255,0.25)] group-hover:text-[rgba(255,255,255,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
+                  <svg className="w-3 h-3 text-[rgba(255,255,255,0.4)] group-hover:text-[rgba(255,255,255,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
                 </button>
               )}
               <button
                 onClick={() => setShowDelete(true)}
-                className="text-[rgba(255,255,255,0.25)] hover:text-[#ef4444] transition-colors p-1"
+                className="text-[rgba(255,255,255,0.4)] hover:text-[#ef4444] transition-colors p-1"
                 title="Delete song"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -426,9 +426,9 @@ export default function BatchEntry() {
                     <span className="text-xs font-semibold tracking-wider text-[rgba(255,255,255,0.5)] uppercase">
                       {meta.label}
                     </span>
-                    <span className="text-xs text-[rgba(255,255,255,0.3)]">— {meta.description}</span>
+                    <span className="text-xs text-[rgba(255,255,255,0.45)]">— {meta.description}</span>
                   </div>
-                  <span className="text-xs text-[rgba(255,255,255,0.3)]">
+                  <span className="text-xs text-[rgba(255,255,255,0.45)]">
                     {counts?.set ?? 0}/{counts?.total ?? 0} set
                   </span>
                 </button>
@@ -460,7 +460,7 @@ export default function BatchEntry() {
                 Skip
               </button>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] text-[rgba(255,255,255,0.2)]">
+                <span className="text-[10px] text-[rgba(255,255,255,0.35)]">
                   {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter to save
                 </span>
                 <button
@@ -603,7 +603,7 @@ function FactorInput({ config, value, onChange }: { config: FactorConfig; value:
         <label className="w-40 shrink-0 text-xs text-[rgba(255,255,255,0.6)] flex items-center gap-1" title={config.description || undefined}>
           {config.display_name}
           {config.description && (
-            <svg className="w-3 h-3 text-[rgba(255,255,255,0.2)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg className="w-3 h-3 text-[rgba(255,255,255,0.35)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           )}
         </label>
         <select
@@ -631,7 +631,7 @@ function FactorInput({ config, value, onChange }: { config: FactorConfig; value:
         value={isUnset ? '' : (value as string)}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter…"
-        className="flex-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-1.5 text-xs text-[rgba(255,255,255,0.87)] outline-none focus:border-[#2dd4bf]/50 placeholder:text-[rgba(255,255,255,0.2)]"
+        className="flex-1 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-1.5 text-xs text-[rgba(255,255,255,0.87)] outline-none focus:border-[#2dd4bf]/50 placeholder:text-[rgba(255,255,255,0.35)]"
       />
     </div>
   );
@@ -654,11 +654,11 @@ function SliderInput({ config, value, onChange }: { config: FactorConfig; value:
       <label className="w-40 shrink-0 text-xs text-[rgba(255,255,255,0.6)] flex items-center gap-1" title={config.description || undefined}>
         {config.display_name}
         {config.description && (
-          <svg className="w-3 h-3 text-[rgba(255,255,255,0.2)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <svg className="w-3 h-3 text-[rgba(255,255,255,0.35)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         )}
       </label>
       <div className="flex-1 flex items-center gap-2">
-        <span className="text-[10px] text-[rgba(255,255,255,0.2)] w-6 text-right">{min}</span>
+        <span className="text-[10px] text-[rgba(255,255,255,0.35)] w-6 text-right">{min}</span>
         <input
           type="range"
           min={min}
@@ -673,9 +673,9 @@ function SliderInput({ config, value, onChange }: { config: FactorConfig; value:
               : `linear-gradient(to right, #2dd4bf 0%, #2dd4bf ${((displayValue - min) / (max - min)) * 100}%, #1e1e1e ${((displayValue - min) / (max - min)) * 100}%, #1e1e1e 100%)`,
           }}
         />
-        <span className="text-[10px] text-[rgba(255,255,255,0.2)] w-6">{max}</span>
+        <span className="text-[10px] text-[rgba(255,255,255,0.35)] w-6">{max}</span>
       </div>
-      <span className={`w-16 text-right text-xs tabular-nums ${isUnset ? 'text-[rgba(255,255,255,0.15)]' : 'text-[rgba(255,255,255,0.87)]'}`}>
+      <span className={`w-16 text-right text-xs tabular-nums ${isUnset ? 'text-[rgba(255,255,255,0.3)]' : 'text-[rgba(255,255,255,0.87)]'}`}>
         {isUnset ? '—' : `${value}${config.unit ? ` ${config.unit}` : ''}`}
       </span>
     </div>
