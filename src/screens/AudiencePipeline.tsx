@@ -514,26 +514,25 @@ export default function AudiencePipeline() {
                         <div className="border-t border-[rgba(255,255,255,0.04)] pt-2 space-y-1.5">
                           {ANALYSIS_FIELDS.map(({ key, label, type }) => {
                             const val = rt[key];
-                            if (val == null) return null;
                             if (type === 'bar') return (
                               <div key={key} className="flex items-center gap-1.5">
                                 <span className="text-[rgba(255,255,255,0.5)] text-[10px] shrink-0 w-[110px]">{label}</span>
                                 <div className="flex-1 h-[3px] bg-[rgba(255,255,255,0.07)] rounded-full">
-                                  <div className="h-full rounded-full bg-[rgba(159,225,203,0.7)]" style={{ width: `${Math.round(val * 100)}%` }} />
+                                  <div className="h-full rounded-full bg-[rgba(159,225,203,0.7)]" style={{ width: `${Math.round((val ?? 0) * 100)}%` }} />
                                 </div>
-                                <span className="text-[rgba(255,255,255,0.4)] text-[10px] tabular-nums shrink-0 w-5 text-right">{Math.round(val * 100)}</span>
+                                <InlineEdit value={val != null ? String(Math.round(val * 100)) : ''} onSave={(v) => updateRefMutation.mutate({ id: rt.id, body: { [key]: v ? Number(v) / 100 : null } })} className="text-[rgba(255,255,255,0.4)] text-[10px] tabular-nums shrink-0 w-5 text-right" placeholder="—" />
                               </div>
                             );
                             if (type === 'number') return (
                               <div key={key} className="flex items-center gap-1.5">
                                 <span className="text-[rgba(255,255,255,0.5)] text-[10px] shrink-0 w-[110px]">{label}</span>
-                                <span className="text-[rgba(255,255,255,0.75)] text-[10px] font-medium tabular-nums">{Math.round(val)}</span>
+                                <InlineEdit value={val != null ? String(Math.round(val)) : ''} onSave={(v) => updateRefMutation.mutate({ id: rt.id, body: { [key]: v ? Number(v) : null } })} className="text-[rgba(255,255,255,0.75)] text-[10px] font-medium tabular-nums" placeholder="—" />
                               </div>
                             );
                             return (
                               <div key={key} className="flex items-baseline gap-1.5 min-w-0">
                                 <span className="text-[rgba(255,255,255,0.5)] text-[10px] shrink-0 w-[110px]">{label}</span>
-                                <span className="text-[rgba(255,255,255,0.7)] text-[10px]">{String(val)}</span>
+                                <InlineEdit value={val != null ? String(val) : ''} onSave={(v) => updateRefMutation.mutate({ id: rt.id, body: { [key]: v || null } })} className="text-[rgba(255,255,255,0.7)] text-[10px]" placeholder="—" />
                               </div>
                             );
                           })}
@@ -544,8 +543,10 @@ export default function AudiencePipeline() {
                               ))}
                             </div>
                           )}
-                          {rt.analysis_data?.notes && (
-                            <p className="text-[rgba(255,255,255,0.55)] text-[10px] italic border-t border-[rgba(255,255,255,0.04)] pt-2">{rt.analysis_data.notes}</p>
+                          {rt.analysis_data?.notes != null && (
+                            <div className="border-t border-[rgba(255,255,255,0.04)] pt-2">
+                              <InlineEdit value={rt.analysis_data.notes || ''} as="textarea" onSave={(v) => updateRefMutation.mutate({ id: rt.id, body: { analysis_data: { ...rt.analysis_data, notes: v } } })} className="text-[rgba(255,255,255,0.55)] text-[10px] italic" placeholder="Notes…" />
+                            </div>
                           )}
                         </div>
                       )}

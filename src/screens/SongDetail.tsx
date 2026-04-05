@@ -423,10 +423,9 @@ export default function SongDetail() {
                 />
                 <div className="max-h-48 overflow-auto space-y-1">
                   {filteredStores.map((s: any) => (
-                    <div key={s.id} className="flex items-center justify-between px-3 py-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg text-sm transition-colors">
+                    <button key={s.id} type="button" onClick={() => assignMutation.mutate(s.id)} className="flex items-center w-full px-3 py-2 hover:bg-[rgba(255,255,255,0.06)] rounded-lg text-sm transition-colors text-left">
                       <span className="text-[rgba(255,255,255,0.87)]">{s.name}</span>
-                      <button type="button" onClick={() => assignMutation.mutate(s.id)} className="text-[#5ea2b6] hover:text-[#70b4c8] text-xs">Assign</button>
-                    </div>
+                    </button>
                   ))}
                 </div>
                 <button type="button" onClick={() => { setShowAssign(false); setStoreSearch(''); }} className="mt-2 text-[rgba(255,255,255,0.4)] text-xs">Close</button>
