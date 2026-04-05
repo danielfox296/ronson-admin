@@ -4,16 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 import { humanize, formatDuration } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]', online: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
-    onboarding: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]', draft: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]',
-    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]', flagged: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
-    archived: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
-  };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
-}
+import StatusBadge from '../components/StatusBadge.js';
 
 export default function StoreDetail() {
   const { clientId, storeId } = useParams<{ clientId: string; storeId: string }>();
@@ -394,7 +385,7 @@ export default function StoreDetail() {
             <div>
               <label className="text-[rgba(255,255,255,0.4)] block mb-1">{store.has_player_password ? 'Reset Player Password' : 'Set Player Password'}</label>
               <div className="flex gap-2">
-                <input type="text" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm flex-1 bg-[rgba(255,255,255,0.03)]" />
+                <input type="password" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm flex-1 bg-[rgba(255,255,255,0.03)]" />
                 <button type="button" onClick={() => { saveWonderCredsMutation.mutate({ player_password: newPassword }); setNewPassword(''); }} disabled={!newPassword.trim()} className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 hover:bg-[#70b4c8] transition-colors">{store.has_player_password ? 'Reset' : 'Set'}</button>
               </div>
               {passwordSaved && <p className="text-[#33be6a] text-xs mt-1">Saved successfully.</p>}

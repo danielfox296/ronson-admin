@@ -20,24 +20,24 @@
     font-family: 'Inter', sans-serif;
     font-size: 17px;
   }
-  h1 { font-weight: 300 !important; }
-  input, select, textarea {
+  #root h1 { font-weight: 300; }
+  #root input, #root select, #root textarea {
     background: rgba(255,255,255,0.03);
     border-color: var(--border);
     color: var(--text);
   }
-  input:focus, select:focus, textarea:focus {
+  #root input:focus, #root select:focus, #root textarea:focus {
     border-color: var(--accent);
     outline: none;
     box-shadow: 0 0 0 1px rgba(94,162,182,0.3);
   }
-  input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.35); }
-  table { border-color: var(--border-subtle); }
-  option {
+  #root input::placeholder, #root textarea::placeholder { color: rgba(255,255,255,0.35); }
+  #root table { border-color: var(--border-subtle); }
+  #root option {
     background: var(--surface);
     color: var(--text);
   }
-  audio {
+  #root audio {
     filter: invert(1) hue-rotate(180deg);
     border-radius: 8px;
   }

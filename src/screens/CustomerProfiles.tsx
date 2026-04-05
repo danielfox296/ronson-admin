@@ -79,14 +79,14 @@ export default function CustomerProfiles() {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight leading-none text-white">Customer Profiles</h1>
+          <h1 className="text-4xl tracking-tight leading-none text-white">Customer Profiles</h1>
         </div>
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="bg-gradient-to-r from-[#5ea2b6] to-[#3e7a91] text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2 hover:opacity-90 transition-opacity text-sm"
+          className="bg-[#5ea2b6] text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-[#70b4c8] transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           CREATE NEW AUDIENCE
@@ -94,7 +94,7 @@ export default function CustomerProfiles() {
       </div>
 
       {/* Search & Filters */}
-      <div className="flex flex-wrap items-center gap-4 mb-10">
+      <div className="flex flex-wrap items-center gap-4 mb-6">
         <div className="flex-1 min-w-[280px] relative">
           <svg className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.25)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input

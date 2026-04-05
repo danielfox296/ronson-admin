@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, uploadFile } from '../lib/api.js';
 import { humanize, formatDuration } from '../lib/utils.js';
 import Breadcrumb from '../components/Breadcrumb.js';
+import StatusBadge from '../components/StatusBadge.js';
 import OutcomeScores from '../components/OutcomeScores.js';
 
 const reasonLabels: Record<string, string> = {
@@ -20,19 +21,6 @@ function Triangle({ open, className = '' }: { open: boolean; className?: string 
       <path d="M3 1l5 4-5 4z" fill="currentColor" />
     </svg>
   );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    active: 'bg-[rgba(39,174,96,0.15)] text-[#33be6a]',
-    generated: 'bg-[rgba(94,162,182,0.15)] text-[#5ea2b6]',
-    draft: 'bg-[rgba(230,126,34,0.15)] text-[#e98f38]',
-    flagged: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
-    inactive: 'bg-[rgba(231,76,60,0.15)] text-[#ea6152]',
-    removed: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
-    archived: 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]',
-  };
-  return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || 'bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.4)]'}`}>{humanize(status)}</span>;
 }
 
 function isNumericValue(v: unknown): boolean {
@@ -123,9 +111,7 @@ export default function SongDetail() {
     setUploading(true);
     setUploadError('');
     try {
-      console.log('[upload] Starting upload for:', file.name, file.size, 'bytes');
       const result = await uploadFile(file);
-      console.log('[upload] Upload complete, R2 URL:', result.url);
       // Detect duration with a timeout — don't hang forever
       let duration = 0;
       try {
@@ -138,14 +124,10 @@ export default function SongDetail() {
           new Promise<number>((resolve) => setTimeout(() => resolve(0), 5000)),
         ]);
       } catch { /* duration stays 0 */ }
-      console.log('[upload] Duration detected:', duration);
       await updateMutation.mutateAsync({ audio_file_url: result.url, duration_seconds: Math.round(duration) || 0 });
-      console.log('[upload] Song record updated');
       // Force refetch
       await queryClient.refetchQueries({ queryKey: ['song', id] });
-      console.log('[upload] Query refetched');
     } catch (err: any) {
-      console.error('[upload] Failed:', err);
       setUploadError(err.message || 'Upload failed');
     }
     setUploading(false);

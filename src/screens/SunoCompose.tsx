@@ -207,7 +207,7 @@ export default function SunoCompose() {
   ].filter(Boolean) : [];
 
   return (
-    <div className="min-h-screen bg-[#101018] text-white">
+    <div>
       <div className="px-6 py-6">
 
         {/* Header row: breadcrumb left, upload zone right */}

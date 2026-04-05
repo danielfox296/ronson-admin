@@ -578,9 +578,9 @@
   margin-bottom: 4px;
 }
 
-.kw-modal-field input,
-.kw-modal-field select,
-.kw-modal-field textarea {
+.kraftwerk .kw-modal-field input,
+.kraftwerk .kw-modal-field select,
+.kraftwerk .kw-modal-field textarea {
   width: 100%;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
@@ -593,9 +593,9 @@
   transition: border-color 150ms, box-shadow 150ms;
 }
 
-.kw-modal-field input:focus,
-.kw-modal-field select:focus,
-.kw-modal-field textarea:focus {
+.kraftwerk .kw-modal-field input:focus,
+.kraftwerk .kw-modal-field select:focus,
+.kraftwerk .kw-modal-field textarea:focus {
   border-color: #5ea2b6;
   box-shadow: 0 0 0 1px rgba(94, 162, 182, 0.3);
 }
