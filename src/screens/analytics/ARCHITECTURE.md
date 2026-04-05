@@ -166,7 +166,7 @@ Both have `store_id` FK to `Store` with cascade delete. Neither affects existing
 |----------|-----|
 | **Props-down state (no context/store)** | Single-user dashboard, ~10 state vars, no deep prop drilling beyond 2 levels. Context adds complexity without benefit here. |
 | **Mock data in API routes, not frontend** | Frontend code is identical whether data is real or mock. Swap is backend-only. |
-| **Scoped CSS file, not Tailwind** | Spec demands sharp instrument-grade aesthetic with specific pixel values. Tailwind arbitrary values would be less readable than plain CSS. |
+| **Scoped CSS file, not Tailwind** | Spec demands sharp instrument-grade aesthetic with specific pixel values. Tailwind arbitrary values would be less readable than plain CSS. All descendant selectors (e.g. `.kw-modal-field input`) are nested under `.kraftwerk` root to prevent bleed into non-analytics screens. |
 | **15 files, not 1** | Approved by user. Each component is independently testable and replaceable. |
 | **Confounder CRUD is real from day 1** | It's user-input data — no external system dependency. Persisting it immediately captures operational context that would otherwise be lost. |
 | **RetailOutcome table created but empty** | Schema is production-ready for POS integration. Mock fallback in the route means the UI works immediately. |
