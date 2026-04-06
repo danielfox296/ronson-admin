@@ -37,6 +37,7 @@ export default function SongDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAssign, setShowAssign] = useState(false);
+  const [assignStoreId, setAssignStoreId] = useState('');
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleVal, setTitleVal] = useState('');
   const [storeSearch, setStoreSearch] = useState('');
@@ -91,8 +92,15 @@ export default function SongDetail() {
   });
 
   const assignMutation = useMutation({
-    mutationFn: (storeId: string) => api(`/api/stores/${storeId}/playlist`, { method: 'POST', body: { song_id: id, added_by: 'admin' } }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['song', id] }); setShowAssign(false); },
+    mutationFn: ({ storeId, icpId }: { storeId: string; icpId?: string }) => api(`/api/stores/${storeId}/playlist`, { method: 'POST', body: { song_id: id, store_icp_id: icpId || undefined, added_by: 'admin' } }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['song', id] }); setShowAssign(false); setAssignStoreId(''); },
+  });
+
+  // Fetch ICPs for selected store during assignment
+  const { data: assignIcpsData } = useQuery({
+    queryKey: ['store-icps-for-assign', assignStoreId],
+    queryFn: () => api<{ data: any[] }>(`/api/stores/${assignStoreId}/icps`),
+    enabled: !!assignStoreId,
   });
 
   const deleteMutation = useMutation({
@@ -414,21 +422,46 @@ export default function SongDetail() {
 
             {showAssign && (
               <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 mb-3">
-                <input
-                  type="text"
-                  placeholder="Search stores..."
-                  value={storeSearch}
-                  onChange={(e) => setStoreSearch(e.target.value)}
-                  className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm mb-2"
-                />
-                <div className="max-h-48 overflow-auto space-y-1">
-                  {filteredStores.map((s: any) => (
-                    <button key={s.id} type="button" onClick={() => assignMutation.mutate(s.id)} className="flex items-center w-full px-3 py-2 hover:bg-[rgba(255,255,255,0.06)] rounded-lg text-sm transition-colors text-left">
-                      <span className="text-[rgba(255,255,255,0.87)]">{s.name}</span>
-                    </button>
-                  ))}
-                </div>
-                <button type="button" onClick={() => { setShowAssign(false); setStoreSearch(''); }} className="mt-2 text-[rgba(255,255,255,0.4)] text-xs">Close</button>
+                {!assignStoreId ? (
+                  <>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] mb-2">Select Store</p>
+                    <input
+                      type="text"
+                      placeholder="Search stores..."
+                      value={storeSearch}
+                      onChange={(e) => setStoreSearch(e.target.value)}
+                      className="w-full border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm mb-2"
+                    />
+                    <div className="max-h-48 overflow-auto space-y-1">
+                      {filteredStores.map((s: any) => (
+                        <button key={s.id} type="button" onClick={() => setAssignStoreId(s.id)} className="flex items-center w-full px-3 py-2 hover:bg-[rgba(255,255,255,0.06)] rounded-lg text-sm transition-colors text-left">
+                          <span className="text-[rgba(255,255,255,0.87)]">{s.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-2">
+                      <button type="button" onClick={() => setAssignStoreId('')} className="text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] text-xs">← Back</button>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)]">Select Audience</p>
+                    </div>
+                    <div className="space-y-1">
+                      {(assignIcpsData?.data || []).map((icp: any) => (
+                        <button key={icp.id} type="button" onClick={() => assignMutation.mutate({ storeId: assignStoreId, icpId: icp.id })} className="flex items-center w-full px-3 py-2 hover:bg-[rgba(255,255,255,0.06)] rounded-lg text-sm transition-colors text-left">
+                          <span className="text-[rgba(255,255,255,0.87)]">{icp.name}</span>
+                        </button>
+                      ))}
+                      {(assignIcpsData?.data || []).length === 0 && (
+                        <p className="text-[rgba(255,255,255,0.3)] text-xs px-3 py-2">No audiences for this store</p>
+                      )}
+                      <button type="button" onClick={() => assignMutation.mutate({ storeId: assignStoreId })} className="flex items-center w-full px-3 py-2 hover:bg-[rgba(255,255,255,0.06)] rounded-lg text-xs transition-colors text-left text-[rgba(255,255,255,0.35)]">
+                        Skip — assign without audience
+                      </button>
+                    </div>
+                  </>
+                )}
+                <button type="button" onClick={() => { setShowAssign(false); setStoreSearch(''); setAssignStoreId(''); }} className="mt-2 text-[rgba(255,255,255,0.4)] text-xs">Close</button>
               </div>
             )}
 
@@ -437,6 +470,7 @@ export default function SongDetail() {
                 <div key={a.id} className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.04)] last:border-0 text-sm">
                   <div>
                     <span className="text-[rgba(255,255,255,0.87)]">{a.store?.name || 'Store'}</span>
+                    {a.store_icp?.name && <span className="text-[rgba(255,255,255,0.4)] ml-1.5">· {a.store_icp.name}</span>}
                     {a.added_by && <span className="text-[rgba(255,255,255,0.3)] ml-2">by {a.added_by}</span>}
                   </div>
                   <button type="button" onClick={() => unassignMutation.mutate(a.store_id)} className="text-[#ea6152] hover:text-[#f07060] text-xs">Remove</button>
