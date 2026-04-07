@@ -16,6 +16,14 @@ import Account from './screens/Account.js';
 import Analytics from './screens/Analytics.js';
 import BatchEntry from './screens/BatchEntry.js';
 import OutcomesIntelligence from './screens/OutcomesIntelligence.js';
+import CRMDashboard from './screens/crm/CRMDashboard.js';
+import ContactList from './screens/crm/ContactList.js';
+import ContactDetail from './screens/crm/ContactDetail.js';
+import ContactForm from './screens/crm/ContactForm.js';
+import ContactEdit from './screens/crm/ContactEdit.js';
+import PipelineView from './screens/crm/PipelineView.js';
+import ActionsView from './screens/crm/ActionsView.js';
+import ImportView from './screens/crm/ImportView.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -65,6 +73,11 @@ function Layout() {
           <rect x="13" y="10" width="2" height="2"/>
         </svg>
       ),
+    },
+    {
+      to: '/crm',
+      label: 'CRM',
+      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>,
     },
     {
       to: '/songs',
@@ -156,6 +169,14 @@ export default function App() {
         <Route path="profiles" element={<CustomerProfiles />} />
         <Route path="clients" element={<ClientList />} />
         <Route path="clients/:id" element={<ClientDetail />} />
+        <Route path="crm" element={<CRMDashboard />} />
+        <Route path="crm/contacts" element={<ContactList />} />
+        <Route path="crm/contacts/new" element={<ContactForm />} />
+        <Route path="crm/contacts/:id" element={<ContactDetail />} />
+        <Route path="crm/contacts/:id/edit" element={<ContactEdit />} />
+        <Route path="crm/pipeline" element={<PipelineView />} />
+        <Route path="crm/actions" element={<ActionsView />} />
+        <Route path="crm/import" element={<ImportView />} />
         <Route path="clients/:clientId/stores/:storeId" element={<StoreDetail />} />
         <Route path="clients/:clientId/stores/:storeId/audiences/:icpId" element={<AudiencePipeline />} />
         <Route path="clients/:clientId/stores/:storeId/audiences/:icpId/compose/:refTrackId" element={<SunoCompose />} />
