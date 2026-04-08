@@ -155,6 +155,19 @@ export default function PromptComposer() {
   });
   const genSystems = gsData?.data || [];
 
+  const { data: outcomesData } = useQuery({
+    queryKey: ['desired-outcomes'],
+    queryFn: () => api<{ data: any[] }>('/api/prompts?type=outcome'),
+  });
+  const outcomeOptions = useMemo(() => {
+    const fromApi = (outcomesData?.data || []).filter((o: any) => o.is_active).map((o: any) => {
+      let parsed: any = {};
+      try { parsed = JSON.parse(o.content); } catch {}
+      return { id: o.slug, label: o.name, descriptor: o.era || '', style: parsed.style || '', exclude: parsed.exclude || '', warning: parsed.warning };
+    });
+    return fromApi.length > 0 ? fromApi : OUTCOME_MODES;
+  }, [outcomesData]);
+
   // Generate — uses selected track + outcome if set
   const generateMutation = useMutation({
     mutationFn: () => api<{ data: any }>('/api/compose/generate', {
@@ -294,86 +307,6 @@ export default function PromptComposer() {
     onError: () => { setDownloadingSunoId(''); },
   });
 
-  // ─── Suno Token Status ───
-  const [sunoTokenSeconds, setSunoTokenSeconds] = useState<number | null>(null);
-  const [sunoTokenConnected, setSunoTokenConnected] = useState(false);
-  const [sunoTokenRefreshing, setSunoTokenRefreshing] = useState(false);
-  const [sunoTokenError, setSunoTokenError] = useState('');
-
-  const fetchTokenStatus = useCallback(async () => {
-    try {
-      const result = await api<{ data: { has_token: boolean; seconds_remaining: number } }>('/api/suno/token-status');
-      setSunoTokenConnected(result.data.has_token);
-      setSunoTokenSeconds(result.data.seconds_remaining);
-      setSunoTokenError('');
-      return result.data;
-    } catch {
-      setSunoTokenConnected(false);
-      setSunoTokenSeconds(0);
-      return null;
-    }
-  }, []);
-
-  const refreshSunoToken = useCallback(async () => {
-    setSunoTokenRefreshing(true);
-    setSunoTokenError('');
-    try {
-      // Prompt user to paste a token from suno.com console
-      const jwt = window.prompt(
-        'Paste your Suno JWT token.\n\n' +
-        'To get it: open suno.com → DevTools Console → run:\n' +
-        "fetch('https://clerk.suno.com/v1/client?_clerk_js_version=5',{credentials:'include'}).then(r=>r.json()).then(d=>{const jwt=d.response.sessions.find(s=>s.status==='active').last_active_token.jwt;console.log(jwt)})"
-      );
-      if (!jwt || !jwt.startsWith('eyJ')) {
-        throw new Error('No valid token provided');
-      }
-      const pushResult = await api<{ data: any }>('/api/suno/refresh', { method: 'POST', body: { token: jwt } });
-      if (pushResult.data?.cached) {
-        await fetchTokenStatus();
-      }
-    } catch (err: any) {
-      setSunoTokenError(err.message || 'Failed to refresh Suno token');
-    } finally {
-      setSunoTokenRefreshing(false);
-    }
-  }, [fetchTokenStatus]);
-
-  // Poll token status every 60s
-  useEffect(() => {
-    fetchTokenStatus();
-    const interval = setInterval(fetchTokenStatus, 60000);
-    return () => clearInterval(interval);
-  }, [fetchTokenStatus, refreshSunoToken]);
-
-  // Local countdown tick every second
-  useEffect(() => {
-    if (sunoTokenSeconds === null || sunoTokenSeconds <= 0) return;
-    const tick = setInterval(() => {
-      setSunoTokenSeconds(prev => (prev !== null && prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [sunoTokenSeconds]);
-
-  const formatTokenTime = (secs: number) => {
-    if (secs <= 0) return 'expired';
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    if (m > 0) return `${m}m ${s}s`;
-    return `${s}s`;
-  };
-
-  const tokenStatusColor = !sunoTokenConnected || (sunoTokenSeconds !== null && sunoTokenSeconds <= 0)
-    ? '#e74c3c' // red
-    : (sunoTokenSeconds !== null && sunoTokenSeconds < 600)
-      ? '#f39c12' // yellow
-      : '#2ecc71'; // green
-
-  const tokenStatusLabel = !sunoTokenConnected || (sunoTokenSeconds !== null && sunoTokenSeconds <= 0)
-    ? 'Disconnected'
-    : (sunoTokenSeconds !== null && sunoTokenSeconds < 600)
-      ? 'Expiring'
-      : 'Connected';
-
   const hasOutput = !!(lyrics || style || styleNegations || voice);
   const selectClass = "bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-2.5 text-sm w-full";
 
@@ -492,7 +425,7 @@ export default function PromptComposer() {
           <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
             <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-3">Desired Outcome</label>
             <div className="grid grid-cols-2 gap-2">
-              {OUTCOME_MODES.map((o) => (
+              {outcomeOptions.map((o) => (
                 <button
                   key={o.id}
                   type="button"
@@ -515,9 +448,9 @@ export default function PromptComposer() {
                 </button>
               ))}
             </div>
-            {selectedOutcome && OUTCOME_MODES.find(o => o.id === selectedOutcome)?.warning && (
+            {selectedOutcome && outcomeOptions.find(o => o.id === selectedOutcome)?.warning && (
               <p className="mt-2 text-[9px] text-[rgba(255,200,80,0.65)] leading-snug">
-                ⚠ {OUTCOME_MODES.find(o => o.id === selectedOutcome)?.warning}
+                ⚠ {outcomeOptions.find(o => o.id === selectedOutcome)?.warning}
               </p>
             )}
           </div>
@@ -547,6 +480,46 @@ export default function PromptComposer() {
               </>
             )}
           </button>
+
+          {/* Audio upload — attach existing file instead of generating via Suno */}
+          <div
+            className={`border-2 border-dashed rounded-xl p-4 transition-all ${droppedFile ? 'border-[#5ea2b6]/40 bg-[rgba(94,162,182,0.05)]' : 'border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.12)]'}`}
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onDrop={(e) => {
+              e.preventDefault(); e.stopPropagation();
+              const file = e.dataTransfer.files?.[0];
+              if (file && /\.(mp3|wav|flac)$/i.test(file.name)) {
+                const audio = new Audio(URL.createObjectURL(file));
+                audio.addEventListener('loadedmetadata', () => setDroppedFile({ file, name: file.name, duration: audio.duration }));
+                audio.addEventListener('error', () => setDroppedFile({ file, name: file.name, duration: 0 }));
+              }
+            }}
+          >
+            {droppedFile ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-[#5ea2b6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <span className="text-sm text-[rgba(255,255,255,0.7)]">{droppedFile.name}</span>
+                  {droppedFile.duration > 0 && <span className="text-[10px] text-[rgba(255,255,255,0.45)]">{Math.floor(droppedFile.duration / 60)}:{String(Math.floor(droppedFile.duration % 60)).padStart(2, '0')}</span>}
+                </div>
+                <button type="button" onClick={() => setDroppedFile(null)} className="text-[rgba(255,255,255,0.45)] hover:text-[#ea6152] text-xs transition-colors">Remove</button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center gap-1 cursor-pointer">
+                <svg className="w-5 h-5 text-[rgba(255,255,255,0.35)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+                <span className="text-[11px] text-[rgba(255,255,255,0.45)]">Drop audio file or click to upload</span>
+                <span className="text-[9px] text-[rgba(255,255,255,0.3)]">MP3, WAV, FLAC — saved with draft</span>
+                <input type="file" accept=".mp3,.wav,.flac" className="hidden" onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const audio = new Audio(URL.createObjectURL(file));
+                    audio.addEventListener('loadedmetadata', () => setDroppedFile({ file, name: file.name, duration: audio.duration }));
+                    audio.addEventListener('error', () => setDroppedFile({ file, name: file.name, duration: 0 }));
+                  }
+                }} />
+              </label>
+            )}
+          </div>
         </div>
 
         {/* Right: Output */}
@@ -559,62 +532,62 @@ export default function PromptComposer() {
 
           {hasOutput ? (
             <>
-              {/* Lyrics */}
-              <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Lyrics</label>
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(lyrics)}
-                    className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <textarea
-                  value={lyrics}
-                  onChange={(e) => setLyrics(e.target.value)}
-                  rows={12}
-                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-3 text-sm leading-relaxed resize-none font-mono"
-                />
-              </div>
-
-              {/* Style + Negations + Voice row */}
-              <div className="grid grid-cols-[1fr_1fr_auto] gap-4">
-                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Creative</label>
-                    <button type="button" onClick={() => navigator.clipboard.writeText(style)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+              {/* Lyrics (left) + Style/Neg/Voice (right) */}
+              <div className="grid grid-cols-2 gap-4 items-start">
+                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Lyrics</label>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(lyrics)}
+                      className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold"
+                    >
+                      Copy
+                    </button>
                   </div>
                   <textarea
-                    value={style}
-                    onChange={(e) => setStyle(e.target.value)}
-                    rows={3}
-                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
+                    value={lyrics}
+                    onChange={(e) => setLyrics(e.target.value)}
+                    rows={16}
+                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-3 text-sm leading-relaxed resize-none font-mono"
                   />
                 </div>
-                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Negative</label>
-                    <button type="button" onClick={() => navigator.clipboard.writeText(styleNegations)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                <div className="space-y-3">
+                  <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Creative</label>
+                      <button type="button" onClick={() => navigator.clipboard.writeText(style)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                    </div>
+                    <textarea
+                      value={style}
+                      onChange={(e) => setStyle(e.target.value)}
+                      rows={5}
+                      className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
+                    />
                   </div>
-                  <textarea
-                    value={styleNegations}
-                    onChange={(e) => setStyleNegations(e.target.value)}
-                    rows={3}
-                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
-                  />
-                </div>
-                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 flex flex-col items-center justify-center min-w-[100px]">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] mb-2">Vocal Gender</label>
-                  <select
-                    value={voice}
-                    onChange={(e) => setVoice(e.target.value)}
-                    className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm text-center"
-                  >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
+                  <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Negative</label>
+                      <button type="button" onClick={() => navigator.clipboard.writeText(styleNegations)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                    </div>
+                    <textarea
+                      value={styleNegations}
+                      onChange={(e) => setStyleNegations(e.target.value)}
+                      rows={5}
+                      className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
+                    />
+                  </div>
+                  <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] block mb-2">Vocal Gender</label>
+                    <select
+                      value={voice}
+                      onChange={(e) => setVoice(e.target.value)}
+                      className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm"
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -644,94 +617,6 @@ export default function PromptComposer() {
                     className="w-full accent-[#e91e8c] h-1.5"
                   />
                 </div>
-              </div>
-
-              {/* Suno Token Status */}
-              <div className="flex items-center gap-3 bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl px-4 py-2.5">
-                <span className="relative flex h-2.5 w-2.5 shrink-0">
-                  {tokenStatusLabel !== 'Disconnected' && (
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40" style={{ backgroundColor: tokenStatusColor }} />
-                  )}
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: tokenStatusColor }} />
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: tokenStatusColor }}>
-                  Suno {tokenStatusLabel}
-                </span>
-                {sunoTokenSeconds !== null && sunoTokenSeconds > 0 && (
-                  <span className="text-[10px] text-[rgba(255,255,255,0.4)] tabular-nums">
-                    {formatTokenTime(sunoTokenSeconds)}
-                  </span>
-                )}
-                <div className="flex-1" />
-                {sunoTokenError && (
-                  <span className="text-[10px] text-[#e74c3c] truncate max-w-[200px]" title={sunoTokenError}>
-                    {sunoTokenError}
-                  </span>
-                )}
-                <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText("fetch('https://clerk.suno.com/v1/client?_clerk_js_version=5',{credentials:'include'}).then(r=>r.json()).then(d=>{const jwt=d.response.sessions.find(s=>s.status==='active').last_active_token.jwt;console.log(jwt)})");
-                    }}
-                    className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.4)] hover:text-[rgba(255,255,255,0.7)] transition-colors flex items-center gap-1"
-                  >
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    Copy Command
-                  </button>
-                <button
-                  type="button"
-                  onClick={refreshSunoToken}
-                  disabled={sunoTokenRefreshing}
-                  className="text-[10px] font-bold uppercase tracking-widest text-[#4a90a4] hover:text-[#5ba3b8] transition-colors disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {sunoTokenRefreshing ? (
-                    <><span className="inline-block w-2.5 h-2.5 border border-[#4a90a4]/30 border-t-[#4a90a4] rounded-full animate-spin" /> Refreshing...</>
-                  ) : 'Refresh'}
-                </button>
-              </div>
-
-              {/* Manual audio upload — alternative to Suno */}
-              <div
-                className={`border-2 border-dashed rounded-xl p-4 transition-all ${droppedFile ? 'border-[#5ea2b6]/40 bg-[rgba(94,162,182,0.05)]' : 'border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.12)]'}`}
-                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                onDrop={(e) => {
-                  e.preventDefault(); e.stopPropagation();
-                  const file = e.dataTransfer.files?.[0];
-                  if (file && /\.(mp3|wav|flac)$/i.test(file.name)) {
-                    const audio = new Audio(URL.createObjectURL(file));
-                    audio.addEventListener('loadedmetadata', () => {
-                      setDroppedFile({ file, name: file.name, duration: audio.duration });
-                    });
-                    audio.addEventListener('error', () => {
-                      setDroppedFile({ file, name: file.name, duration: 0 });
-                    });
-                  }
-                }}
-              >
-                {droppedFile ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-[#5ea2b6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                      <span className="text-sm text-[rgba(255,255,255,0.7)]">{droppedFile.name}</span>
-                      {droppedFile.duration > 0 && <span className="text-[10px] text-[rgba(255,255,255,0.45)]">{Math.floor(droppedFile.duration / 60)}:{String(Math.floor(droppedFile.duration % 60)).padStart(2, '0')}</span>}
-                    </div>
-                    <button type="button" onClick={() => setDroppedFile(null)} className="text-[rgba(255,255,255,0.45)] hover:text-[#ea6152] text-xs transition-colors">Remove</button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center gap-1 cursor-pointer">
-                    <svg className="w-5 h-5 text-[rgba(255,255,255,0.35)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
-                    <span className="text-[11px] text-[rgba(255,255,255,0.45)]">Drop audio file or click to upload</span>
-                    <span className="text-[9px] text-[rgba(255,255,255,0.3)]">MP3, WAV, FLAC — will be saved with draft</span>
-                    <input type="file" accept=".mp3,.wav,.flac" className="hidden" onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const audio = new Audio(URL.createObjectURL(file));
-                        audio.addEventListener('loadedmetadata', () => setDroppedFile({ file, name: file.name, duration: audio.duration }));
-                        audio.addEventListener('error', () => setDroppedFile({ file, name: file.name, duration: 0 }));
-                      }
-                    }} />
-                  </label>
-                )}
               </div>
 
               {/* Actions row */}
