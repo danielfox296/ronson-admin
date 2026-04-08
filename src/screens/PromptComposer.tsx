@@ -48,8 +48,8 @@ export default function PromptComposer() {
   const [voice, setVoice] = useState('');
 
   // Suno parameters
-  const [weirdness, setWeirdness] = useState(0.5);
-  const [styleInfluence, setStyleInfluence] = useState(0.5);
+  const [weirdness, setWeirdness] = useState(0.8);
+  const [styleInfluence, setStyleInfluence] = useState(0.8);
   const [sunoIds, setSunoIds] = useState<string[]>([]);
   const [sunoStatus, setSunoStatus] = useState<string>(''); // '', 'submitting', 'generating', 'complete', 'error'
   const [sunoError, setSunoError] = useState('');
@@ -185,6 +185,7 @@ export default function PromptComposer() {
       setVoice(result.data.voice || '');
       setStyle(result.data.style || '');
       setStyleNegations(result.data.style_negations || '');
+      if (result.data.title) setPromptTitle(result.data.title);
     },
   });
 
@@ -548,13 +549,16 @@ export default function PromptComposer() {
                   <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Creative</label>
-                      <button type="button" onClick={() => navigator.clipboard.writeText(style)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] tabular-nums ${style.length > 450 ? 'text-[#ea6152]' : 'text-[rgba(255,255,255,0.3)]'}`}>{style.length}/450</span>
+                        <button type="button" onClick={() => navigator.clipboard.writeText(style)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                      </div>
                     </div>
                     <textarea
                       value={style}
                       onChange={(e) => setStyle(e.target.value)}
                       rows={5}
-                      className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
+                      className={`w-full bg-[rgba(255,255,255,0.04)] border rounded-lg px-3 py-2 text-xs resize-none ${style.length > 450 ? 'border-[rgba(234,97,82,0.4)]' : 'border-[rgba(255,255,255,0.08)]'}`}
                     />
                   </div>
                   <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
