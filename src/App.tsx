@@ -114,7 +114,7 @@ function Layout() {
       {/* Sidebar */}
       <aside className="w-[172px] bg-[#15151d] text-white flex flex-col shrink-0 border-r border-[rgba(255,255,255,0.09)]">
         <div className="px-4 py-4 border-b border-[rgba(255,255,255,0.09)]">
-          <img src="/logo.png" alt="Entuned" className="h-4" />
+          <img src="/logo.svg" alt="Entuned" className="h-4" />
         </div>
 
         <nav className="flex-1 p-2 space-y-0.5">
