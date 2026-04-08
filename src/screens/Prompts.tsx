@@ -78,9 +78,8 @@ export default function Prompts() {
 
 return (
     <div>
-      <Breadcrumb items={[{ label: 'Prompts' }]} />
-      <div className="flex items-center justify-between mt-4 mb-6">
-        <h1 className="text-4xl tracking-tight leading-none text-white">Prompts</h1>
+      <div className="flex items-center justify-between mb-2">
+        <Breadcrumb items={[{ label: 'Prompts' }]} />
         <div className="flex gap-2">
 <button
             type="button"
