@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, uploadFile } from '../lib/api.js';
 
@@ -30,6 +30,7 @@ const OUTCOME_MODES = [
 
 export default function PromptComposer() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const [selectedClientId, setSelectedClientId] = useState(searchParams.get('clientId') || '');
   const [selectedStoreId, setSelectedStoreId] = useState(searchParams.get('storeId') || '');
@@ -37,6 +38,8 @@ export default function PromptComposer() {
   const [creativeDirection, setCreativeDirection] = useState(searchParams.get('topic') || '');
   const [selectedGenSystem, setSelectedGenSystem] = useState('');
   const [promptTitle, setPromptTitle] = useState('');
+  const [editingTrack, setEditingTrack] = useState<any | null>(null);
+  const [editTrackForm, setEditTrackForm] = useState<any>({});
   const [selectedTrackId, setSelectedTrackId] = useState(searchParams.get('trackId') || '');
   const [selectedOutcome, setSelectedOutcome] = useState<string | null>(null);
   const [droppedFile, setDroppedFile] = useState<{ file: File; name: string; duration: number } | null>(null);
@@ -154,6 +157,26 @@ export default function PromptComposer() {
     queryFn: () => api<{ data: any[] }>('/api/generation-systems'),
   });
   const genSystems = gsData?.data || [];
+
+  // Auto-select Suno 5.5 gen system
+  useEffect(() => {
+    if (genSystems.length > 0 && !selectedGenSystem) {
+      const suno55 = genSystems.find((gs: any) =>
+        /suno.*(5\.5|5_5|fenix|chirp)/i.test(gs.name) || /5\.5/i.test(gs.name)
+      ) || genSystems.find((gs: any) => /suno/i.test(gs.name));
+      if (suno55) setSelectedGenSystem(suno55.id);
+    }
+  }, [genSystems, selectedGenSystem]);
+
+  // Update reference track
+  const updateTrackMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      api(`/api/reference-tracks/${id}`, { method: 'PUT', body: data }),
+    onSuccess: () => {
+      setEditingTrack(null);
+      queryClient.invalidateQueries({ queryKey: ['ref-tracks-compose', selectedIcpId] });
+    },
+  });
 
   const { data: outcomesData } = useQuery({
     queryKey: ['desired-outcomes'],
@@ -397,17 +420,26 @@ export default function PromptComposer() {
                         <p className="text-sm text-[rgba(255,255,255,0.87)] truncate">{t.title}</p>
                         <p className="text-[10px] text-[rgba(255,255,255,0.55)]">{t.artist}{t.genre ? ` · ${t.genre}` : ''}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedTrackId(selectedTrackId === t.id ? '' : t.id)}
-                        className={`shrink-0 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors ${
-                          selectedTrackId === t.id
-                            ? 'bg-[rgba(74,144,164,0.35)] text-white border border-[rgba(74,144,164,0.6)]'
-                            : 'bg-[rgba(74,144,164,0.08)] text-[#4a90a4] hover:bg-[rgba(74,144,164,0.18)]'
-                        }`}
-                      >
-                        {selectedTrackId === t.id ? '✓ Selected' : 'Select'}
-                      </button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => { setEditingTrack(t); setEditTrackForm({ title: t.title, artist: t.artist, genre: t.genre || '', bpm: t.bpm || '', musical_key: t.musical_key || '', mode: t.mode || '', production_era: t.production_era || '', instrumentation: t.instrumentation || '', vocal_tone: t.vocal_tone || '', suno_genre: t.suno_genre || '', tags: Array.isArray(t.tags) ? t.tags.join(', ') : (t.tags || '') }); }}
+                          className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.45)] hover:text-[rgba(255,255,255,0.7)] transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTrackId(selectedTrackId === t.id ? '' : t.id)}
+                          className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors ${
+                            selectedTrackId === t.id
+                              ? 'bg-[rgba(74,144,164,0.35)] text-white border border-[rgba(74,144,164,0.6)]'
+                              : 'bg-[rgba(74,144,164,0.08)] text-[#4a90a4] hover:bg-[rgba(74,144,164,0.18)]'
+                          }`}
+                        >
+                          {selectedTrackId === t.id ? '✓ Selected' : 'Select'}
+                        </button>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -526,29 +558,23 @@ export default function PromptComposer() {
           {hasOutput ? (
             <>
               {/* Lyrics (left) + Style/Neg/Voice (right) */}
-              <div className="grid grid-cols-2 gap-4 items-start">
-                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Lyrics</label>
-                    <button
-                      type="button"
-                      onClick={() => navigator.clipboard.writeText(lyrics)}
-                      className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold"
-                    >
-                      Copy
-                    </button>
+              <div className="grid grid-cols-2 gap-6 items-start">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Lyrics</label>
+                    <button type="button" onClick={() => navigator.clipboard.writeText(lyrics)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
                   </div>
                   <textarea
                     value={lyrics}
                     onChange={(e) => setLyrics(e.target.value)}
-                    rows={16}
+                    rows={18}
                     className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-3 text-sm leading-relaxed resize-none font-mono"
                   />
                 </div>
-                <div className="space-y-3">
-                  <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+                <div className="space-y-4">
+                  <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Creative</label>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Style</label>
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] tabular-nums ${style.length > 450 ? 'text-[#ea6152]' : 'text-[rgba(255,255,255,0.3)]'}`}>{style.length}/450</span>
                         <button type="button" onClick={() => navigator.clipboard.writeText(style)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
@@ -561,20 +587,20 @@ export default function PromptComposer() {
                       className={`w-full bg-[rgba(255,255,255,0.04)] border rounded-lg px-3 py-2 text-xs resize-none ${style.length > 450 ? 'border-[rgba(234,97,82,0.4)]' : 'border-[rgba(255,255,255,0.08)]'}`}
                     />
                   </div>
-                  <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+                  <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Negative</label>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Negative</label>
                       <button type="button" onClick={() => navigator.clipboard.writeText(styleNegations)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
                     </div>
                     <textarea
                       value={styleNegations}
                       onChange={(e) => setStyleNegations(e.target.value)}
-                      rows={5}
+                      rows={4}
                       className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-xs resize-none"
                     />
                   </div>
-                  <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)] block mb-2">Vocal Gender</label>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-2">Vocal Gender</label>
                     <select
                       value={voice}
                       onChange={(e) => setVoice(e.target.value)}
@@ -584,34 +610,23 @@ export default function PromptComposer() {
                       <option value="female">Female</option>
                     </select>
                   </div>
-                </div>
-              </div>
-
-              {/* Suno Parameters */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Weirdness</label>
-                    <span className="text-xs text-[rgba(255,255,255,0.4)] tabular-nums">{Math.round(weirdness * 100)}%</span>
+                  {/* Sliders inline */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Weirdness</label>
+                        <span className="text-[10px] text-[rgba(255,255,255,0.4)] tabular-nums">{Math.round(weirdness * 100)}%</span>
+                      </div>
+                      <input type="range" min="0" max="1" step="0.1" value={weirdness} onChange={(e) => setWeirdness(Number(e.target.value))} className="w-full accent-[#e91e8c] h-1.5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Style Infl.</label>
+                        <span className="text-[10px] text-[rgba(255,255,255,0.4)] tabular-nums">{Math.round(styleInfluence * 100)}%</span>
+                      </div>
+                      <input type="range" min="0" max="1" step="0.1" value={styleInfluence} onChange={(e) => setStyleInfluence(Number(e.target.value))} className="w-full accent-[#e91e8c] h-1.5" />
+                    </div>
                   </div>
-                  <input
-                    type="range" min="0" max="1" step="0.1"
-                    value={weirdness}
-                    onChange={(e) => setWeirdness(Number(e.target.value))}
-                    className="w-full accent-[#e91e8c] h-1.5"
-                  />
-                </div>
-                <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.55)]">Style Influence</label>
-                    <span className="text-xs text-[rgba(255,255,255,0.4)] tabular-nums">{Math.round(styleInfluence * 100)}%</span>
-                  </div>
-                  <input
-                    type="range" min="0" max="1" step="0.1"
-                    value={styleInfluence}
-                    onChange={(e) => setStyleInfluence(Number(e.target.value))}
-                    className="w-full accent-[#e91e8c] h-1.5"
-                  />
                 </div>
               </div>
 
@@ -811,6 +826,88 @@ export default function PromptComposer() {
           )}
         </div>
       </div>
+
+      {/* Reference Track Edit Modal */}
+      {editingTrack && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setEditingTrack(null)}>
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-2xl p-6 w-[640px] max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-semibold text-white">Edit Reference Track</h2>
+              <button type="button" onClick={() => setEditingTrack(null)} className="text-[rgba(255,255,255,0.4)] hover:text-white transition-colors text-lg leading-none">×</button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { key: 'title', label: 'Title' },
+                { key: 'artist', label: 'Artist' },
+                { key: 'genre', label: 'Genre' },
+                { key: 'suno_genre', label: 'Suno Genre' },
+                { key: 'bpm', label: 'BPM' },
+                { key: 'musical_key', label: 'Key' },
+                { key: 'mode', label: 'Mode' },
+                { key: 'production_era', label: 'Production Era' },
+              ].map(({ key, label }) => (
+                <div key={key}>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-1.5">{label}</label>
+                  <input
+                    type="text"
+                    value={editTrackForm[key] || ''}
+                    onChange={(e) => setEditTrackForm((f: any) => ({ ...f, [key]: e.target.value }))}
+                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-1.5">Instrumentation</label>
+              <textarea
+                value={editTrackForm.instrumentation || ''}
+                onChange={(e) => setEditTrackForm((f: any) => ({ ...f, instrumentation: e.target.value }))}
+                rows={2}
+                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm resize-none"
+              />
+            </div>
+            <div className="mt-3">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-1.5">Vocal Tone</label>
+              <input
+                type="text"
+                value={editTrackForm.vocal_tone || ''}
+                onChange={(e) => setEditTrackForm((f: any) => ({ ...f, vocal_tone: e.target.value }))}
+                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="mt-3">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-1.5">Tags (comma-separated)</label>
+              <input
+                type="text"
+                value={editTrackForm.tags || ''}
+                onChange={(e) => setEditTrackForm((f: any) => ({ ...f, tags: e.target.value }))}
+                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <button type="button" onClick={() => setEditingTrack(null)} className="px-4 py-2 text-sm text-[rgba(255,255,255,0.5)] hover:text-white transition-colors">Cancel</button>
+              <button
+                type="button"
+                disabled={updateTrackMutation.isPending}
+                onClick={() => {
+                  const payload = {
+                    ...editTrackForm,
+                    bpm: editTrackForm.bpm ? Number(editTrackForm.bpm) : undefined,
+                    tags: editTrackForm.tags ? editTrackForm.tags.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+                  };
+                  updateTrackMutation.mutate({ id: editingTrack.id, data: payload });
+                }}
+                className="bg-[#4a90a4] hover:bg-[#5ba3b8] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+              >
+                {updateTrackMutation.isPending ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
