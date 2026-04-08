@@ -5,6 +5,31 @@ import Breadcrumb from '../components/Breadcrumb.js';
 
 const TYPE_OPTIONS = ['system', 'era', 'genre', 'outcome'];
 
+function ReseedButton() {
+  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const handleReseed = async () => {
+    setStatus('loading');
+    try {
+      await api('/api/prompts/seed', { method: 'POST' });
+      setStatus('done');
+      setTimeout(() => setStatus('idle'), 3000);
+    } catch {
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 3000);
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={handleReseed}
+      disabled={status === 'loading'}
+      className="px-4 py-2 rounded-lg text-xs font-medium bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.6)] transition-colors disabled:opacity-50"
+    >
+      {status === 'loading' ? 'Reseeding...' : status === 'done' ? '✓ Reseeded' : status === 'error' ? 'Error' : 'Reseed Era/Genre'}
+    </button>
+  );
+}
+
 export default function Prompts() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
@@ -81,7 +106,8 @@ return (
       <div className="flex items-center justify-between mb-2">
         <Breadcrumb items={[{ label: 'Prompts' }]} />
         <div className="flex gap-2">
-<button
+          <ReseedButton />
+          <button
             type="button"
             onClick={() => {
               resetForm();
