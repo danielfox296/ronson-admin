@@ -7,6 +7,20 @@ import Breadcrumb from '../components/Breadcrumb.js';
 export default function Config() {
   const queryClient = useQueryClient();
 
+  // --- Suno Token ---
+  const { data: tokenData } = useQuery({
+    queryKey: ['suno-token-status'],
+    queryFn: () => api<{ data: any }>('/api/suno/token-status'),
+    refetchInterval: 30000,
+  });
+  const { data: bookmarkletData } = useQuery({
+    queryKey: ['suno-bookmarklet'],
+    queryFn: () => api<{ data: any }>('/api/suno/bookmarklet'),
+  });
+  const tokenStatus = (tokenData as any)?.data;
+  const bookmarklet = (bookmarkletData as any)?.data?.bookmarklet;
+  const [bmCopied, setBmCopied] = useState(false);
+
   // --- Flow Factors ---
   const { data: ffData, isLoading: ffLoading } = useQuery({
     queryKey: ['flow-factors'],
@@ -83,6 +97,51 @@ export default function Config() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Variables' }]} />
+
+      {/* Suno Token */}
+      <section className="mb-8">
+        <h2 className="text-lg font-medium text-[rgba(255,255,255,0.87)] mb-3">Suno Token</h2>
+        <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 space-y-4">
+          {/* Status */}
+          <div className="flex items-center gap-3">
+            <div className={`w-2 h-2 rounded-full ${tokenStatus?.has_token ? 'bg-[#33be6a]' : 'bg-[#ea6152]'}`} />
+            <span className="text-sm text-[rgba(255,255,255,0.7)]">
+              {tokenStatus?.has_token
+                ? `Valid · expires ${tokenStatus.exp_human ? new Date(tokenStatus.exp_human).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'} · ${Math.round((tokenStatus.seconds_remaining || 0) / 60)}m remaining`
+                : 'No valid token'}
+            </span>
+            <span className="text-[10px] text-[rgba(255,255,255,0.3)] ml-auto">{tokenStatus?.auth_mode}</span>
+          </div>
+
+          {/* Bookmarklet */}
+          {bookmarklet && (
+            <div className="space-y-2">
+              <p className="text-[11px] text-[rgba(255,255,255,0.4)]">
+                Drag this to your bookmarks bar. When your token expires, visit suno.com while logged in and click it — done.
+              </p>
+              <div className="flex items-center gap-2">
+                <a
+                  href={bookmarklet}
+                  onClick={e => e.preventDefault()}
+                  draggable
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(94,162,182,0.12)] border border-[rgba(94,162,182,0.3)] text-[#5ea2b6] text-xs font-medium cursor-grab active:cursor-grabbing select-none"
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                  Refresh Suno Token
+                </a>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard.writeText(bookmarklet); setBmCopied(true); setTimeout(() => setBmCopied(false), 1500); }}
+                  className="text-[10px] text-[rgba(255,255,255,0.3)] hover:text-[rgba(255,255,255,0.6)] transition-colors"
+                >
+                  {bmCopied ? '✓ copied' : 'copy code'}
+                </button>
+              </div>
+            </div>
+          )}
+          {!bookmarklet && <p className="text-[11px] text-[rgba(255,255,255,0.3)]">Set SUNO_REFRESH_KEY and API_URL in Railway to enable bookmarklet.</p>}
+        </div>
+      </section>
 
       {/* Flow Factors */}
       <section className="mb-8">
