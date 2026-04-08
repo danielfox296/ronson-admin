@@ -532,31 +532,57 @@ export default function PromptComposer() {
             )}
           </div>
 
-          {/* Generate button */}
-          <button
-            type="button"
-            onClick={() => generateMutation.mutate()}
-            disabled={!selectedIcpId || generateMutation.isPending}
-            className={`w-full py-3 rounded-xl text-sm font-semibold transition-all shadow-lg flex items-center justify-center gap-2 ${
-              selectedIcpId && (selectedTrackId || selectedOutcome)
-                ? 'bg-gradient-to-br from-[#4a90a4] to-[#2d6a80] text-white hover:opacity-90 shadow-[#4a90a4]/10'
-                : selectedIcpId
-                  ? 'bg-[rgba(74,144,164,0.25)] text-[rgba(255,255,255,0.5)] hover:opacity-90'
-                  : 'bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.25)] cursor-not-allowed'
-            }`}
-          >
-            {generateMutation.isPending ? (
-              <>
-                <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                Generate Prompt
-              </>
-            )}
-          </button>
+          {/* Generate button row */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setCreativeDirection('');
+                setSelectedTrackId('');
+                setSelectedOutcome(null);
+                setLyrics('');
+                setStyle('');
+                setStyleNegations('');
+                setVoice('');
+                setPromptTitle('');
+                setDroppedFile(null);
+                setSavedSongId('');
+                setSunoIds([]);
+                setSunoStatus('');
+                setSunoResults([]);
+                setSunoError('');
+                setDownloadedTracks({});
+                sessionStorage.removeItem('compose-output');
+              }}
+              className="py-3 px-4 rounded-xl text-sm font-semibold transition-all bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.4)] hover:bg-[rgba(255,255,255,0.09)] hover:text-[rgba(255,255,255,0.6)]"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={() => generateMutation.mutate()}
+              disabled={!selectedIcpId || generateMutation.isPending}
+              className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg flex items-center justify-center gap-2 ${
+                selectedIcpId && (selectedTrackId || selectedOutcome)
+                  ? 'bg-gradient-to-br from-[#4a90a4] to-[#2d6a80] text-white hover:opacity-90 shadow-[#4a90a4]/10'
+                  : selectedIcpId
+                    ? 'bg-[rgba(74,144,164,0.25)] text-[rgba(255,255,255,0.5)] hover:opacity-90'
+                    : 'bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.25)] cursor-not-allowed'
+              }`}
+            >
+              {generateMutation.isPending ? (
+                <>
+                  <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  Generate Prompt
+                </>
+              )}
+            </button>
+          </div>
 
         </div>
 
