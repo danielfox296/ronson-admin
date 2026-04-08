@@ -14,6 +14,8 @@ import StatusBadge from '../components/StatusBadge.js';
 // Analysis fields displayed on reference tracks (Layer 3 + supporting fields)
 const ANALYSIS_FIELDS = [
   { key: 'suno_genre', label: 'Suno Genre', type: 'text' },
+  { key: 'suno_style_cultural', label: 'Style (Cultural)', type: 'text' },
+  { key: 'suno_exclude_cultural', label: 'Exclude (Cultural)', type: 'text' },
   { key: 'production_era', label: 'Era', type: 'text' },
   { key: 'instrumentation', label: 'Instrumentation', type: 'text' },
   { key: 'harmonic_sophistication', label: 'Harmonic Sophistication', type: 'bar' },
