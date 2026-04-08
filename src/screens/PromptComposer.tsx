@@ -3,6 +3,31 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, uploadFile } from '../lib/api.js';
 
+const OUTCOME_MODES = [
+  {
+    id: 'linger', label: 'Linger', descriptor: 'Time in store',
+    style: ['slow / languid / 65 BPM feel / unhurried','minor key / Dorian / melancholic warmth / noble sadness','laid-back / behind the beat / unhurried groove / relaxed feel','sparse / no drums / drumless / percussion-free / rhythm implied','hypnotic / looping / ostinato / repeating groove / minimal surface variation','instrumental / no vocals / wordless / vocalise','circular progression / unresolved / suspended / no strong cadence','gentle dynamic arc / subtle swells / breathing arrangement / natural dynamics'].join('\n'),
+    exclude: ['uptempo / driving / forward motion / energetic','bright major / uplifting / Mixolydian / cheerful','pushing ahead of beat / urgent / forward drive','dense percussion / full kit / layered rhythm / busy beat','through-composed / evolving structure / high novelty','dense lyrics / sung vocals / prominent voice','strong resolution / resolved cadence / definitive ending','wide dynamic range / dramatic peaks / heavily compressed'].join('\n'),
+    warning: 'Slow tempo only activates in minor key.',
+  },
+  {
+    id: 'elevate', label: 'Elevate', descriptor: 'Premium perception',
+    style: ['minor key / sophisticated harmonic depth / melancholic warmth','laid-back / behind the beat / effortlessness cue / luxury ease','sparse / low rhythmic density / space as quality signal','instrumental / no vocals / wordless / ambient quality','deceptive cadences / wistful redirected resolution / longing signal','wide dynamic range / uncompressed / dramatic peaks / craft quality'].join('\n'),
+    exclude: ['bright major / uplifting / pop energy / cheerful','pushing ahead of beat / urgent / youth-coded','dense percussion / full kit / busy rhythm / energetic beat','dense lyrics / prominent vocals / attention-demanding voice','strong resolution / resolved cadence / definitive ending','narrow dynamic range / flat / heavily compressed / broadcast loud'].join('\n'),
+  },
+  {
+    id: 'energize', label: 'Energize', descriptor: 'Browsing & variety',
+    style: ['uptempo / driving / forward motion / 110 BPM feel','bright major / uplifting / Mixolydian / earthy major / positive valence','pushing / ahead of the beat / driving groove / forward momentum','dense percussion / full kit / layered rhythm / driving beat','through-composed / developing sections / structural novelty','dense vocal / sung / prominent voice / emotional engagement','strong resolution / satisfying cadence / completion feel'].join('\n'),
+    exclude: ['slow / languid / unhurried / 65 BPM feel','minor key / Dorian / melancholic / dark harmonic color','laid-back / behind the beat / relaxed feel','sparse / no drums / drumless / percussion-free','hypnotic / looping / minimal variation / ostinato','instrumental / wordless / no vocal energy','circular / unresolved / suspended / no cadence'].join('\n'),
+  },
+  {
+    id: 'move', label: 'Move', descriptor: 'Purchase decisions',
+    style: ['slow / languid / 65 BPM feel / unhurried','minor key / Dorian / melancholic warmth / noble sadness','laid-back / behind the beat / luxury ease / effortlessness cue','sparse / low rhythmic density / craft signal / quality space','instrumental / no vocals / wordless / ambient quality','circular progression / unresolved / suspended / no strong cadence','gentle dynamic arc / subtle swells / natural dynamics / breathing arrangement'].join('\n'),
+    exclude: ['uptempo / driving / forward motion / high energy','bright major / uplifting / positive valence / cheerful','pushing ahead of beat / urgent','dense percussion / full kit / driving beat / busy rhythm','dense lyrics / prominent vocals / attention-demanding','strong resolution / resolved cadence / definitive ending','narrow dynamic range / compressed / broadcast loud'].join('\n'),
+    warning: 'Spending lift is loyalty-segment conditional (EMAC 2025).',
+  },
+];
+
 export default function PromptComposer() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -12,8 +37,8 @@ export default function PromptComposer() {
   const [creativeDirection, setCreativeDirection] = useState(searchParams.get('topic') || '');
   const [selectedGenSystem, setSelectedGenSystem] = useState('');
   const [promptTitle, setPromptTitle] = useState('');
-  const [generatingTrackId, setGeneratingTrackId] = useState<string | null>(null);
-  const [autoGenerateTrackId] = useState(searchParams.get('trackId') || '');
+  const [selectedTrackId, setSelectedTrackId] = useState(searchParams.get('trackId') || '');
+  const [selectedOutcome, setSelectedOutcome] = useState<string | null>(null);
   const [droppedFile, setDroppedFile] = useState<{ file: File; name: string; duration: number } | null>(null);
 
   // Generated output fields
@@ -115,15 +140,14 @@ export default function PromptComposer() {
   });
   const refTracks = refTracksData?.data || [];
 
-  // Auto-trigger "Use Style" when arriving from ICP page with a trackId
+  // Auto-select track when arriving from ICP page with a trackId param
   const [autoTriggered, setAutoTriggered] = useState(false);
   useEffect(() => {
-    if (autoGenerateTrackId && selectedIcpId && refTracks.length > 0 && !autoTriggered && !lyrics) {
+    if (searchParams.get('trackId') && refTracks.length > 0 && !autoTriggered) {
       setAutoTriggered(true);
-      setGeneratingTrackId(autoGenerateTrackId);
-      generateFromTrackMutation.mutate(autoGenerateTrackId);
+      // Track is already pre-selected via useState initializer above — nothing more to do
     }
-  }, [autoGenerateTrackId, selectedIcpId, refTracks, autoTriggered, lyrics]);
+  }, [refTracks, autoTriggered, searchParams]);
 
   const { data: gsData } = useQuery({
     queryKey: ['generation-systems'],
@@ -131,7 +155,7 @@ export default function PromptComposer() {
   });
   const genSystems = gsData?.data || [];
 
-  // Generate
+  // Generate — uses selected track + outcome if set
   const generateMutation = useMutation({
     mutationFn: () => api<{ data: any }>('/api/compose/generate', {
       method: 'POST',
@@ -139,36 +163,23 @@ export default function PromptComposer() {
         store_icp_id: selectedIcpId,
         flow_factor_values: {},
         creative_direction: creativeDirection || undefined,
+        reference_track_id: selectedTrackId || undefined,
+        desired_outcome: selectedOutcome || undefined,
       },
     }),
     onSuccess: (result) => {
       setLyrics(result.data.lyrics || '');
-      setStyle(result.data.style || '');
-      setStyleNegations(result.data.style_negations || '');
       setVoice(result.data.voice || '');
+      // Only update style/exclude from AI if no outcome card is locking them
+      if (!selectedOutcome) {
+        setStyle(result.data.style || '');
+        setStyleNegations(result.data.style_negations || '');
+      }
     },
   });
 
-  // Generate from a specific reference track
-  const generateFromTrackMutation = useMutation({
-    mutationFn: (trackId: string) => api<{ data: any }>('/api/compose/generate', {
-      method: 'POST',
-      body: {
-        store_icp_id: selectedIcpId,
-        flow_factor_values: {},
-        creative_direction: creativeDirection || undefined,
-        reference_track_id: trackId,
-      },
-    }),
-    onSuccess: (result) => {
-      setLyrics(result.data.lyrics || '');
-      setStyle(result.data.style || '');
-      setStyleNegations(result.data.style_negations || '');
-      setVoice(result.data.voice || '');
-      setGeneratingTrackId(null);
-    },
-    onError: () => { setGeneratingTrackId(null); },
-  });
+  // Generate from a specific reference track (kept for Regenerate button compatibility)
+  const generateFromTrackMutation = generateMutation;
 
   // Save
   const saveMutation = useMutation({
@@ -457,16 +468,14 @@ export default function PromptComposer() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => { setGeneratingTrackId(t.id); generateFromTrackMutation.mutate(t.id); }}
-                        disabled={generatingTrackId === t.id}
-                        className="shrink-0 bg-[rgba(74,144,164,0.12)] text-[#4a90a4] hover:bg-[rgba(74,144,164,0.25)] px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50"
+                        onClick={() => setSelectedTrackId(selectedTrackId === t.id ? '' : t.id)}
+                        className={`shrink-0 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors ${
+                          selectedTrackId === t.id
+                            ? 'bg-[rgba(74,144,164,0.35)] text-white border border-[rgba(74,144,164,0.6)]'
+                            : 'bg-[rgba(74,144,164,0.08)] text-[#4a90a4] hover:bg-[rgba(74,144,164,0.18)]'
+                        }`}
                       >
-                        {generatingTrackId === t.id ? (
-                          <span className="flex items-center gap-1.5">
-                            <span className="inline-block w-3 h-3 border-2 border-[#4a90a4]/30 border-t-[#4a90a4] rounded-full animate-spin" />
-                            Working...
-                          </span>
-                        ) : 'Use Style'}
+                        {selectedTrackId === t.id ? '✓ Selected' : 'Select'}
                       </button>
                     </div>
                   ))
@@ -479,12 +488,52 @@ export default function PromptComposer() {
             </div>
           </div>
 
+          {/* Outcome Mode selector */}
+          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-3">Desired Outcome</label>
+            <div className="grid grid-cols-2 gap-2">
+              {OUTCOME_MODES.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => {
+                    const next = selectedOutcome === o.id ? null : o.id;
+                    setSelectedOutcome(next);
+                    if (next) {
+                      setStyle(o.style);
+                      setStyleNegations(o.exclude);
+                    }
+                  }}
+                  className={`flex flex-col items-start gap-1 px-3 py-2.5 rounded-lg border text-left transition-all ${
+                    selectedOutcome === o.id
+                      ? 'border-[#5ea2b6] bg-[rgba(94,162,182,0.1)] text-white'
+                      : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] text-[rgba(255,255,255,0.6)] hover:border-[rgba(255,255,255,0.18)]'
+                  }`}
+                >
+                  <span className="text-xs font-semibold leading-none">{o.label}</span>
+                  <span className="text-[9px] text-[rgba(255,255,255,0.4)] leading-snug">{o.descriptor}</span>
+                </button>
+              ))}
+            </div>
+            {selectedOutcome && OUTCOME_MODES.find(o => o.id === selectedOutcome)?.warning && (
+              <p className="mt-2 text-[9px] text-[rgba(255,200,80,0.65)] leading-snug">
+                ⚠ {OUTCOME_MODES.find(o => o.id === selectedOutcome)?.warning}
+              </p>
+            )}
+          </div>
+
           {/* Generate button */}
           <button
             type="button"
             onClick={() => generateMutation.mutate()}
             disabled={!selectedIcpId || generateMutation.isPending}
-            className="w-full bg-gradient-to-br from-[#4a90a4] to-[#2d6a80] text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-all shadow-lg shadow-[#4a90a4]/10 flex items-center justify-center gap-2"
+            className={`w-full py-3 rounded-xl text-sm font-semibold transition-all shadow-lg flex items-center justify-center gap-2 ${
+              selectedIcpId && (selectedTrackId || selectedOutcome)
+                ? 'bg-gradient-to-br from-[#4a90a4] to-[#2d6a80] text-white hover:opacity-90 shadow-[#4a90a4]/10'
+                : selectedIcpId
+                  ? 'bg-[rgba(74,144,164,0.25)] text-[rgba(255,255,255,0.5)] hover:opacity-90'
+                  : 'bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.25)] cursor-not-allowed'
+            }`}
           >
             {generateMutation.isPending ? (
               <>
@@ -502,9 +551,9 @@ export default function PromptComposer() {
 
         {/* Right: Output */}
         <div className="space-y-4">
-          {(generateMutation.isError || generateFromTrackMutation.isError) && (
+          {generateMutation.isError && (
             <div className="bg-[rgba(231,76,60,0.1)] border border-[rgba(231,76,60,0.2)] rounded-xl p-4 text-[#e74c3c] text-sm">
-              {((generateMutation.error || generateFromTrackMutation.error) as Error)?.message}
+              {(generateMutation.error as Error)?.message}
             </div>
           )}
 
