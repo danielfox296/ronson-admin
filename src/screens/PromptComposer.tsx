@@ -382,7 +382,7 @@ export default function PromptComposer() {
         {/* Left: Reference Tracks + Instructions + Generate */}
         <div className="space-y-4">
           {/* Creative Direction */}
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+          <div>
             <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-2">What's this song about?</label>
             <textarea
               value={creativeDirection}
@@ -393,11 +393,11 @@ export default function PromptComposer() {
             />
           </div>
 
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(255,255,255,0.09)]">
+          <div>
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.87)]">Reference Tracks</h2>
-                {refTracks.length > 0 && <span className="text-xs text-[rgba(255,255,255,0.45)]">{refTracks.length}</span>}
+                <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Reference Tracks</label>
+                {refTracks.length > 0 && <span className="text-[10px] text-[rgba(255,255,255,0.35)]">{refTracks.length}</span>}
               </div>
               {selectedIcpId && selectedStoreId && selectedClientId && (
                 <a
@@ -408,7 +408,7 @@ export default function PromptComposer() {
                 </a>
               )}
             </div>
-            <div className="max-h-[280px] overflow-y-auto">
+            <div className="max-h-[280px] overflow-y-auto border border-[rgba(255,255,255,0.06)] rounded-xl">
               {selectedIcpId ? (
                 refTracks.length > 0 ? (
                   refTracks.map((t: any) => (
@@ -452,7 +452,7 @@ export default function PromptComposer() {
           </div>
 
           {/* Outcome Mode selector */}
-          <div className="bg-[#1a1a25] border border-[rgba(255,255,255,0.09)] rounded-xl p-4">
+          <div>
             <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] block mb-3">Desired Outcome</label>
             <div className="grid grid-cols-2 gap-2">
               {outcomeOptions.map((o) => (
