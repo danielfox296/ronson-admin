@@ -232,6 +232,7 @@ export default function SunoCompose() {
   const [genError, setGenError] = useState('');
   const [instructions, setInstructions] = useState('');
   const [showInstructions, setShowInstructions] = useState(false);
+  const [targetDuration, setTargetDuration] = useState<'short' | 'standard' | 'long' | 'vamp'>('standard');
   const [loaded, setLoaded] = useState(false);
   const [templatesUsed, setTemplatesUsed] = useState<string[]>([]);
 
@@ -308,7 +309,7 @@ export default function SunoCompose() {
     try {
       const result = await api<{ data: any }>('/api/compose/generate', {
         method: 'POST',
-        body: { store_icp_id: icpId, reference_track_id: refTrackId, additional_instructions: instructions || undefined, desired_outcome: selectedOutcome || undefined },
+        body: { store_icp_id: icpId, reference_track_id: refTrackId, additional_instructions: instructions || undefined, desired_outcome: selectedOutcome || undefined, target_duration: targetDuration },
       });
       const d = (result as any)?.data;
       const s = d?.style || '', e = d?.style_negations || '', v = d?.voice || '', l = d?.lyrics || '';
@@ -524,6 +525,19 @@ export default function SunoCompose() {
                 <FieldCard label="Style" value={style} onChange={updateStyle} rows={9} />
                 <FieldCard label="Exclude" value={exclude} onChange={updateExclude} rows={8} />
                 <FieldCard label="Voice" value={voice} onChange={updateVoice} rows={1} />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] uppercase tracking-[0.15em] text-[rgba(255,255,255,0.35)] font-medium">Duration</span>
+                  {(['short','standard','long','vamp'] as const).map(d => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setTargetDuration(d)}
+                      className={`px-2 py-1 rounded-md text-[10px] transition-colors ${targetDuration === d ? 'bg-[rgba(94,162,182,0.2)] text-[#5ea2b6]' : 'text-[rgba(255,255,255,0.3)] hover:text-[rgba(255,255,255,0.6)]'}`}
+                    >
+                      {d === 'short' ? '~2m' : d === 'standard' ? '~3.5m' : d === 'long' ? '~4m' : 'vamp'}
+                    </button>
+                  ))}
+                </div>
                 <div className="flex items-center gap-3 pt-1">
                   <button
                     type="button"
