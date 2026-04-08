@@ -183,11 +183,8 @@ export default function PromptComposer() {
     onSuccess: (result) => {
       setLyrics(result.data.lyrics || '');
       setVoice(result.data.voice || '');
-      // Only update style/exclude from AI if no outcome card is locking them
-      if (!selectedOutcome) {
-        setStyle(result.data.style || '');
-        setStyleNegations(result.data.style_negations || '');
-      }
+      setStyle(result.data.style || '');
+      setStyleNegations(result.data.style_negations || '');
     },
   });
 
@@ -430,12 +427,7 @@ export default function PromptComposer() {
                   key={o.id}
                   type="button"
                   onClick={() => {
-                    const next = selectedOutcome === o.id ? null : o.id;
-                    setSelectedOutcome(next);
-                    if (next) {
-                      setStyle(o.style);
-                      setStyleNegations(o.exclude);
-                    }
+                    setSelectedOutcome(selectedOutcome === o.id ? null : o.id);
                   }}
                   className={`flex flex-col items-start gap-1 px-3 py-2.5 rounded-lg border text-left transition-all ${
                     selectedOutcome === o.id
