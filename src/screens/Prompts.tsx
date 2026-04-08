@@ -22,7 +22,6 @@ export default function Prompts() {
   const [showForm, setShowForm] = useState(false);
   const [filterType, setFilterType] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [seedingOutcomes, setSeedingOutcomes] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -77,32 +76,13 @@ export default function Prompts() {
   const filtered = filterType ? templates.filter(t => t.type === filterType) : templates;
   const grouped = Object.fromEntries(allTypes.map(t => [t, filtered.filter(i => i.type === t)])) as Record<typeof allTypes[number], any[]>;
 
-  const seedOutcomes = async () => {
-    setSeedingOutcomes(true);
-    try {
-      await api('/api/prompts/seed-outcomes', { method: 'POST' });
-      queryClient.invalidateQueries({ queryKey: ['prompt-templates'] });
-    } catch { /* error toast from global handler */ }
-    finally { setSeedingOutcomes(false); }
-  };
-
-  return (
+return (
     <div>
       <Breadcrumb items={[{ label: 'Prompts' }]} />
       <div className="flex items-center justify-between mt-4 mb-6">
         <h1 className="text-4xl tracking-tight leading-none text-white">Prompts</h1>
         <div className="flex gap-2">
-          {(filterType === 'outcome' || filterType === '') && grouped.outcome.length === 0 && (
-            <button
-              type="button"
-              onClick={seedOutcomes}
-              disabled={seedingOutcomes}
-              className="px-4 py-2 rounded-lg text-xs font-medium bg-[rgba(255,255,255,0.07)] hover:bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] transition-colors disabled:opacity-50"
-            >
-              {seedingOutcomes ? 'Seeding...' : 'Seed Default Outcomes'}
-            </button>
-          )}
-          <button
+<button
             type="button"
             onClick={() => {
               resetForm();
