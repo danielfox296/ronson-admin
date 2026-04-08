@@ -182,13 +182,10 @@ function OutcomeCard({
   selected: boolean;
   onSelect: (id: OutcomeMode | null) => void;
 }) {
-  const [showWarning, setShowWarning] = useState(false);
   return (
     <button
       type="button"
       onClick={() => onSelect(selected ? null : outcome.id)}
-      onMouseEnter={() => outcome.warning && setShowWarning(true)}
-      onMouseLeave={() => setShowWarning(false)}
       className={`relative flex-1 flex flex-col items-start gap-2 px-4 py-3 rounded-xl border transition-all text-left ${
         selected
           ? 'border-[#5ea2b6] bg-[rgba(94,162,182,0.08)]'
@@ -200,18 +197,10 @@ function OutcomeCard({
       </div>
       <div>
         <p className={`text-sm font-medium leading-none mb-1 ${selected ? 'text-white' : 'text-[rgba(255,255,255,0.7)]'}`}>
-          {outcome.label}
-          {outcome.warning && (
-            <span className="ml-1.5 text-[rgba(255,165,0,0.6)] text-[9px]">⚠</span>
-          )}
-        </p>
+            {outcome.label}
+          </p>
         <p className="text-[10px] text-[rgba(255,255,255,0.35)] leading-snug">{outcome.descriptor}</p>
       </div>
-      {showWarning && outcome.warning && (
-        <div className="absolute bottom-full left-0 mb-2 z-10 w-56 px-3 py-2 rounded-lg bg-[#2a2a18] border border-[rgba(255,165,0,0.25)] text-[10px] text-[rgba(255,200,80,0.9)] leading-snug shadow-xl">
-          {outcome.warning}
-        </div>
-      )}
     </button>
   );
 }
@@ -510,12 +499,7 @@ export default function SunoCompose() {
                   />
                 ))}
               </div>
-              {selectedOutcome && OUTCOME_MODES.find(o => o.id === selectedOutcome)?.warning && (
-                <p className="mt-2 text-[10px] text-[rgba(255,200,80,0.7)] flex items-start gap-1.5">
-                  <span className="shrink-0">⚠</span>
-                  <span>{OUTCOME_MODES.find(o => o.id === selectedOutcome)?.warning}</span>
-                </p>
-              )}
+
             </div>
 
             {/* Two-column prompt grid */}
