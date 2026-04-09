@@ -404,7 +404,7 @@ export default function SunoCompose() {
               { label: icp?.name || 'Audience', href: backPath },
               { label: 'Compose' },
             ]} />
-            <h1 className="text-4xl tracking-tight leading-none text-white mt-3">
+            <h1 className="text-2xl tracking-tight leading-none text-white uppercase mt-3">
               {track ? `"${track.title}"` : 'Loading...'}
               {track?.artist && <span className="text-[rgba(255,255,255,0.4)]"> by {track.artist}</span>}
             </h1>

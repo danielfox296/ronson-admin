@@ -17,6 +17,11 @@ export async function api<T = unknown>(path: string, options: { method?: string;
 
   if (res.status === 401) {
     localStorage.removeItem('token');
+    // Save current path so user returns here after re-login
+    const currentPath = window.location.pathname + window.location.search;
+    if (currentPath !== '/' && currentPath !== '/login') {
+      sessionStorage.setItem('returnTo', currentPath);
+    }
     window.location.href = '/login';
     throw new Error('Unauthorized');
   }

@@ -25,7 +25,7 @@ export default function Account() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-4xl tracking-tight leading-none text-white">Account</h1>
+        <h1 className="text-2xl tracking-tight leading-none text-white uppercase">Account</h1>
       </div>
 
       <div className="max-w-md space-y-6">

@@ -27,7 +27,14 @@ import ImportView from './screens/crm/ImportView.js';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
-  if (!token) return <Navigate to="/login" replace />;
+  if (!token) {
+    // Save current path so Login can return here after auth
+    const currentPath = window.location.pathname + window.location.search;
+    if (currentPath !== '/' && currentPath !== '/login') {
+      sessionStorage.setItem('returnTo', currentPath);
+    }
+    return <Navigate to="/login" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -52,16 +59,6 @@ function Layout() {
       icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
     },
     {
-      to: '/analytics',
-      label: 'Analytics',
-      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-6"/></svg>,
-    },
-    {
-      to: '/outcomes',
-      label: 'Outcomes',
-      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>,
-    },
-    {
       to: '/clients',
       label: 'Clients',
       icon: (
@@ -75,11 +72,6 @@ function Layout() {
       ),
     },
     {
-      to: '/crm',
-      label: 'CRM',
-      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>,
-    },
-    {
       to: '/songs',
       label: 'Songs',
       icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>,
@@ -89,6 +81,22 @@ function Layout() {
       label: 'Batch Entry',
       separatorAfter: true,
       icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+    },
+    {
+      to: '/analytics',
+      label: 'Analytics',
+      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-6"/></svg>,
+    },
+    {
+      to: '/crm',
+      label: 'CRM',
+      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>,
+    },
+    {
+      to: '/outcomes',
+      label: 'Outcomes',
+      separatorAfter: true,
+      icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>,
     },
     {
       to: '/config',
@@ -114,7 +122,7 @@ function Layout() {
       {/* Sidebar */}
       <aside className="w-[172px] bg-[#15151d] text-white flex flex-col shrink-0 border-r border-[rgba(255,255,255,0.09)]">
         <div className="px-4 py-4 border-b border-[rgba(255,255,255,0.09)]">
-          <img src="/logo.svg" alt="Entuned" className="h-4" />
+          <img src="/logo.svg" alt="Entuned" className="h-12" />
         </div>
 
         <nav className="flex-1 p-2 space-y-0.5">

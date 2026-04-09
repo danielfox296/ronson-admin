@@ -19,7 +19,7 @@ export default function Dashboard() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl tracking-tight leading-none text-white">Dashboard</h1>
+        <h1 className="text-2xl tracking-tight leading-none text-white uppercase">Dashboard</h1>
       </div>
 
       {/* Stat Cards */}

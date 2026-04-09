@@ -107,7 +107,7 @@ export default function SongLibrary() {
       {/* Header */}
       <div className="flex items-end justify-between mb-8">
         <div>
-          <h1 className="text-4xl tracking-tight leading-none text-white">Songs</h1>
+          <h1 className="text-2xl tracking-tight leading-none text-white uppercase">Songs</h1>
         </div>
         <div className="flex gap-3">
           <button

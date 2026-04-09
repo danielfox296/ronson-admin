@@ -279,7 +279,7 @@ export default function BatchEntry() {
     <div className="max-w-3xl mx-auto pb-24">
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-4xl tracking-tight leading-none text-white">Batch Entry</h1>
+        <h1 className="text-2xl tracking-tight leading-none text-white uppercase">Batch Entry</h1>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.4)]">
             Filter

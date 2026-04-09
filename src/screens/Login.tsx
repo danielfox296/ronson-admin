@@ -20,7 +20,10 @@ export default function Login() {
         noAuth: true,
       });
       localStorage.setItem('token', res.data.token);
-      navigate('/clients');
+      // Return to where user was before being redirected to login, or default to /dashboard
+      const returnTo = sessionStorage.getItem('returnTo') || '/dashboard';
+      sessionStorage.removeItem('returnTo');
+      navigate(returnTo);
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {

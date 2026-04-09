@@ -62,6 +62,10 @@ export default function PromptComposer() {
   const [playingSunoId, setPlayingSunoId] = useState<string | null>(null);
   const [sunoAudio, setSunoAudio] = useState<HTMLAudioElement | null>(null);
 
+  // Refine Lyrics modal
+  const [showRefineModal, setShowRefineModal] = useState(false);
+  const [refineInstructions, setRefineInstructions] = useState('');
+
   // Restore cached output on mount (only if no URL params drove initial state)
   useEffect(() => {
     if (searchParams.get('icpId')) return; // URL params take priority
@@ -221,6 +225,26 @@ export default function PromptComposer() {
   // Generate from a specific reference track (kept for Regenerate button compatibility)
   const generateFromTrackMutation = generateMutation;
 
+  // Refine lyrics — keeps style/negations/voice, only rewrites words
+  const refineLyricsMutation = useMutation({
+    mutationFn: () => api<{ data: any }>('/api/compose/generate', {
+      method: 'POST',
+      body: {
+        store_icp_id: selectedIcpId,
+        flow_factor_values: {},
+        creative_direction: `Refine these existing lyrics. Keep the same style, mood, and structure but apply these changes: ${refineInstructions}\n\nOriginal lyrics:\n${lyrics}`,
+        reference_track_id: selectedTrackId || undefined,
+        desired_outcome: selectedOutcome || undefined,
+      },
+    }),
+    onSuccess: (result) => {
+      setLyrics(result.data.lyrics || '');
+      // Don't update style/negations/voice — keep them as-is
+      setShowRefineModal(false);
+      setRefineInstructions('');
+    },
+  });
+
   // Save
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -322,6 +346,8 @@ export default function PromptComposer() {
   const sunoDownloadMutation = useMutation({
     mutationFn: (sunoId: string) => {
       setDownloadingSunoId(sunoId);
+      // Stop any playing audio when downloading
+      if (sunoAudio) { sunoAudio.pause(); setSunoAudio(null); setPlayingSunoId(null); }
       return api<{ data: any }>('/api/suno/download', {
         method: 'POST',
         body: { suno_id: sunoId, song_id: savedSongId },
@@ -341,7 +367,7 @@ export default function PromptComposer() {
     <div>
       {/* Header */}
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-4xl tracking-tight leading-none text-white">Compose</h1>
+        <h1 className="text-2xl tracking-tight leading-none text-white uppercase">Compose</h1>
         {hasOutput && (
           <div className="flex items-center gap-3 shrink-0">
             {/* Compact audio upload */}
@@ -601,7 +627,13 @@ export default function PromptComposer() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)]">Lyrics</label>
-                    <button type="button" onClick={() => navigator.clipboard.writeText(lyrics)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                    <div className="flex items-center gap-3">
+                      <button type="button" onClick={() => setShowRefineModal(true)} className="bg-[rgba(233,30,140,0.12)] text-[#e91e8c] hover:bg-[rgba(233,30,140,0.2)] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-1.5">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        Refine
+                      </button>
+                      <button type="button" onClick={() => navigator.clipboard.writeText(lyrics)} className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold">Copy</button>
+                    </div>
                   </div>
                   <textarea
                     value={lyrics}
@@ -766,32 +798,6 @@ export default function PromptComposer() {
                       <div key={r.id} className="bg-[rgba(0,0,0,0.2)] rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            {r.audio_url && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (playingSunoId === r.id) {
-                                    sunoAudio?.pause();
-                                    setPlayingSunoId(null);
-                                    setSunoAudio(null);
-                                  } else {
-                                    sunoAudio?.pause();
-                                    const el = new Audio(r.audio_url);
-                                    el.onended = () => { setPlayingSunoId(null); setSunoAudio(null); };
-                                    el.play().catch(() => {});
-                                    setSunoAudio(el);
-                                    setPlayingSunoId(r.id);
-                                  }
-                                }}
-                                className="w-8 h-8 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 flex items-center justify-center transition-colors shrink-0"
-                              >
-                                {playingSunoId === r.id ? (
-                                  <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                                ) : (
-                                  <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                )}
-                              </button>
-                            )}
                             <div>
                               <p className="text-sm text-[rgba(255,255,255,0.87)]">{r.title || r.id}</p>
                               {r.duration && <p className="text-[10px] text-[rgba(255,255,255,0.4)]">{Math.round(r.duration)}s</p>}
@@ -816,12 +822,20 @@ export default function PromptComposer() {
                             </button>
                           )}
                         </div>
-                        {r.audio_url && playingSunoId === r.id && (
-                          <div className="mt-1 flex items-center gap-2">
-                            <div className="flex-1 h-0.5 bg-[rgba(46,204,113,0.15)] rounded-full overflow-hidden">
-                              <div className="h-full bg-emerald-400/50 rounded-full animate-pulse" style={{ width: '60%' }} />
-                            </div>
-                          </div>
+                        {r.audio_url && (
+                          <audio
+                            src={r.audio_url}
+                            controls
+                            className="w-full h-8 mt-2"
+                            onPlay={(e) => {
+                              // Pause any other playing audio
+                              if (sunoAudio && sunoAudio !== e.currentTarget) { sunoAudio.pause(); }
+                              setSunoAudio(e.currentTarget);
+                              setPlayingSunoId(r.id);
+                            }}
+                            onPause={() => { if (playingSunoId === r.id) { setPlayingSunoId(null); } }}
+                            onEnded={() => { setPlayingSunoId(null); setSunoAudio(null); }}
+                          />
                         )}
                       </div>
                     ))}
@@ -921,6 +935,45 @@ export default function PromptComposer() {
                 {updateTrackMutation.isPending ? 'Saving...' : 'Save'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refine Lyrics Modal */}
+      {showRefineModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowRefineModal(false)}>
+          <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-2xl p-6 w-[480px] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-white">Refine Lyrics</h2>
+              <button type="button" onClick={() => setShowRefineModal(false)} className="text-[rgba(255,255,255,0.4)] hover:text-white transition-colors text-lg leading-none">×</button>
+            </div>
+            <p className="text-xs text-[rgba(255,255,255,0.5)] mb-4">Describe how you'd like the lyrics changed. The style, negations, and voice will stay the same.</p>
+            <textarea
+              value={refineInstructions}
+              onChange={(e) => setRefineInstructions(e.target.value)}
+              placeholder="e.g. make the chorus more repetitive, change the metaphor in verse 2 from water to fire, make it less wordy..."
+              rows={5}
+              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl px-4 py-3 text-sm resize-none placeholder:text-[rgba(255,255,255,0.3)] mb-4"
+              autoFocus
+            />
+            <div className="flex items-center justify-end gap-3">
+              <button type="button" onClick={() => setShowRefineModal(false)} className="px-4 py-2 text-sm text-[rgba(255,255,255,0.5)] hover:text-white transition-colors">Cancel</button>
+              <button
+                type="button"
+                disabled={!refineInstructions.trim() || refineLyricsMutation.isPending}
+                onClick={() => refineLyricsMutation.mutate()}
+                className="bg-gradient-to-r from-[#e91e8c] to-[#c41874] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 hover:opacity-90 flex items-center gap-2"
+              >
+                {refineLyricsMutation.isPending ? (
+                  <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Refining...</>
+                ) : (
+                  'Refine Lyrics'
+                )}
+              </button>
+            </div>
+            {refineLyricsMutation.isError && (
+              <p className="mt-3 text-[#e74c3c] text-xs">{(refineLyricsMutation.error as Error).message}</p>
+            )}
           </div>
         </div>
       )}

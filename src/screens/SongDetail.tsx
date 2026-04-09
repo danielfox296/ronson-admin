@@ -197,13 +197,13 @@ export default function SongDetail() {
         <div className="flex items-center gap-3">
           {editingTitle ? (
             <div className="flex items-center gap-2">
-              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-4xl tracking-tight leading-none text-white border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 bg-transparent" autoFocus />
+              <input value={titleVal} onChange={(e) => setTitleVal(e.target.value)} className="text-2xl tracking-tight leading-none text-white uppercase border border-[rgba(255,255,255,0.08)] rounded-lg px-2 py-1 bg-transparent" autoFocus />
               <button type="button" onClick={() => updateMutation.mutate({ title: titleVal })} className="bg-[#5ea2b6] text-white px-3 py-1 rounded-lg text-xs hover:bg-[#70b4c8]">Save</button>
               <button type="button" onClick={() => setEditingTitle(false)} className="text-[rgba(255,255,255,0.4)] text-xs">Cancel</button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <h1 className="text-4xl tracking-tight leading-none text-white">{song.title || 'Untitled'}</h1>
+              <h1 className="text-2xl tracking-tight leading-none text-white uppercase">{song.title || 'Untitled'}</h1>
               <button
                 type="button"
                 onClick={() => { setTitleVal(song.title || ''); setEditingTitle(true); }}

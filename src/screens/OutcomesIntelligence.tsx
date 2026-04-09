@@ -895,7 +895,7 @@ export default function OutcomesIntelligence() {
       {/* Header */}
       <div className="flex justify-between items-start mb-5 pb-4 border-b border-[var(--border)]">
         <div>
-          <h1 className="text-2xl text-[var(--text)] m-0">Outcomes Intelligence</h1>
+          <h1 className="text-xl text-[var(--text)] m-0 uppercase">Outcomes Intelligence</h1>
           <p className="text-[11px] text-[var(--text-faint)] mt-1 uppercase tracking-widest">
             Flow Factor &times; Commercial Outcome Correlation Analysis
           </p>

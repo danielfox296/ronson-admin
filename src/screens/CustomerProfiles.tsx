@@ -81,7 +81,7 @@ export default function CustomerProfiles() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-4xl tracking-tight leading-none text-white">Customer Profiles</h1>
+          <h1 className="text-2xl tracking-tight leading-none text-white uppercase">Customer Profiles</h1>
         </div>
         <button
           type="button"
