@@ -121,7 +121,7 @@ export default function Config() {
               </p>
               <div className="flex items-center gap-2">
                 <a
-                  href={bookmarklet}
+                  ref={(el) => { if (el) el.setAttribute('href', bookmarklet); }}
                   onClick={e => e.preventDefault()}
                   draggable
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(94,162,182,0.12)] border border-[rgba(94,162,182,0.3)] text-[#5ea2b6] text-xs font-medium cursor-grab active:cursor-grabbing select-none"
