@@ -31,6 +31,7 @@ export default function CRMDashboard() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'CRM' }]} />
+      <a href="/exit-modeler.html" target="_blank" rel="noopener noreferrer" className="text-xs text-[rgba(255,255,255,0.35)] hover:text-[#5ea2b6] transition-colors block mb-5 -mt-3">Exit Modeler →</a>
 
       {statsLoading ? (
         <p className="text-[rgba(255,255,255,0.45)]">Loading...</p>
