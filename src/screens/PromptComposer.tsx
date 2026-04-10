@@ -43,6 +43,10 @@ export default function PromptComposer() {
   const [selectedTrackId, setSelectedTrackId] = useState(searchParams.get('trackId') || '');
   const [selectedOutcome, setSelectedOutcome] = useState<string | null>(null);
   const [droppedFile, setDroppedFile] = useState<{ file: File; name: string; duration: number } | null>(null);
+  const [copyPromptCopied, setCopyPromptCopied] = useState(false);
+  const [savedSongId, setSavedSongId] = useState('');
+  const [finalizeError, setFinalizeError] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // Generated output fields
   const [lyrics, setLyrics] = useState('');
@@ -224,16 +228,11 @@ export default function PromptComposer() {
     },
   });
 
-  // Save
+  // Save to Library — requires file + title
   const saveMutation = useMutation({
     mutationFn: async () => {
-      let audio_file_url = '';
-      let duration_seconds = 0;
-      if (droppedFile) {
-        const uploaded = await uploadFile(droppedFile.file);
-        audio_file_url = uploaded.url;
-        duration_seconds = Math.round(droppedFile.duration);
-      }
+      setFinalizeError('');
+      const uploaded = await uploadFile(droppedFile!.file);
       return api<{ data: any }>('/api/compose/save', {
         method: 'POST',
         body: {
@@ -242,15 +241,20 @@ export default function PromptComposer() {
           flow_factor_values: {},
           prompt_parameters: { style, style_negations: styleNegations, voice },
           generation_system_id: selectedGenSystem || undefined,
-          title: promptTitle || 'Composed Prompt',
-          audio_file_url: audio_file_url || undefined,
-          duration_seconds: duration_seconds || undefined,
+          title: promptTitle,
+          audio_file_url: uploaded.url,
+          duration_seconds: Math.round(droppedFile!.duration),
+          reference_track_id: selectedTrackId || undefined,
+          desired_outcome: selectedOutcome || undefined,
         },
       });
     },
     onSuccess: (result) => {
+      setSavedSongId(result.data.id);
       sessionStorage.removeItem('compose-output');
-      navigate(`/songs/${result.data.id}`);
+    },
+    onError: (err: Error) => {
+      setFinalizeError(err.message);
     },
   });
 
@@ -262,6 +266,24 @@ export default function PromptComposer() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl tracking-tight leading-none text-white uppercase">Compose</h1>
+        {hasOutput && (
+          <button
+            type="button"
+            onClick={() => {
+              const text = [`TITLE\n${promptTitle}`, `STYLE\n${style}`, `EXCLUDE\n${styleNegations}`, `LYRICS\n${lyrics}`].join('\n\n');
+              navigator.clipboard.writeText(text);
+              setCopyPromptCopied(true);
+              setTimeout(() => setCopyPromptCopied(false), 1500);
+            }}
+            className="flex items-center gap-2 bg-[rgba(94,162,182,0.1)] border border-[rgba(94,162,182,0.25)] text-[#5ea2b6] hover:bg-[rgba(94,162,182,0.18)] py-2 px-4 rounded-lg text-sm font-semibold transition-all"
+          >
+            {copyPromptCopied ? (
+              <><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied</>
+            ) : (
+              <><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy Prompt</>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Row 1: Three dropdowns in one row */}
@@ -338,7 +360,7 @@ export default function PromptComposer() {
               {selectedIcpId ? (
                 refTracks.length > 0 ? (
                   refTracks.map((t: any) => (
-                    <div key={t.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-[rgba(255,255,255,0.04)] last:border-0 group">
+                    <div key={t.id} className={`flex items-center gap-3 px-4 py-2.5 border-b border-[rgba(255,255,255,0.04)] last:border-0 group border-l-2 transition-colors ${selectedTrackId === t.id ? 'border-l-[#5ea2b6]' : 'border-l-transparent'}`}>
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[rgba(74,144,164,0.25)] to-[rgba(74,144,164,0.05)] flex items-center justify-center shrink-0">
                         <svg className="w-3.5 h-3.5 text-[#4a90a4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                       </div>
@@ -527,7 +549,7 @@ export default function PromptComposer() {
               </div>
 
               {/* Actions row */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-end">
                 <button
                   type="button"
                   onClick={() => generateMutation.mutate()}
@@ -536,27 +558,145 @@ export default function PromptComposer() {
                 >
                   Regenerate
                 </button>
-                <div className="flex-1" />
-                <input
-                  type="text"
-                  value={promptTitle}
-                  onChange={(e) => setPromptTitle(e.target.value)}
-                  placeholder="Song title..."
-                  className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm w-48"
-                />
-                <button
-                  type="button"
-                  onClick={() => saveMutation.mutate()}
-                  disabled={saveMutation.isPending}
-                  className="bg-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.5)] py-2 px-5 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.1)] transition-colors"
-                >
-                  {saveMutation.isPending ? 'Saving...' : 'Save Draft'}
-                </button>
               </div>
 
-              {saveMutation.isError && (
-                <p className="text-[#e74c3c] text-xs">{(saveMutation.error as Error).message}</p>
-              )}
+              {/* Finalize panel */}
+              <div className="border-t border-[rgba(255,255,255,0.06)] pt-5 mt-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[rgba(255,255,255,0.45)] mb-4">Finalize</p>
+
+                {savedSongId ? (
+                  /* State D — saved */
+                  <div className="flex flex-col items-center gap-4 py-8">
+                    <div className="w-10 h-10 rounded-full bg-[rgba(39,174,96,0.15)] flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#33be6a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <p className="text-sm text-[rgba(255,255,255,0.7)]">Saved to library</p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/songs/${savedSongId}`)}
+                        className="bg-[#5ea2b6] hover:bg-[#70b4c8] text-white py-2 px-5 rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        View Song
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCreativeDirection('');
+                          setSelectedTrackId('');
+                          setSelectedOutcome(null);
+                          setLyrics('');
+                          setStyle('');
+                          setStyleNegations('');
+                          setVoice('');
+                          setPromptTitle('');
+                          setDroppedFile(null);
+                          setSavedSongId('');
+                          setFinalizeError('');
+                          saveMutation.reset();
+                          sessionStorage.removeItem('compose-output');
+                        }}
+                        className="bg-[rgba(255,255,255,0.07)] hover:bg-[rgba(255,255,255,0.11)] text-[rgba(255,255,255,0.5)] py-2 px-5 rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        Compose Another
+                      </button>
+                    </div>
+                  </div>
+                ) : !droppedFile ? (
+                  /* State A — drop zone */
+                  <label
+                    onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                    onDragLeave={() => setIsDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragOver(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        const audio = new Audio(URL.createObjectURL(file));
+                        audio.addEventListener('loadedmetadata', () => setDroppedFile({ file, name: file.name, duration: audio.duration }));
+                        audio.addEventListener('error', () => setDroppedFile({ file, name: file.name, duration: 0 }));
+                        if (!promptTitle) {
+                          const stem = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                          setPromptTitle(stem.replace(/\b\w/g, (c) => c.toUpperCase()));
+                        }
+                      }
+                    }}
+                    className={`flex flex-col items-center justify-center gap-3 min-h-[160px] w-full rounded-xl border-2 border-dashed cursor-pointer transition-colors ${isDragOver ? 'border-[#5ea2b6] bg-[rgba(94,162,182,0.05)]' : 'border-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.22)]'}`}
+                  >
+                    <svg className="w-8 h-8 text-[rgba(255,255,255,0.25)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12"/></svg>
+                    <div className="text-center">
+                      <p className="text-sm text-[rgba(255,255,255,0.5)]">Drop your finished MP3 here</p>
+                      <p className="text-xs text-[rgba(255,255,255,0.3)] mt-0.5">or click to choose a file</p>
+                    </div>
+                    <p className="text-[10px] text-[rgba(255,255,255,0.25)] uppercase tracking-widest">.mp3 · .wav · .flac</p>
+                    <input
+                      type="file"
+                      accept=".mp3,.wav,.flac"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const audio = new Audio(URL.createObjectURL(file));
+                          audio.addEventListener('loadedmetadata', () => setDroppedFile({ file, name: file.name, duration: audio.duration }));
+                          audio.addEventListener('error', () => setDroppedFile({ file, name: file.name, duration: 0 }));
+                          if (!promptTitle) {
+                            const stem = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                            setPromptTitle(stem.replace(/\b\w/g, (c) => c.toUpperCase()));
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+                ) : (
+                  /* State B / C — file loaded */
+                  <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 space-y-4">
+                    {/* File info row */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[rgba(94,162,182,0.12)] flex items-center justify-center shrink-0">
+                        <svg className="w-4 h-4 text-[#5ea2b6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-[rgba(255,255,255,0.87)] truncate">{droppedFile.name}{droppedFile.duration > 0 ? ` · ${Math.floor(droppedFile.duration / 60)}:${String(Math.floor(droppedFile.duration % 60)).padStart(2, '0')}` : ''}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setDroppedFile(null); saveMutation.reset(); setFinalizeError(''); }}
+                        className="text-[rgba(255,255,255,0.3)] hover:text-[#ea6152] transition-colors shrink-0"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    </div>
+
+                    {/* Audio preview */}
+                    <audio src={URL.createObjectURL(droppedFile.file)} controls className="w-full h-8" />
+
+                    {/* Title + Save row */}
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={promptTitle}
+                        onChange={(e) => setPromptTitle(e.target.value)}
+                        placeholder="Song title..."
+                        className="flex-1 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg px-3 py-2 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => saveMutation.mutate()}
+                        disabled={saveMutation.isPending || !promptTitle.trim()}
+                        className="bg-[#5ea2b6] hover:bg-[#70b4c8] text-white py-2 px-5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 flex items-center gap-2 shrink-0"
+                      >
+                        {saveMutation.isPending ? (
+                          <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving…</>
+                        ) : 'Save to Library'}
+                      </button>
+                    </div>
+
+                    {finalizeError && (
+                      <p className="text-[#ea6152] text-xs">{finalizeError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </>
           ) : null}
         </div>
