@@ -390,21 +390,19 @@ export default function PromptComposer() {
                 }} />
               </label>
             )}
-            {/* Submit to Suno */}
+            {/* Copy Prompt — stages for Ctrl+E on suno.com */}
             <button
               type="button"
-              onClick={() => { setSunoStatus('submitting'); sunoSubmitMutation.mutate(); }}
-              disabled={sunoSubmitMutation.isPending || sunoStatus === 'generating'}
+              onClick={() => sunoSubmitMutation.mutate()}
+              disabled={sunoSubmitMutation.isPending}
               className="bg-gradient-to-r from-[#e91e8c] to-[#c41874] text-white py-2 px-5 rounded-lg text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-all flex items-center gap-2"
             >
-              {sunoStatus === 'submitting' || sunoSubmitMutation.isPending ? (
-                <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Submitting...</>
-              ) : sunoStatus === 'generating' ? (
-                <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Generating...</>
+              {sunoSubmitMutation.isPending ? (
+                <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Staging...</>
               ) : (
                 <>
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                  Submit to Suno
+                  Copy Prompt
                 </>
               )}
             </button>
