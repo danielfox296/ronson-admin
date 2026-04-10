@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
 import { humanize } from '../lib/utils.js';
@@ -246,6 +246,14 @@ const SUNO_BOOKMARKLET_HREF = 'javascript:' + encodeURI(SUNO_BOOKMARKLET_JS);
 
 function SunoBookmarklet() {
   const [copied, setCopied] = useState(false);
+  const anchorRef = useRef<HTMLAnchorElement>(null);
+  // React refuses to render `javascript:` URLs through JSX `href` —
+  // set the attribute imperatively after mount to bypass that guard.
+  useEffect(() => {
+    if (anchorRef.current) {
+      anchorRef.current.setAttribute('href', SUNO_BOOKMARKLET_HREF);
+    }
+  }, []);
   return (
     <section className="mb-8">
       <div className="flex items-center justify-between mb-3">
@@ -256,12 +264,11 @@ function SunoBookmarklet() {
           Drag this link to your browser bookmark bar. On suno.com Create, click <span className="text-[#5ea2b6]">Copy Prompt</span> in Ronson first, then click the bookmarklet to auto-fill Title, Style, Exclude, and Lyrics from your clipboard.
         </p>
         <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line react/jsx-no-script-url */}
           <a
-            href={SUNO_BOOKMARKLET_HREF}
+            ref={anchorRef}
             onClick={(e) => e.preventDefault()}
             draggable
-            className="inline-flex items-center gap-2 bg-[rgba(94,162,182,0.1)] border border-[rgba(94,162,182,0.25)] text-[#5ea2b6] hover:bg-[rgba(94,162,182,0.18)] px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+            className="inline-flex items-center gap-2 bg-[rgba(94,162,182,0.1)] border border-[rgba(94,162,182,0.25)] text-[#5ea2b6] hover:bg-[rgba(94,162,182,0.18)] px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-grab"
           >
             Suno Fill v{SUNO_BOOKMARKLET_V}
           </a>
