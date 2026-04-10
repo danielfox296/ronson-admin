@@ -218,7 +218,7 @@ export default function SongLibrary() {
                       </div>
                       <div>
                         <p className="font-normal text-[rgba(255,255,255,0.9)] group-hover:text-[#5ea2b6] transition-colors">{s.title || 'Untitled'}</p>
-                        {s.duration_seconds && (
+                        {s.duration_seconds > 0 && (
                           <p className="text-[10px] text-[rgba(255,255,255,0.55)] mt-0.5">{formatDuration(Math.round(s.duration_seconds))}</p>
                         )}
                       </div>
