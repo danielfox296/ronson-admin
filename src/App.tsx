@@ -10,7 +10,6 @@ import SongDetail from './screens/SongDetail.js';
 import Config from './screens/Config.js';
 import CustomerProfiles from './screens/CustomerProfiles.js';
 import PromptComposer from './screens/PromptComposer.js';
-import SunoCompose from './screens/SunoCompose.js';
 import Prompts from './screens/Prompts.js';
 import Account from './screens/Account.js';
 import Analytics from './screens/Analytics.js';
@@ -187,7 +186,6 @@ export default function App() {
         <Route path="crm/import" element={<ImportView />} />
         <Route path="clients/:clientId/stores/:storeId" element={<StoreDetail />} />
         <Route path="clients/:clientId/stores/:storeId/audiences/:icpId" element={<AudiencePipeline />} />
-        <Route path="clients/:clientId/stores/:storeId/audiences/:icpId/compose/:refTrackId" element={<SunoCompose />} />
         <Route path="songs" element={<SongLibrary />} />
         <Route path="songs/:id" element={<SongDetail />} />
         <Route path="batch-entry" element={<BatchEntry />} />
