@@ -168,6 +168,9 @@ export default function Config() {
         )}
       </section>
 
+      {/* Suno Fill Bookmarklet */}
+      <SunoBookmarklet />
+
       {/* Generation Systems */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
@@ -231,5 +234,53 @@ export default function Config() {
         )}
       </section>
     </div>
+  );
+}
+
+// ---------- Suno Fill Bookmarklet (v8) ----------
+// Reads the formatted prompt from the clipboard (TITLE/STYLE/EXCLUDE/LYRICS sections)
+// and fills the 4 Suno Create fields. No backend involvement.
+const SUNO_BOOKMARKLET_V = '8';
+const SUNO_BOOKMARKLET_JS = `(async function(){var V='${SUNO_BOOKMARKLET_V}';if(!/suno\\.com/.test(location.hostname)){alert('Suno Fill v'+V+': open this on suno.com');return}var t;try{t=await navigator.clipboard.readText()}catch(e){alert('Suno Fill v'+V+': clipboard read failed.\\n\\n'+e.message);return}if(!t||!t.trim()){alert('Suno Fill v'+V+': clipboard is empty. Press Copy Prompt in Ronson first.');return}var sec={TITLE:'',STYLE:'',EXCLUDE:'',LYRICS:''},hdr=['TITLE','STYLE','EXCLUDE','LYRICS'],ln=t.split(/\\r?\\n/),cur=null,buf=[];for(var i=0;i<ln.length;i++){var L=ln[i];if(hdr.indexOf(L.trim())!==-1){if(cur)sec[cur]=buf.join('\\n').replace(/^\\n+|\\n+$/g,'');cur=L.trim();buf=[]}else if(cur){buf.push(L)}}if(cur)sec[cur]=buf.join('\\n').replace(/^\\n+|\\n+$/g,'');function ff(tag,ndl){var el=document.querySelectorAll(tag);for(var i=0;i<el.length;i++){var ph=(el[i].getAttribute('placeholder')||'').toLowerCase();if(ph.indexOf(ndl)!==-1)return el[i]}return null}function fs(){var el=document.querySelectorAll('textarea');for(var i=0;i<el.length;i++){var ph=(el[i].getAttribute('placeholder')||'').toLowerCase();if(ph.indexOf('lyric')!==-1)continue;if(ph.indexOf('describe the sound')!==-1)continue;if(ph.indexOf('trance')!==-1)continue;return el[i]}return null}function sv(el,v){if(!el)return false;var p=el.tagName==='TEXTAREA'?HTMLTextAreaElement:HTMLInputElement;var s=Object.getOwnPropertyDescriptor(p.prototype,'value').set;s.call(el,v||'');el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}var r=[];r.push('Lyrics: '+(sv(ff('textarea','lyric'),sec.LYRICS)?'ok':'NOT FOUND'));r.push('Style: '+(sv(fs(),sec.STYLE)?'ok':'NOT FOUND'));r.push('Title: '+(sv(ff('input','title'),sec.TITLE)?'ok':'NOT FOUND'));r.push('Exclude: '+(sv(ff('input','exclude'),sec.EXCLUDE)?'ok':'NOT FOUND'));if(r.filter(function(x){return /NOT FOUND/.test(x)}).length){alert('Suno Fill v'+V+' — some fields not found:\\n\\n'+r.join('\\n')+'\\n\\nMake sure you are on the Create page in Custom mode.')}})();`;
+const SUNO_BOOKMARKLET_HREF = 'javascript:' + encodeURI(SUNO_BOOKMARKLET_JS);
+
+function SunoBookmarklet() {
+  const [copied, setCopied] = useState(false);
+  return (
+    <section className="mb-8">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-medium text-[rgba(255,255,255,0.87)]">Suno Fill Bookmarklet <span className="text-[10px] text-[rgba(255,255,255,0.4)] font-normal ml-2">v{SUNO_BOOKMARKLET_V}</span></h2>
+      </div>
+      <div className="bg-[#1b1b24] border border-[rgba(255,255,255,0.09)] rounded-xl p-4 space-y-3">
+        <p className="text-sm text-[rgba(255,255,255,0.65)]">
+          Drag this link to your browser bookmark bar. On suno.com Create, click <span className="text-[#5ea2b6]">Copy Prompt</span> in Ronson first, then click the bookmarklet to auto-fill Title, Style, Exclude, and Lyrics from your clipboard.
+        </p>
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line react/jsx-no-script-url */}
+          <a
+            href={SUNO_BOOKMARKLET_HREF}
+            onClick={(e) => e.preventDefault()}
+            draggable
+            className="inline-flex items-center gap-2 bg-[rgba(94,162,182,0.1)] border border-[rgba(94,162,182,0.25)] text-[#5ea2b6] hover:bg-[rgba(94,162,182,0.18)] px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+          >
+            Suno Fill v{SUNO_BOOKMARKLET_V}
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(SUNO_BOOKMARKLET_HREF);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+            className="text-[10px] text-[#4a90a4] hover:text-[#5ba3b8] transition-colors uppercase tracking-widest font-bold"
+          >
+            {copied ? 'Copied' : 'Copy code'}
+          </button>
+        </div>
+        <p className="text-xs text-[rgba(255,255,255,0.4)]">
+          First click may ask for clipboard read permission — allow it. Requires Custom mode to be enabled on Suno's Create page.
+        </p>
+      </div>
+    </section>
   );
 }
