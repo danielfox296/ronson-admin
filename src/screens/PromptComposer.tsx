@@ -296,24 +296,20 @@ export default function PromptComposer() {
         setSavedSongId(songId);
       }
 
-      return api<{ data: any }>('/api/suno/submit', {
+      return api<{ data: any }>('/api/suno/stage', {
         method: 'POST',
         body: {
-          song_id: songId,
           lyrics,
           style,
           style_negations: styleNegations,
-          voice,
           title: promptTitle || 'Untitled',
-          weirdness,
-          style_influence: styleInfluence,
         },
       });
     },
-    onSuccess: (result) => {
-      setSunoIds(result.data.suno_ids || []);
-      setSunoStatus('generating');
+    onSuccess: () => {
+      setSunoStatus('complete');
       setSunoError('');
+      alert('Prompt staged! Press Ctrl+E on suno.com to fill.');
     },
     onError: (err: Error) => {
       setSunoStatus('error');
